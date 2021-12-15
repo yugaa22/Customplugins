@@ -1,0 +1,96 @@
+.sp-formItem__left {
+  display: block;
+  align-self: flex-start;
+}
+.grid {
+  display: grid;
+}
+.grid.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.sp-formItem {
+  display: flex;
+  flex-direction: column;
+}
+.sp-formItem__right {
+  padding: 0;
+}
+.grid-span-2 {
+  grid-column: auto/span 2;
+}
+.grid-span-3 {
+  grid-column: auto/span 3;
+}
+.grid-span-4 {
+  grid-column: auto/span 4;
+}
+.form {
+  max-width: 80%;
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+}
+.opsmxLogo {
+  padding: 10px 20px;
+}
+.opsmxLogo img {
+  width: 80px;
+  max-width: 100px;
+  max-height: 80px;
+}
+
+.score {
+  font-size: 28px;
+  padding: 5px 10px;
+  font-weight: bold;
+  margin-bottom: 1em;
+  display: inline-block;
+  color: white;
+  &Small {
+    font-size: 12px;
+    padding: 2px 4px;
+    margin-bottom: 0px;
+    font-weight: inherit;
+    color: white;
+  }
+}
+
+.detailpagelogo {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.verificationScoreDanger {
+  background-color: var(--color-danger);
+}
+.verificationScoreSuccess {
+  background-color: var(--color-success);
+}
+.verificationScoreAlert {
+  background-color: var(--color-alert);
+}
+.testCol1 {
+  grid-column-start: 1;
+  grid-column-end: auto;
+}
+.testCol2 {
+  grid-column-start: 2;
+  grid-column-end: auto;
+}
+.testCol3 {
+  grid-column-start: 3;
+  grid-column-end: auto;
+}
+.mainform {
+  width: 75%;
+}
+.TestRunTextareaMain {
+  .sp-formItem {
+    max-width: 1200px !important;
+  }
+}
+.TestRunTextArea {
+  width: 100%;
+}
