@@ -30,7 +30,7 @@ sourceSets {
 
 spinnakerPlugin {
   serviceName = "orca"
-  pluginClass = "com.opsmx.plugin.stage.custom.TestVerificationPlugin"
+  pluginClass = "com.opsmx.plugin.stage.custom.ApprovalPlugin"
   requires="orca>=0.0.0"
 }
 

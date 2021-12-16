@@ -15,13 +15,13 @@ repositories {
 }
 
 spinnakerBundle {
-  pluginId = "Opsmx.VerificationGatePlugin"
+  pluginId = "Opsmx.StaticPolicyPlugin"
   description = "An example of a PF4J-based plugin that provides a custom pipeline stage."
   provider = "https://github.com/opsmx"
   version = rootProject.version
 }
 
-version = "v1.0.1-SNAPSHOT"
+version = "v1.0.1"
 
 subprojects {
   group = "com.opsmx.plugin.stage.custom"
@@ -42,7 +42,7 @@ subprojects {
 }
 
 String normalizedVersion() {
-  String  fullVersion = gitVersion()
+  String fullVersion = gitVersion()
   String normalized = fullVersion.split("-").first()
   if (fullVersion.contains("dirty")) {
     return "$normalized-SNAPSHOT"

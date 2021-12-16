@@ -30,7 +30,7 @@ sourceSets {
 
 spinnakerPlugin {
   serviceName = "orca"
-  pluginClass = "com.opsmx.plugin.stage.custom.TestVerificationPlugin"
+  pluginClass = "com.opsmx.plugin.stage.custom.PolicyPlugin"
   requires="orca>=0.0.0"
 }
 
@@ -63,7 +63,7 @@ dependencies {
   testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
   testRuntime "org.junit.platform:junit-platform-launcher:1.4.0"
   testRuntime "org.junit.platform:junit-platform-commons:1.5.2"
-
+  
   compile "org.apache.httpcomponents:httpclient:4.5.13"
 }
 
