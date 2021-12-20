@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Plugin-Class: com.opsmx.plugin.stage.custom.VerificationPlugin
+Plugin-Id: Opsmx.VerificationGatePlugin
+Plugin-Version: 1.0.3-SNAPSHOT
+Plugin-Requires: orca>=0.0.0
+Plugin-Description: An example of a PF4J-based plugin that provides a cu
+ stom pipeline stage.
+Plugin-Provider: https://github.com/opsmx
+
