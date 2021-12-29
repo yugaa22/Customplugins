@@ -15,12 +15,12 @@ import groovy.transform.CompileStatic;
 @Component
 @Extension
 @CompileStatic
-public class CreateApplicationStage implements StageDefinitionBuilder {	
+public class UpdateApplicationStage implements StageDefinitionBuilder {	
 	
 	@Override
 	public void taskGraph(@NotNull StageExecution stage, @NotNull TaskNode.Builder builder) {
 		
 		builder.withTask("validateApplication", RBACValidationTask.class)
-		.withTask("createTask", UpsertApplicationTask.class);
+		.withTask("updateApplication", UpsertApplicationTask.class);
 	}	
 }

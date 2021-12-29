@@ -99,7 +99,7 @@ public class OpenPolicyAgentValidator implements PipelineValidator, SpinnakerExt
 			/* fetch the response from the spawned call execution */
 			httpResponse = doPost(opaFinalUrl, requestBody);
 			opaStringResponse = httpResponse.body().string();
-			logger.info("OPA response: {}", opaStringResponse);
+			logger.debug("OPA response: {}", opaStringResponse);
 			logger.info("proxy enabled : {}, statuscode : {}, opaResultKey : {}", isOpaProxy, httpResponse.code(), opaResultKey);
 			if (isOpaProxy) {
 				if (httpResponse.code() == 401 ) {

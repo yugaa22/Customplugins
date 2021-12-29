@@ -30,7 +30,7 @@ sourceSets {
 
 spinnakerPlugin {
   serviceName = "orca"
-  pluginClass = "com.opsmx.plugin.stage.custom.VerificationPlugin"
+  pluginClass = "com.opsmx.plugin.stage.custom.RbacPlugin"
   requires="orca>=0.0.0"
 }
 
@@ -42,6 +42,7 @@ dependencies {
   compileOnly "com.netflix.spinnaker.orca:orca-clouddriver:${orcaVersion}"
   compileOnly "com.netflix.spinnaker.orca:orca-front50:${orcaVersion}"
   compileOnly "com.netflix.spinnaker.orca:orca-applications:${orcaVersion}"
+  compileOnly "com.netflix.spinnaker.fiat:fiat-core:1.26.0"
   kapt "org.pf4j:pf4j:${pf4jVersion}"
 
   compileOnly group: 'com.squareup.retrofit', name: 'retrofit', version: '1.9.0'

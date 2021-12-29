@@ -15,13 +15,13 @@ repositories {
 }
 
 spinnakerBundle {
-  pluginId = "Opsmx.VerificationGatePlugin"
+  pluginId = "Opsmx.RbacPlugin"
   description = "An example of a PF4J-based plugin that provides a custom pipeline stage."
   provider = "https://github.com/opsmx"
   version = rootProject.version
 }
 
-version = normalizedVersion()
+version = "v1.0.1-SNAPSHOT"
 
 subprojects {
   group = "com.opsmx.plugin.stage.custom"

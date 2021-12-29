@@ -5,7 +5,7 @@ import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VerificationPlugin extends Plugin {
+public class RbacPlugin extends Plugin {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -16,16 +16,15 @@ public class VerificationPlugin extends Plugin {
      *
      * @param wrapper
      */
-    public VerificationPlugin(PluginWrapper wrapper) {
+    public RbacPlugin(PluginWrapper wrapper) {
         super(wrapper);
     }
 
     public void start() {
-        log.info("VerificationGatePlugin.start()");
+        log.info("Rbac Plugin started");
     }
 
     public void stop() {
-        log.info("VerificationGatePlugin.stop()");
+        log.info("Rbac Plugin stoped");
     }
-
 }

@@ -1,0 +1,17 @@
+{
+    "id": "Opsmx.RbacPlugin",
+    "description": "An example of a PF4J-based plugin that provides a custom pipeline stage.",
+    "provider": "https://github.com/opsmx",
+    "releases": [
+        {
+            "version": "v1.0.1-SNAPSHOT",
+            "date": "2021-12-27T05:43:06.790228Z",
+            "requires": "orca>=0.0.0",
+            "sha512sum": "e9d523b28e6b870ad221534ebf66c9b7909582e683acecd116d5c17dbd22343a66a21c6e9f90f2a4756f0a76eb6ff7e77cf236be1e87169aa8a4bfe5d8965931",
+            "preferred": false,
+            "compatibility": [
+                
+            ]
+        }
+    ]
+}

@@ -9,7 +9,7 @@ pluginManagement {
   }
 }
 
-rootProject.name = "pf4jCustomStagePlugin"
+rootProject.name = "RbacPlugin"
 
 include "custom-stage-orca"
 
