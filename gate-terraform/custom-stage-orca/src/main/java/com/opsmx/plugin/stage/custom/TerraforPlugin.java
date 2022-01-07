@@ -5,7 +5,7 @@ import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PolicyPlugin extends Plugin {
+public class TerraforPlugin extends Plugin {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -16,7 +16,7 @@ public class PolicyPlugin extends Plugin {
      *
      * @param wrapper
      */
-    public PolicyPlugin(PluginWrapper wrapper) {
+    public TerraforPlugin(PluginWrapper wrapper) {
         super(wrapper);
     }
 
