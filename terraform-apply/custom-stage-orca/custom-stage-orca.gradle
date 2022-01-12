@@ -30,7 +30,7 @@ sourceSets {
 
 spinnakerPlugin {
   serviceName = "orca"
-  pluginClass = "com.opsmx.plugin.stage.custom.PolicyPlugin"
+  pluginClass = "com.opsmx.plugin.stage.custom.TerraformApplyPlugin"
   requires="orca>=0.0.0"
 }
 
