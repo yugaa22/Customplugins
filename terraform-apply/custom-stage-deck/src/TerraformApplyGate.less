@@ -1,0 +1,80 @@
+.sp-formItem__left {
+  display: block;
+  align-self: flex-start;
+}
+.grid {
+  display: grid;
+}
+.grid.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+.sp-formItem {
+  display: flex;
+  flex-direction: column;
+}
+.sp-formItem__right {
+  padding: 0;
+}
+.grid-span-2 {
+  grid-column: auto/span 2;
+}
+.grid-span-3 {
+  grid-column: auto/span 3;
+}
+.grid-span-4 {
+  grid-column: auto/span 4;
+}
+.form {
+  max-width: 80%;
+}
+.flex {
+  display: flex;
+  justify-content: space-between;
+}
+.opsmxLogo {
+  padding: 10px 20px;
+}
+.opsmxLogo img {
+  width: 80px;
+  max-width: 100px;
+  max-height: 80px;
+}
+.detailpagelogo {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+.policyTextArea {
+  width: 100%;
+}
+.payloadTextarea {
+  .sp-formItem {
+    max-width: 1200px !important;
+  }
+}
+.mainform {
+  width: 75%;
+}
+
+.TerraformStatus {
+  font-size: 28px;
+  padding: 5px 10px;
+  font-weight: bold;
+  margin-bottom: 1em;
+  display: inline-block;
+  color: white;
+  &Small {
+    font-size: 12px;
+    padding: 2px 4px;
+    margin-bottom: 0px;
+    font-weight: inherit;
+    color: white;
+  }
+}
+
+.terraformStatusDanger {
+  background-color: var(--color-danger);
+}
+.terraformStatusSuccess {
+  background-color: var(--color-success);
+}
