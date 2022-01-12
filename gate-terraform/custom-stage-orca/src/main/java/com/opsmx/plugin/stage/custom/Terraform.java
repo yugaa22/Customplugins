@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.pf4j.Extension;
 
 @Extension
-public class Policy implements StageDefinitionBuilder {
+public class Terraform implements StageDefinitionBuilder {
 
     /**
      * This function describes the sequence of substeps, or "tasks" that comprise this
