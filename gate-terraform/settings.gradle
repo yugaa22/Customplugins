@@ -9,7 +9,7 @@ pluginManagement {
   }
 }
 
-rootProject.name = "TerraformPlugin"
+rootProject.name = "TerraformPlanPlugin"
 
 include "custom-stage-orca", "custom-stage-deck"
 
