@@ -82,28 +82,36 @@ public class PolicyTask implements Task {
 		Map<String, Object> contextMap = new HashMap<>();
 		Map<String, Object> outputs = new HashMap<>();
 		logger.info("Policy gate execution start ");
-		PolicyContext context = stage.mapTo("/parameters", PolicyContext.class);
 
 		CloseableHttpClient httpClient = null;
-		try {  
-			if (context.getPolicyurl() == null || context.getPolicyurl().isEmpty()) {
+		try {
+			Map<String, Object> jsonContext = (Map<String, Object>) stage.getContext().get("parameters");
+
+			if (jsonContext.get("policyurl") == null || ((String) jsonContext.get("policyurl")).isEmpty()) {
 				logger.info("Policyproxy Url should not be empty");
 				outputs.put(EXCEPTION, "Policyproxy Url should not be empty");
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
 						.outputs(outputs)
 						.build();
-			}     
-
-			if (context.getPolicyurl().endsWith("/")) {
-				context.setPolicyurl(context.getPolicyurl().replaceAll(".$", ""));
 			}
 
-			if (context.getPolicypath().startsWith("/")) {
-				context.setPolicypath(context.getPolicypath().substring(1));
+			PolicyContext context = new PolicyContext();
+			context.setPolicyurl(((String) jsonContext.get("policyurl")));
+			context.setPolicypath(((String) jsonContext.get("policypath")));
+			context.setGate(((String) jsonContext.get("gate")));
+			context.setImageids(((String) jsonContext.get("imageids")));
+
+			Object payload = jsonContext.get("payload");
+			if (payload != null) {
+				if (payload instanceof String) {
+					context.setPayload((String) payload);
+				} else {
+					context.setPayload(objectMapper.convertValue((Map<String, Object>) jsonContext.get("payload"), ObjectNode.class).toString());
+				}
 			}
 
-			String url = context.getPolicyurl().concat("/").concat(context.getPolicypath());
+			String url = String.format("%s/%s", context.getPolicyurl().endsWith("/") ? context.getPolicyurl().substring(0, context.getPolicyurl().length() - 1) : context.getPolicyurl(), context.getPolicypath().startsWith("/") ? context.getPolicypath().substring(1) : context.getPolicypath());
 
 			HttpPost request = new HttpPost(url);
 			String triggerPayload = getPayloadString(context, stage.getExecution().getApplication(), stage.getExecution().getName(),
@@ -161,8 +169,8 @@ public class PolicyTask implements Task {
 
 			} else {
 				outputs.put(STATUS, DENY);
-				outputs.put("REASON", String.format("Policy verification statuscode :: %s, %s", response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Policy verification failed with statuscode :: %s", response.getStatusLine().getStatusCode()));
+				outputs.put("REASON", String.format("Policy verification status code :: %s, %s", response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(MESSAGE, String.format("Policy verification failed with status code :: %s", response.getStatusLine().getStatusCode()));
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
@@ -171,7 +179,7 @@ public class PolicyTask implements Task {
 			}			
 
 		} catch (Exception e) {
-			logger.error("Error occured while triggering policy ", e);
+			logger.error("Error occurred while triggering policy ", e);
 			outputs.put(STATUS, DENY);
 			outputs.put(MESSAGE, String.format("Policy trigger failed with exception :: %s", e.getMessage()));
 			outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
@@ -217,9 +225,6 @@ public class PolicyTask implements Task {
 			}
 		}
 	}
-	
-	
-
 
 	private String getPayloadString(PolicyContext context, String application, String name, String executionId, String user, String payload, Object gateSecurity) throws JsonProcessingException {
 		ObjectNode finalJson = objectMapper.createObjectNode();
@@ -234,6 +239,13 @@ public class PolicyTask implements Task {
 			finalJson.put(APPLICATION2, application);
 			finalJson.put(NAME2, name);
 			finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, user));
+			if (context.getImageids() != null && !context.getImageids().isEmpty()) {
+				ArrayNode images = objectMapper.createArrayNode();
+				Arrays.asList(context.getImageids().split(",")).forEach(a -> {
+					images.add(a.trim());
+				});
+				finalJson.set("imageIds", images);
+			}
 
 		} else {
 			finalJson.put(START_TIME, System.currentTimeMillis());
