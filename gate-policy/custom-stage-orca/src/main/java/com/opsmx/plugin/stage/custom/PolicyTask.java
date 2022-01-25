@@ -102,12 +102,13 @@ public class PolicyTask implements Task {
 			context.setGate(((String) jsonContext.get("gate")));
 			context.setImageids(((String) jsonContext.get("imageids")));
 
+			Map<String, Object> jsonPayload1 = (Map<String, Object>) jsonContext.get("payload");
 			Object payload = jsonContext.get("payload");
 			if (payload != null) {
 				if (payload instanceof String) {
 					context.setPayload((String) payload);
 				} else {
-					context.setPayload(objectMapper.convertValue((Map<String, Object>) jsonContext.get("payload"), ObjectNode.class).toString());
+					context.setPayload(objectMapper.writeValueAsString(objectMapper.convertValue((Map<String, Object>) jsonContext.get("payload"), ObjectNode.class)));
 				}
 			}
 
@@ -170,7 +171,7 @@ public class PolicyTask implements Task {
 			} else {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Policy verification status code :: %s, %s", response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Policy verification failed with status code :: %s", response.getStatusLine().getStatusCode()));
+				outputs.put(MESSAGE, String.format("Policy verification failed :: %s", response.getEntity().toString()));
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
@@ -228,10 +229,7 @@ public class PolicyTask implements Task {
 
 	private String getPayloadString(PolicyContext context, String application, String name, String executionId, String user, String payload, Object gateSecurity) throws JsonProcessingException {
 		ObjectNode finalJson = objectMapper.createObjectNode();
-		if (gateSecurity != null) {
-			String gateSecurityPayload = objectMapper.writeValueAsString(gateSecurity);
-			finalJson.set(PAYLOAD_CONSTRAINT, objectMapper.readTree(gateSecurityPayload));
-		}
+
 		if (payload != null && ! payload.trim().isEmpty()) {
 			finalJson = (ObjectNode) objectMapper.readTree(payload);
 			finalJson.put("executionId", executionId);
@@ -246,7 +244,6 @@ public class PolicyTask implements Task {
 				});
 				finalJson.set("imageIds", images);
 			}
-
 		} else {
 			finalJson.put(START_TIME, System.currentTimeMillis());
 			finalJson.put(APPLICATION2, application);
@@ -263,7 +260,11 @@ public class PolicyTask implements Task {
 			}
 		}
 
-		logger.info("Payload string to policy : {}", finalJson);
-		return finalJson.toString();
+		if (gateSecurity != null) {
+			String gateSecurityPayload = objectMapper.writeValueAsString(gateSecurity);
+			finalJson.set(PAYLOAD_CONSTRAINT, objectMapper.readTree(gateSecurityPayload));
+		}
+
+		return objectMapper.writeValueAsString(finalJson);
 	}
 }

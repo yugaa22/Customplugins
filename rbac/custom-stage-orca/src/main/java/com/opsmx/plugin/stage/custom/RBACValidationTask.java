@@ -93,7 +93,7 @@ public class RBACValidationTask implements Task {
 			}
 			
 
-			logger.debug("Verifying {} with OPA", finalInput);
+			logger.info("Verifying {} with OPA", finalInput);
 
 			/* build our request to OPA */
 			RequestBody requestBody = RequestBody.create(JSON, finalInput);
@@ -105,7 +105,7 @@ public class RBACValidationTask implements Task {
 			/* fetch the response from the spawned call execution */
 			httpResponse = doPost(opaFinalUrl, requestBody);
 			opaStringResponse = httpResponse.body().string();
-			logger.debug("OPA response: {}", opaStringResponse);
+			logger.info("OPA response: {}", opaStringResponse);
 			logger.debug("proxy enabled : {}, statuscode : {}, opaResultKey : {}", isOpaProxy, httpResponse.code(), opaResultKey);
 			if (isOpaProxy) {
 				if (httpResponse.code() == 401 ) {
@@ -113,7 +113,7 @@ public class RBACValidationTask implements Task {
 					StringBuilder denyMessage = new StringBuilder();
 					extractDenyMessage(opaResponse, denyMessage);
 					if (StringUtils.isNotBlank(denyMessage)) {
-						throw new IllegalArgumentException("Error(s) - "+ denyMessage.toString());
+						throw new IllegalArgumentException("OpsMx Policy Error(s) - "+ denyMessage.toString());
 					} else {
 						throw new IllegalArgumentException("There is no '" + opaResultKey + "' field in the OPA response", null);
 					}
@@ -126,7 +126,7 @@ public class RBACValidationTask implements Task {
 					StringBuilder denyMessage = new StringBuilder();
 					extractDenyMessage(opaResponse, denyMessage);
 					if (StringUtils.isNotBlank(denyMessage)) {
-						throw new IllegalArgumentException("Error(s): "+ denyMessage.toString());
+						throw new IllegalArgumentException("OpsMx Policy Error(s): "+ denyMessage.toString());
 					} else {
 						throw new IllegalArgumentException("There is no '" + opaResultKey + "' field in the OPA response", null);
 					}
@@ -158,10 +158,14 @@ public class RBACValidationTask implements Task {
 					});
 				}
 			}else if (field.getValue().isJsonObject()) {
-				extractDenyMessage(field.getValue().getAsJsonObject(), messagebuilder);
+				if (!field.getValue().isJsonPrimitive()) {
+					extractDenyMessage(field.getValue().getAsJsonObject(), messagebuilder);
+				}
 			} else if (field.getValue().isJsonArray()){
 				field.getValue().getAsJsonArray().forEach(obj -> {
-					extractDenyMessage(obj.getAsJsonObject(), messagebuilder);
+					if (!obj.isJsonPrimitive()) {
+						extractDenyMessage(obj.getAsJsonObject(), messagebuilder);
+					}
 				});
 			}
 		});
@@ -170,7 +174,7 @@ public class RBACValidationTask implements Task {
 	
 	private String getOpaInput(Application application, String type) {
 		ObjectNode applicationJson = applicationToJson(application, type);
-		return addWrapper(addWrapper(applicationJson, "new"), "input").toString();
+		return addWrapper(addWrapper(applicationJson, "app"), "input").toString();
 	}
 	
    private ObjectNode applicationToJson(Application application, String type) {
