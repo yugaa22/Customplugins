@@ -102,7 +102,6 @@ public class PolicyTask implements Task {
 			context.setGate(((String) jsonContext.get("gate")));
 			context.setImageids(((String) jsonContext.get("imageids")));
 
-			Map<String, Object> jsonPayload1 = (Map<String, Object>) jsonContext.get("payload");
 			Object payload = jsonContext.get("payload");
 			if (payload != null) {
 				if (payload instanceof String) {
