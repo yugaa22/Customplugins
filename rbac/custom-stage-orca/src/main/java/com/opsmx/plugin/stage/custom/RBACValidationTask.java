@@ -115,10 +115,10 @@ public class RBACValidationTask implements Task {
 					if (StringUtils.isNotBlank(denyMessage)) {
 						throw new IllegalArgumentException("OpsMx Policy Error(s) - "+ denyMessage.toString());
 					} else {
-						throw new IllegalArgumentException("There is no '" + opaResultKey + "' field in the OPA response", null);
+						throw new IllegalArgumentException("OpsMx Policy Error(s) - there is no '" + opaResultKey + "' field in the OPA response", null);
 					}
 				} else if (httpResponse.code() != 200 ) {
-					throw new IllegalArgumentException(opaStringResponse, null);
+					throw new IllegalArgumentException("OpsMx Policy Error(s) - " + opaStringResponse, null);
 				}
 			} else {
 				if (httpResponse.code() == 401 ) {
@@ -126,16 +126,16 @@ public class RBACValidationTask implements Task {
 					StringBuilder denyMessage = new StringBuilder();
 					extractDenyMessage(opaResponse, denyMessage);
 					if (StringUtils.isNotBlank(denyMessage)) {
-						throw new IllegalArgumentException("OpsMx Policy Error(s): "+ denyMessage.toString());
+						throw new IllegalArgumentException("OpsMx Policy Error(s) - "+ denyMessage.toString());
 					} else {
-						throw new IllegalArgumentException("There is no '" + opaResultKey + "' field in the OPA response", null);
+						throw new IllegalArgumentException("OpsMx Policy Error(s) - there is no '" + opaResultKey + "' field in the OPA response", null);
 					}
 				} else if (httpResponse.code() != 200 ) {
-					throw new IllegalArgumentException(opaStringResponse, null);
+					throw new IllegalArgumentException("OpsMx Policy Error(s) - " + opaStringResponse, null);
 				}
 			}
 		} catch (IOException e) {
-			logger.error("Communication exception for OPA at {}: {}", this.opaUrl, e.toString());
+			logger.error("Failed to connect to OPA server {}: {}", this.opaUrl, e.toString());
 			throw new IllegalArgumentException(e.getMessage(), null);
 		}
 
