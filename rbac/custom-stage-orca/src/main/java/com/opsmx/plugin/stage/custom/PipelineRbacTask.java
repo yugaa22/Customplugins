@@ -1,6 +1,5 @@
 package com.opsmx.plugin.stage.custom;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -12,17 +11,16 @@ import com.google.gson.JsonObject;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.shared.FiatService;
+import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import com.netflix.spinnaker.orca.front50.Front50Service;
-import com.netflix.spinnaker.orca.front50.model.Application;
 import groovy.util.logging.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.groovy.util.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
@@ -73,11 +71,14 @@ public class PipelineRbacTask implements Task {
 
     private final Optional<FiatService> fiatService;
 
+    private final FiatStatus fiatStatus;
+
     private final Front50Service front50Service;
 
-    public PipelineRbacTask(Optional<FiatService> fiatService, Front50Service front50Service) {
+    public PipelineRbacTask(Optional<FiatService> fiatService, Front50Service front50Service, FiatStatus fiatStatus) {
         this.fiatService = fiatService;
         this.front50Service = front50Service;
+        this.fiatStatus = fiatStatus;
     }
 
     @NotNull
@@ -93,7 +94,7 @@ public class PipelineRbacTask implements Task {
         try {
             logger.info("Stage params: {}", stage.getExecution().getAuthentication().getUser());
             List<String> groupList = new ArrayList<String>();
-            if (fiatService.isPresent()) {
+            if (fiatStatus.isEnabled() && fiatService.isPresent()) {
                 UserPermission.View userPermission = fiatService.get().getUserPermission(stage.getExecution().getAuthentication().getUser());
                 Set<Role.View> roles = userPermission.getRoles();
                 roles.forEach(role -> {
@@ -160,14 +161,12 @@ public class PipelineRbacTask implements Task {
             RequestBody requestBody = RequestBody.create(JSON, finalInput);
             String opaFinalUrl = String.format("%s/%s", opaUrl.endsWith("/") ? opaUrl.substring(0, opaUrl.length() - 1) : opaUrl, opaPolicyLocation.startsWith("/") ? opaPolicyLocation.substring(1) : opaPolicyLocation);
 
-            logger.info("OPA endpoint : {}", opaFinalUrl);
             String opaStringResponse;
 
             /* fetch the response from the spawned call execution */
             httpResponse = doPost(opaFinalUrl, requestBody);
             opaStringResponse = httpResponse.body().string();
-            logger.debug("OPA response: {}", opaStringResponse);
-            logger.debug("proxy enabled : {}, statuscode : {}, opaResultKey : {}", isOpaProxy, httpResponse.code(), opaResultKey);
+            logger.info("OPA response: {}", opaStringResponse);
             if (isOpaProxy) {
                 if (httpResponse.code() == 401 ) {
                     JsonObject opaResponse = gson.fromJson(opaStringResponse, JsonObject.class);
