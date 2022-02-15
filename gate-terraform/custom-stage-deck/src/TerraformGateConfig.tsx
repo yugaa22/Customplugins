@@ -34,6 +34,7 @@ export function TerraformGateConfig(props: IStageConfigProps) {
       <hr />
     </div>
   );
+  console.log("This is s test app")
   return (
     <div className="TeraformGateConfig">
       <FormikStageConfig
