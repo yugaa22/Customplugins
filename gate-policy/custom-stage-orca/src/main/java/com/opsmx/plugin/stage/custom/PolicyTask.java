@@ -130,7 +130,7 @@ public class PolicyTask implements Task {
 				registerResponse = EntityUtils.toString(entity);
 			}
 
-			logger.info("Policy trigger application : {}, pipeline : {},  response : {}", 
+			logger.debug("Policy trigger application : {}, pipeline : {},  response : {}",
 					stage.getExecution().getApplication(), stage.getExecution().getName(), registerResponse);
 
 			if (response.getStatusLine().getStatusCode() == 200 ) {
@@ -170,7 +170,7 @@ public class PolicyTask implements Task {
 			} else {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Policy verification status code :: %s, %s", response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Policy verification failed :: %s", response.getEntity().toString()));
+				outputs.put(MESSAGE, String.format("Policy verification failed :: %s", registerResponse));
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
