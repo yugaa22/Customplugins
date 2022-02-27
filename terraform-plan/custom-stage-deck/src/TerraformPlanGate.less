@@ -39,8 +39,24 @@
   max-width: 100px;
   max-height: 80px;
 }
+.detailpagelogo {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+.policyTextArea {
+  width: 100%;
+}
+.payloadTextarea {
+  .sp-formItem {
+    max-width: 1200px !important;
+  }
+}
+.mainform {
+  width: 75%;
+}
 
-.score {
+.TerraformStatus {
   font-size: 28px;
   padding: 5px 10px;
   font-weight: bold;
@@ -56,21 +72,9 @@
   }
 }
 
-.detailpagelogo {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-}
-
-.verificationScoreDanger {
+.terraformStatusDanger {
   background-color: var(--color-danger);
 }
-.verificationScoreSuccess {
+.terraformStatusSuccess {
   background-color: var(--color-success);
-}
-.verificationScoreAlert {
-  background-color: var(--color-alert);
-}
-.mainform {
-  width: 75%;
 }

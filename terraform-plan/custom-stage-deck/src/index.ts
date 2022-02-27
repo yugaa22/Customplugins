@@ -1,8 +1,8 @@
 import { IDeckPlugin } from '@spinnaker/core';
-import { verification } from './Verification';
+import { terraformplan } from './TerraformPlanGate';
 import { initialize } from './initialize';
 
 export const plugin: IDeckPlugin = {
   initialize,
-  stages: [verification],
+  stages: [terraformplan],
 };

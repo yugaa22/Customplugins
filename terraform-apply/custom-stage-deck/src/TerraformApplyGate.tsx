@@ -1,8 +1,8 @@
 import React from 'react';
 import { ExecutionDetailsTasks, IStageTypeConfig } from '@spinnaker/core';
 
-import { VerificationExecutionDetails } from './VerificationExecutionDetails';
-import { VerificationConfig, validate } from './VerificationConfig';
+import { TerraformApplyGateExecutionDetails } from './TerraformApplyGateExecutionDetails';
+import { TerraformApplyGateConfig, validate } from './TerraformApplyGateConfig';
 
 /*
   Define Spinnaker Stages with IStageTypeConfig.
@@ -13,12 +13,12 @@ import { VerificationConfig, validate } from './VerificationConfig';
   - component -> The rendered React component
   - validateFn -> A validation function for the stage config form.
  */
-export const verification: IStageTypeConfig = {
-  key: 'verification',
-  label: `Verification`,
-  description: 'Stage for Verification Gate',
-  component: VerificationConfig, // stage config
-  executionDetailsSections: [VerificationExecutionDetails, ExecutionDetailsTasks],
+export const terraformapply: IStageTypeConfig = {
+  key: 'terraformapply',
+  label: `Terraform Apply`,
+  description: 'Custom stage to create resources using terraform',
+  component: TerraformApplyGateConfig, // stage config
+  executionDetailsSections: [TerraformApplyGateExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
   validateFn: validate,
 };

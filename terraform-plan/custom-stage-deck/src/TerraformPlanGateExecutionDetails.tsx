@@ -1,7 +1,6 @@
-import React, { Fragment, useCallback, useMemo } from 'react';
+import React from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
-import './Verification.less';
 
 /*
  * You can use this component to provide information to users about
@@ -11,28 +10,31 @@ import './Verification.less';
  * - `props.stage.outputs` maps to your SimpleStage's `Output` class.
  * - `props.stage.context` maps to your SimpleStage's `Context` class.
  */
-
-export function VerificationExecutionDetails(props: IExecutionDetailsSectionProps) {
+export function TerraformPlanGateExecutionDetails(props: IExecutionDetailsSectionProps) {
   const getClasses = () => {
     let classes = '';
-    if (props.stage.outputs.overallScore < props.stage.context.parameters.minicanaryresult) {
-      classes = 'verificationScoreDanger';
-    } else if (props.stage.outputs.overallScore > props.stage.context.parameters.canaryresultscore - 1) {
-      classes = 'verificationScoreSuccess';
-    } else if (
-      props.stage.outputs.overallScore < props.stage.context.parameters.canaryresultscore + 1 &&
-      props.stage.outputs.overallScore > props.stage.context.parameters.minicanaryresult - 1
-    ) {
-      classes = 'verificationScoreAlert';
-    } else {
-      classes = '';
+    if (props.stage.outputs.status == 'allow') {
+      classes = 'terraformStatusSuccess';
+    } else if (props.stage.outputs.status == 'deny') {
+      classes = 'terraformStatusDanger';
     }
     return classes;
   };
+
+  const getStatus = () => {
+    let classes = '';
+    if (props.stage.outputs.status == 'allow') {
+      classes = 'Allow';
+    } else if (props.stage.outputs.status == 'deny') {
+      classes = 'Deny';
+    }
+    return classes;
+  };
+
   const exceptionDiv = props.stage.outputs.exception ? (
     <div className="alert alert-danger">
       <div>
-        <h5>Exception </h5>
+        <h5>Exception</h5>
         <div className="Markdown break-word">
           <p>{props.stage.outputs.exception}</p>
         </div>
@@ -42,34 +44,32 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.overallScore >= 0 ? (
+      {props.stage.outputs.trigger_json !== undefined ? (
         <div>
           <div className="detailpagelogo">
-            <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
             <img
               src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
               alt="logo"
               width="70px"
+              style={{ marginLeft: 'auto' }}
             ></img>
           </div>
-          <table className="table">
+          <table className="table" style={{ marginTop: '15px' }}>
             <thead>
               <tr>
-                <th>Result</th>
-                <th>Report</th>
-                <th>Last Updated</th>
+                <th>Status</th>
+                <th>Message</th>
+                <th style={{ width: '90px' }}>Executed By</th>
+                <th>Time</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>
-                  <span className={'scoreSmall ' + getClasses()}>{props.stage.outputs.overallScore}</span>
+                  <span className={'TerraformStatusSmall ' + getClasses()}>{getStatus()}</span>
                 </td>
-                <td>
-                  <a href={props.stage.outputs.canaryReportURL} target="_blank">
-                    Report
-                  </a>
-                </td>
+                <td>{props.stage.outputs.message}</td>
+                <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
               </tr>
             </tbody>
@@ -95,6 +95,6 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
 // The title here will be used as the tab name inside the
 // pipeline stage execution view. Camel case will be mapped
 // to space-delimited text: randomWait -> Random Wait.
-export namespace VerificationExecutionDetails {
-  export const title = 'verification';
+export namespace TerraformPlanGateExecutionDetails {
+  export const title = 'Terraform Plan';
 }
