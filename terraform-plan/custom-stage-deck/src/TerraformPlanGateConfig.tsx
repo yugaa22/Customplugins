@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   ExecutionDetailsSection,
@@ -6,11 +6,13 @@ import {
   FormikFormField,
   FormikStageConfig,
   FormValidator,
+  AccountService,
   HelpContentsRegistry,
   HelpField,
   IExecutionDetailsSectionProps,
   IStage,
   IStageConfigProps,
+  IFormikStageConfigInjectedProps,
   IStageTypeConfig,
   NumberInput,
   ReactSelectInput,
@@ -29,6 +31,21 @@ import './TerraformPlanGate.less';
   This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
  */
 export function TerraformPlanGateConfig(props: IStageConfigProps) {
+
+  const [awsAccounts, setAwsAccounts] = useState([]);
+
+  const loadAccounts = () => {
+    return AccountService
+      .getAllAccountDetailsForProvider('kubernetes')
+      .then((accounts) => {
+        setAwsAccounts(accounts);
+      });
+  }
+
+  useEffect(() => {
+    loadAccounts();
+  }, [])
+
   const HorizontalRule = () => (
     <div className="grid-span-4">
       <hr />
@@ -39,7 +56,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
-        render={() => (
+        render={({ formik }: IFormikStageConfigInjectedProps) => (
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
@@ -52,10 +69,12 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                     <ReactSelectInput
                       clearable={false}
                       onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
-                        this.props.formik.setFieldValue('parameters.AWSAccountName', o.target.value);
+                        formik.setFieldValue('parameters.AWSAccountName', o.target.value);
                       }}
-                    //value={...props}
-                    //stringOptions={...props}
+                      //value={...props}
+                      //stringOptions={...props}
+                      value={formik.values?.parameters?.AWSAccountName}
+                      stringOptions={awsAccounts.map((acc) => acc.name)}
                     />
                   )}
                 />
@@ -181,5 +200,9 @@ export function validate(stageConfig: IStage) {
     .withValidators((value, label) => (value = '' ? `Artifact UUID is required` : undefined));
 
   return validator.validateForm();
+}
+
+function useEffect(arg0: () => void, arg1: undefined[]) {
+  throw new Error('Function not implemented.');
 }
 

@@ -15,11 +15,6 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.terraformapply.tfScriptAccount', 'Please enter the Terraform Script Account.');
   HelpContentsRegistry.register('opsmx.terraformapply.tfApplyScriptRepo', 'Please enter the Terraform Script Repo.');
   HelpContentsRegistry.register('opsmx.terraformapply.tfLocation', 'Please enter the Terraform Location.');
-  HelpContentsRegistry.register('opsmx.terraformapply.AWSAccountName', 'Please enter the AWS Account Name.');
-  HelpContentsRegistry.register('opsmx.terraformapply.spinnakerNamespace', 'Please enter Spinnaker Namespace.');
-
-  HelpContentsRegistry.register('opsmx.terraformapply.tfScriptRepo', 'Please enter Terraform Script Repository.');
-  
   HelpContentsRegistry.register('opsmx.terraformapply.overrideFile', 'Please enter Override file.');
   HelpContentsRegistry.register('opsmx.terraformapply.tfStateAccount', 'Please enter Teraform State Account.');
   HelpContentsRegistry.register('opsmx.terraformapply.artifactRepo', 'Please enter Artifact Repository.');
