@@ -11,15 +11,14 @@ import { HelpContentsRegistry } from '@spinnaker/core';
   When you use a registry, you are diving into Deck's implementation to add functionality. 
   These registries and their methods may change without warning.
 */
-export const initialize = () => {
-  HelpContentsRegistry.register('opsmx.verification.gateUrl', 'Please enter the Gate URL');
-  HelpContentsRegistry.register('opsmx.verification.lifeTimeHours', 'Please enter the Life Time in Hours like 0.5');
-  HelpContentsRegistry.register('opsmx.verification.minimumCanaryResult', 'Please enter the Minimum Canary Result');
-  HelpContentsRegistry.register('opsmx.verification.canaryResultScore', 'Please enter the Canry Result Score');
-  HelpContentsRegistry.register('opsmx.verification.logAnalysis', 'Please Enable Log Analysis with true / false');
-  HelpContentsRegistry.register('opsmx.verification.metricAnalysis', 'Please Enable Metric Analysis with true / false');
-  HelpContentsRegistry.register('opsmx.verification.baselineStartTime', 'Please select Baseline Start Time');
-  HelpContentsRegistry.register('opsmx.verification.canaryStartTime', 'Please select Canry Start Time');
-  HelpContentsRegistry.register('opsmx.verification.gateName', 'Please enter Gate Name that is created in OES');
-  HelpContentsRegistry.register('opsmx.verification.imageIds', 'Please enter the Image IDs');
+export const initialize = () => {  
+  HelpContentsRegistry.register('opsmx.terraformdestroy.AWSAccountName', 'Please enter the AWS Account Name.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.spinnakerNamespace', 'Please enter Spinnaker Namespace.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.tfScriptAccount', 'Please enter the Terraform Script Account.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.tfScriptRepo', 'Please enter Terraform Script Repository.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.tfLocation', 'Please enter the Terraform Location.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.overrideFile', 'Please enter Override file.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.tfStateAccount', 'Please enter Teraform State Account.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.artifactRepo', 'Please enter Artifact Repository.');
+  HelpContentsRegistry.register('opsmx.terraformdestroy.artifactUUID', 'Please enter Artifact UUID.');
 };

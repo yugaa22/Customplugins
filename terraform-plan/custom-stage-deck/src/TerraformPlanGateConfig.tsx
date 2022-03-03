@@ -90,7 +90,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfScriptAccpint"
-                  label="Terraform Script Account"
+                  label="Tf Script Account"
                   help={<HelpField id="opsmx.terraformplan.tfScriptAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -98,7 +98,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfScriptRepo"
-                  label="Terraform Script Repository"
+                  label="Tf Plan Script Repo"
                   help={<HelpField id="opsmx.terraformplan.tfPlanScriptRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -106,7 +106,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfLocation"
-                  label="Terraform Location"
+                  label="Tf Location"
                   help={<HelpField id="opsmx.terraformplan.tfLocation" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -122,7 +122,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfStateAccount"
-                  label="Terraform State Account"
+                  label="Tf State Account"
                   help={<HelpField id="opsmx.terraformplan.tfStateAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />

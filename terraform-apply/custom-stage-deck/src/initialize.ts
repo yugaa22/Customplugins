@@ -18,5 +18,5 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.terraformapply.overrideFile', 'Please enter Override file.');
   HelpContentsRegistry.register('opsmx.terraformapply.tfStateAccount', 'Please enter Teraform State Account.');
   HelpContentsRegistry.register('opsmx.terraformapply.artifactRepo', 'Please enter Artifact Repository.');
-  HelpContentsRegistry.register('opsmx.terraterraformapplyform.artifactUUID', 'Please enter Artifact UUID.');
+  HelpContentsRegistry.register('opsmx.terraformapply.artifactUUID', 'Please enter Artifact UUID.');
 };

@@ -45,8 +45,8 @@ export function TerraformApplyGateConfig(props: IStageConfigProps) {
             <div className="grid grid-4 form mainform">
               <div className="grid-span-2">
                 <FormikFormField
-                  name="parameters.tfScriptAccpint"
-                  label="Terraform Script Account"
+                  name="parameters.tfScriptAccount"
+                  label="Tf Script Account"
                   help={<HelpField id="opsmx.terraformapply.tfScriptAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -54,7 +54,7 @@ export function TerraformApplyGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfScriptRepo"
-                  label="Terraform Script Repository"
+                  label="Tf Apply Script Repo"
                   help={<HelpField id="opsmx.terraformapply.tfApplyScriptRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -63,7 +63,7 @@ export function TerraformApplyGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfLocation"
-                  label="Terraform Location"
+                  label="Tf Location"
                   help={<HelpField id="opsmx.terraformapply.tfLocation" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -79,7 +79,7 @@ export function TerraformApplyGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfStateAccount"
-                  label="Terraform State Account"
+                  label="Tf State Account"
                   help={<HelpField id="opsmx.terraformapply.tfStateAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
@@ -87,7 +87,7 @@ export function TerraformApplyGateConfig(props: IStageConfigProps) {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.artifactRepo"
-                  label="Artifact Repository"
+                  label="Artifact Repo"
                   help={<HelpField id="opsmx.terraformapply.artifactRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
