@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# CHECK THIS FILE INTO SOURCE CONTROL!
-
-. "$(dirname "$0")/_/husky.sh"
-
-if [[ -e custom-stage-deck/node_modules/.bin/lint-staged ]]; then
-       cd custom-stage-deck;
-       ./node_modules/.bin/lint-staged -p false
-fi
