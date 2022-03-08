@@ -11,11 +11,11 @@ import org.pf4j.PluginWrapper
 class TerraformPlanPlugin(wrapper: PluginWrapper): Plugin(wrapper) {
 
     override fun start() {
-        System.out.println("LitmuschaosPlugin.start()")
+        System.out.println("TerraformPlanPlugin.start()")
     }
 
     override fun stop() {
-        System.out.println("LitmuschaosPlugin.stop()")
+        System.out.println("TerraformPlanPlugin.stop()")
     }
 }
 
