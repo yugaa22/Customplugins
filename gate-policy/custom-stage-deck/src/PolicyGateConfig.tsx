@@ -117,10 +117,6 @@ export function validate(stageConfig: IStage) {
     .field('parameters.imageids')
     .required()
     .withValidators((value, label) => (value = '' ? `Image IDs is required` : undefined));
-  validator
-    .field('parameters.payload')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Payload is required` : undefined));
 
   return validator.validateForm();
 }
