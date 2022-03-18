@@ -20,5 +20,5 @@ export const terraformplan: IStageTypeConfig = {
   component: TerraformPlanGateConfig, // stage config
   executionDetailsSections: [TerraformPlanGateExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
-  validateFn: validate,
+  //validateFn: validate,
 };
