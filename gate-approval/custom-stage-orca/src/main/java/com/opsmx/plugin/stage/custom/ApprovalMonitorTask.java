@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -50,10 +52,16 @@ public class ApprovalMonitorTask implements RetryableTask {
 	@Override
 	public TaskResult execute(@NotNull StageExecution stage) {
 
-		Map<String, Object> contextMap = new HashMap<>();
-
+		ExecutionStatus status = stage.getExecution().getStatus();
 		Map<String, Object> outputs = stage.getOutputs();
 		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");
+		if (status.equals(ExecutionStatus.CANCELED) && trigger.equals(ApprovalTriggerTask.SUCCESS)) {
+			String approvalUrl = (String) outputs.get(LOCATION);
+			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "review");
+			return cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
+		}
+
+		Map<String, Object> contextMap = new HashMap<>();
 		
 		if (trigger.equals(ApprovalTriggerTask.FAILED)) {
 			logger.info("Approval Monitoring terminating because trigger task failed, Application : {}, Pipeline : {}", 
@@ -74,6 +82,38 @@ public class ApprovalMonitorTask implements RetryableTask {
 			.outputs(outputs)
 			.build();
 		}
+	}
+
+
+	private TaskResult cancelRequest(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
+		HttpPost request = new HttpPost(approvalUrl);
+
+		ObjectNode finalJson = objectMapper.createObjectNode();
+		finalJson.put("action", "cancel");
+		finalJson.put("comment", reason);
+
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		try {
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", user);
+			String payload = finalJson.toString();
+			request.setEntity(new StringEntity(payload));
+			CloseableHttpResponse response = httpClient.execute(request);
+		} catch (IOException e) {
+			logger.info("Exception occurred while cancelling approval", e);
+		} finally {
+			if (httpClient != null) {
+				try {
+					httpClient.close();
+				} catch (IOException e) {
+					logger.warn("Exception occurred while closing the connection", e);
+				}
+			}
+		}
+
+		return TaskResult.builder(ExecutionStatus.CANCELED)
+				.outputs(outputs)
+				.build();
 	}
 
 	private TaskResult getVerificationStatus(String approvalUrl, String user, Map<String, Object> outputs) {
@@ -113,8 +153,8 @@ public class ApprovalMonitorTask implements RetryableTask {
 					.build();
 
 		} catch (Exception e) {
-			logger.error("Error occured while processing approval result ", e);
-			outputs.put(EXCEPTION, String.format("Error occured while processing, %s", e));
+			logger.error("Error occurred while processing approval result ", e);
+			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e));
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
 					.outputs(outputs)
 					.build();
@@ -123,6 +163,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 				try {
 					httpClient.close();
 				} catch (IOException e) {
+					logger.warn("Exception occured while closing the connection", e);
 				}
 			}
 		}

@@ -81,7 +81,7 @@ public class VerificationTriggerTask implements Task {
 			HttpPost request = new HttpPost(context.getGateurl());
 			String triggerPayload = getPayloadString(stage.getExecution().getApplication(), stage.getExecution().getName(), context,
 					stage.getExecution().getAuthentication().getUser(), stage.getExecution().getId(), stage.getContext().get(PAYLOAD_CONSTRAINT));
-			outputs.put("trigger_json", String.format("Payload Json :: %s", triggerPayload));
+			outputs.put("trigger_json", String.format("Payload Json - %s", triggerPayload));
 			request.setEntity(new StringEntity(triggerPayload));
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());

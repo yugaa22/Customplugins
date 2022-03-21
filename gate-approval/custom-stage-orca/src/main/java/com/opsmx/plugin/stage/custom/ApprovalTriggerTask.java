@@ -162,7 +162,7 @@ public class ApprovalTriggerTask implements Task {
 
 			HttpPost request = new HttpPost(gateUrl);
 			String triggerPayload = preparePayload(jsonContext, stage.getExecution().getId(), gateSecurity);
-			outputs.put(TRIGGER_JSON, String.format("Payload json :: %s", triggerPayload));
+			outputs.put(TRIGGER_JSON, String.format("Payload json - %s", triggerPayload));
 			request.setEntity(new StringEntity(triggerPayload));
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
@@ -175,9 +175,7 @@ public class ApprovalTriggerTask implements Task {
 			if (entity != null) {
 				registerResponse = EntityUtils.toString(entity);
 			}
-
 			logger.info("Approval trigger response : {}", registerResponse);
-
 			if (response.getStatusLine().getStatusCode() != 202) {
 				logger.info("Failed to trigger approval request with Status code : {}, Response : {}", response.getStatusLine().getStatusCode(), registerResponse);
 				outputs.put(EXCEPTION, String.format("Failed to trigger approval request with Status code : %s and Response : %s", response.getStatusLine().getStatusCode(), registerResponse));
@@ -187,6 +185,11 @@ public class ApprovalTriggerTask implements Task {
 						.context(contextMap)
 						.outputs(outputs)
 						.build();
+			}
+
+			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
+			if (readValue.get("navigationalURL") != null  &&  !readValue.get("navigationalURL").isNull()) {
+				outputs.put("navigationalURL", readValue.get("navigationalURL").asText());
 			}
 
 			outputs.put(LOCATION, response.getLastHeader(LOCATION).getValue());
@@ -199,7 +202,7 @@ public class ApprovalTriggerTask implements Task {
 
 		} catch (Exception e) {
 			logger.error("Error occured while processing approval", e);
-			outputs.put(EXCEPTION, String.format("Error occured while processing, %s", e));
+			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e));
 			outputs.put(TRIGGER, FAILED);
 			outputs.put(STATUS, REJECTED);
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
