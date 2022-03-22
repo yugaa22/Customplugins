@@ -189,6 +189,7 @@ public class ApprovalTriggerTask implements Task {
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			if (readValue.get("navigationalURL") != null  &&  !readValue.get("navigationalURL").isNull()) {
+				logger.info("################# :{}", readValue.get("navigationalURL").asText());
 				outputs.put("navigationalURL", readValue.get("navigationalURL").asText());
 			}
 
@@ -201,7 +202,7 @@ public class ApprovalTriggerTask implements Task {
 					.build();
 
 		} catch (Exception e) {
-			logger.error("Error occured while processing approval", e);
+			logger.error("Error occurred while processing approval", e);
 			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e));
 			outputs.put(TRIGGER, FAILED);
 			outputs.put(STATUS, REJECTED);

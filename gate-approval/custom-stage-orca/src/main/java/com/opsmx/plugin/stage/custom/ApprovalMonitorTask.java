@@ -37,7 +37,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 	private static final String APPROVED = "approved";
 
-	private static final String LOCATION = "location";
+	public static final String LOCATION = "location";
 
 	private static final String EXCEPTION = "exception";
 
@@ -52,14 +52,8 @@ public class ApprovalMonitorTask implements RetryableTask {
 	@Override
 	public TaskResult execute(@NotNull StageExecution stage) {
 
-		ExecutionStatus status = stage.getExecution().getStatus();
 		Map<String, Object> outputs = stage.getOutputs();
 		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");
-		if (status.equals(ExecutionStatus.CANCELED) && trigger.equals(ApprovalTriggerTask.SUCCESS)) {
-			String approvalUrl = (String) outputs.get(LOCATION);
-			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "review");
-			return cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
-		}
 
 		Map<String, Object> contextMap = new HashMap<>();
 		
