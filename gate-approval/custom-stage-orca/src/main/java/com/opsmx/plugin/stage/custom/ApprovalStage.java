@@ -26,6 +26,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,18 +59,42 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 			String approvalUrl = (String) outputs.get(ApprovalMonitorTask.LOCATION);
 			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "review");
 			approvalUrl = approvalUrl.replaceFirst("/v2/", "/v1/");
-			return cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
-
+			cancelResult2(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
 		}
 
 		return null;
 	}
 
+	private void cancelResult2(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
+
+		try {
+			ObjectNode finalJson = objectMapper.createObjectNode();
+			finalJson.put("action", "cancel");
+			finalJson.put("comment", reason);
+			String payload = objectMapper.writeValueAsString(finalJson);
+
+			logger.info("Request payload : {}", payload);
+
+			HttpClient client = HttpClient.newHttpClient();
+			HttpRequest request = HttpRequest
+					.newBuilder()
+					.uri(URI.create(approvalUrl))
+					.PUT(HttpRequest.BodyPublishers.ofString(payload))
+					.header("Content-type", "application/json")
+					.header("x-spinnaker-user", user)
+					.build();
+
+			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+			logger.info("Response of CANCEL  STATUS: {}, response : {}", response.statusCode(), response.body());
+		} catch (IOException | InterruptedException e) {
+			logger.info("Exception occurred while canceling approval request");
+		}
+	}
+
 	private Result cancelRequest(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
 
-		HttpPut request = new	HttpPut();
-		request.setURI(URI.create(approvalUrl));
-
+		HttpPut request = new	HttpPut(approvalUrl);
 		ObjectNode finalJson = objectMapper.createObjectNode();
 		finalJson.put("action", "cancel");
 		finalJson.put("comment", reason);
@@ -79,9 +106,10 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 		try {
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", user);
-
 			request.setEntity(new StringEntity(payload));
 			CloseableHttpResponse response = httpClient.execute(request);
+
+			logger.info("APPROVAL CANCEL STATUS : {}", response.getStatusLine().getStatusCode());
 
 			HttpEntity entity = response.getEntity();
 			String registerResponse = "";

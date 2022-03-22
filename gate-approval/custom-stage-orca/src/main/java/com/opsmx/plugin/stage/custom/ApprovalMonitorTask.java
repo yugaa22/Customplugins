@@ -37,6 +37,8 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 	private static final String APPROVED = "approved";
 
+	private static final String CANCELED = "canceled";
+
 	public static final String LOCATION = "location";
 
 	private static final String EXCEPTION = "exception";
@@ -141,14 +143,20 @@ public class ApprovalMonitorTask implements RetryableTask {
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
-			} 
+			} else if (analysisStatus.equalsIgnoreCase(CANCELED)) {
+				outputs.put(STATUS, analysisStatus);
+				outputs.put("comments", comment);
+				return TaskResult.builder(ExecutionStatus.TERMINAL)
+						.outputs(outputs)
+						.build();
+			}
 			return TaskResult.builder(ExecutionStatus.RUNNING)
 					.outputs(outputs)
 					.build();
 
 		} catch (Exception e) {
 			logger.error("Error occurred while processing approval result ", e);
-			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e));
+			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e.getMessage()));
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
 					.outputs(outputs)
 					.build();

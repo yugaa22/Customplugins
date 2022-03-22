@@ -252,7 +252,7 @@ public class ApprovalTriggerTask implements Task {
 		finalJson.set("customConnectorData", objectMapper.createArrayNode());
 		logger.info("Payload string to trigger approval : {}", finalJson);
 
-		return finalJson.toString();
+		return objectMapper.writeValueAsString(finalJson);
 	}
 
 	private void setParameters(ArrayNode toolConnectorPayloads, JsonNode connector) {

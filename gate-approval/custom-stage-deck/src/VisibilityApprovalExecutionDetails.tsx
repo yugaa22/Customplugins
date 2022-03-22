@@ -81,7 +81,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
         <div>
           <div className="detailpagelogo">
             <a href={props.stage.outputs.navigationalURL} target="_blank">
-                      Approval URL
+                      Approval Request
             </a>
           </div>
         </div>
