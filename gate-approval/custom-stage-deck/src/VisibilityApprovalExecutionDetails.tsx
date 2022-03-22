@@ -77,7 +77,15 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
           </table>
           {exceptionDiv}
         </div>
-      ) : (
+      ) : props.stage.outputs.navigationalURL !== undefined? (
+        <div>
+          <div className="detailpagelogo">
+            <a href={props.stage.outputs.navigationalURL} target="_blank">
+                      Approval URL
+            </a>
+          </div>
+        </div>
+      ) :(
         <>
           {' '}
           <img
