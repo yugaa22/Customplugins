@@ -59,38 +59,38 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 			String approvalUrl = (String) outputs.get(ApprovalMonitorTask.LOCATION);
 			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "review");
 			approvalUrl = approvalUrl.replaceFirst("/v2/", "/v1/");
-			cancelResult2(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
+			return cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
 		}
 
 		return null;
 	}
 
-	private void cancelResult2(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
-
-		try {
-			ObjectNode finalJson = objectMapper.createObjectNode();
-			finalJson.put("action", "cancel");
-			finalJson.put("comment", reason);
-			String payload = objectMapper.writeValueAsString(finalJson);
-
-			logger.info("Request payload : {}", payload);
-
-			HttpClient client = HttpClient.newHttpClient();
-			HttpRequest request = HttpRequest
-					.newBuilder()
-					.uri(URI.create(approvalUrl))
-					.PUT(HttpRequest.BodyPublishers.ofString(payload))
-					.header("Content-type", "application/json")
-					.header("x-spinnaker-user", user)
-					.build();
-
-			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-			logger.info("Response of CANCEL  STATUS: {}, response : {}", response.statusCode(), response.body());
-		} catch (IOException | InterruptedException e) {
-			logger.info("Exception occurred while canceling approval request");
-		}
-	}
+//	private void cancelResult2(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
+//
+//		try {
+//			ObjectNode finalJson = objectMapper.createObjectNode();
+//			finalJson.put("action", "cancel");
+//			finalJson.put("comment", reason);
+//			String payload = objectMapper.writeValueAsString(finalJson);
+//
+//			logger.info("Request payload : {}", payload);
+//
+//			HttpClient client = HttpClient.newHttpClient();
+//			HttpRequest request = HttpRequest
+//					.newBuilder()
+//					.uri(URI.create(approvalUrl))
+//					.PUT(HttpRequest.BodyPublishers.ofString(payload))
+//					.header("Content-type", "application/json")
+//					.header("x-spinnaker-user", user)
+//					.build();
+//
+//			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+//
+//			logger.info("Response of CANCEL  STATUS: {}, response : {}", response.statusCode(), response.body());
+//		} catch (IOException | InterruptedException e) {
+//			logger.info("Exception occurred while canceling approval request");
+//		}
+//	}
 
 	private Result cancelRequest(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
 
