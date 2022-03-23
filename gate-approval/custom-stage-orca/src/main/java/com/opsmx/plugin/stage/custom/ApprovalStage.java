@@ -3,11 +3,11 @@ package com.opsmx.plugin.stage.custom;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.netflix.spinnaker.orca.api.pipeline.CancellableStage;
-import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
-import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
+import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
+import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
+import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,16 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.netflix.spinnaker.orca.api.pipeline.graph.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.api.pipeline.graph.TaskNode;
-import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
-
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.HashMap;
 import java.util.Map;
 
 @Extension
@@ -39,7 +30,7 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
 	public void taskGraph(@NotNull StageExecution stage, @NotNull TaskNode.Builder builder) {
@@ -50,49 +41,22 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 	@Override
 	public Result cancel(StageExecution stage) {
 		Map<String, Object> outputs = stage.getOutputs();
-		Map<String, Object> contextMap = new HashMap<>();
 		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");
-		Object status = outputs.get(ApprovalMonitorTask.STATUS);
 
 		if (trigger.equals(ApprovalTriggerTask.SUCCESS) && outputs.get(ApprovalMonitorTask.STATUS) == null) {
 			logger.info("Cancelling triggered approval gate as stage getting terminated");
 			String approvalUrl = (String) outputs.get(ApprovalMonitorTask.LOCATION);
-			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "review");
+			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "spinnakerReview");
 			approvalUrl = approvalUrl.replaceFirst("/v2/", "/v1/");
-			return cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, stage.getExecution().getCancellationReason());
+			cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), stage.getExecution().getCancellationReason());
+			if (outputs.containsKey(ApprovalTriggerTask.NAVIGATIONAL_URL)) {
+				stage.getOutputs().remove(ApprovalTriggerTask.NAVIGATIONAL_URL);
+			}
 		}
-
 		return null;
 	}
 
-//	private void cancelResult2(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
-//
-//		try {
-//			ObjectNode finalJson = objectMapper.createObjectNode();
-//			finalJson.put("action", "cancel");
-//			finalJson.put("comment", reason);
-//			String payload = objectMapper.writeValueAsString(finalJson);
-//
-//			logger.info("Request payload : {}", payload);
-//
-//			HttpClient client = HttpClient.newHttpClient();
-//			HttpRequest request = HttpRequest
-//					.newBuilder()
-//					.uri(URI.create(approvalUrl))
-//					.PUT(HttpRequest.BodyPublishers.ofString(payload))
-//					.header("Content-type", "application/json")
-//					.header("x-spinnaker-user", user)
-//					.build();
-//
-//			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-//
-//			logger.info("Response of CANCEL  STATUS: {}, response : {}", response.statusCode(), response.body());
-//		} catch (IOException | InterruptedException e) {
-//			logger.info("Exception occurred while canceling approval request");
-//		}
-//	}
-
-	private Result cancelRequest(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
+	private void cancelRequest(String approvalUrl, String user, String reason) {
 
 		HttpPut request = new	HttpPut(approvalUrl);
 		ObjectNode finalJson = objectMapper.createObjectNode();
@@ -128,6 +92,5 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 				}
 			}
 		}
-		return null;
 	}
 }

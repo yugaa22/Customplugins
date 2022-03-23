@@ -125,11 +125,12 @@ public class ApprovalTriggerTask implements Task {
 	private static final String EXCEPTION = "exception";
 
 	public static final String STATUS = "status";
+	public static final String NAVIGATIONAL_URL = "navigationalURL";
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@NotNull
 	@Override
@@ -188,9 +189,8 @@ public class ApprovalTriggerTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			if (readValue.get("navigationalURL") != null  &&  !readValue.get("navigationalURL").isNull()) {
-				logger.info("################# :{}", readValue.get("navigationalURL").asText());
-				outputs.put("navigationalURL", readValue.get("navigationalURL").asText());
+			if (readValue.get(NAVIGATIONAL_URL) != null  &&  !readValue.get(NAVIGATIONAL_URL).isNull()) {
+				outputs.put(NAVIGATIONAL_URL, readValue.get(NAVIGATIONAL_URL).asText());
 			}
 
 			outputs.put(LOCATION, response.getLastHeader(LOCATION).getValue());
@@ -250,7 +250,7 @@ public class ApprovalTriggerTask implements Task {
 
 		finalJson.set(TOOL_CONNECTOR_PARAMETERS, toolConnectorPayloads);
 		finalJson.set("customConnectorData", objectMapper.createArrayNode());
-		logger.info("Payload string to trigger approval : {}", finalJson);
+		logger.debug("Payload string to trigger approval : {}", finalJson);
 
 		return objectMapper.writeValueAsString(finalJson);
 	}

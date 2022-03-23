@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -136,7 +135,7 @@ public class VerificationTriggerTask implements Task {
 
 		} catch (Exception e) {
 			logger.error("Failed to execute verification gate", e);
-			outputs.put(OesConstants.EXCEPTION, String.format("Error occured while processing, %s", e));
+			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while processing, %s", e));
 			outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 			outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 			outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
@@ -212,9 +211,8 @@ public class VerificationTriggerTask implements Task {
 
 		finalJson.set(CANARY_CONFIG, canaryConfig);
 		finalJson.set("canaryDeployments", payloadTriggerNode);
-		String finalPayloadString = finalJson.toString();
-		logger.info("Payload string to trigger analysis : {}", finalPayloadString);
-
+		String finalPayloadString = objectMapper.writeValueAsString(finalJson);
+		logger.debug("Payload string to trigger analysis : {}", finalPayloadString);
 		return finalPayloadString;
 	}
 }

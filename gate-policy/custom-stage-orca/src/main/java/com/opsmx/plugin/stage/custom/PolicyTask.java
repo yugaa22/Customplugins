@@ -116,7 +116,7 @@ public class PolicyTask implements Task {
 			HttpPost request = new HttpPost(url);
 			String triggerPayload = getPayloadString(context, stage.getExecution().getApplication(), stage.getExecution().getName(),
 					stage.getExecution().getId(), stage.getExecution().getAuthentication().getUser(), context.getPayload(), stage.getContext().get(PAYLOAD_CONSTRAINT));
-			outputs.put(TRIGGER_JSON, String.format("Payload json :: %s", triggerPayload));
+			outputs.put(TRIGGER_JSON, String.format("Payload json - %s", triggerPayload));
 			request.setEntity(new StringEntity(triggerPayload));
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());

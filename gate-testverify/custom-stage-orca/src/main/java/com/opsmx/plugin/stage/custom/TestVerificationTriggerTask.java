@@ -206,7 +206,7 @@ public class TestVerificationTriggerTask implements Task {
 
 		finalJson.set(OesConstants.CANARY_CONFIG, canaryConfig);
 		finalJson.set("canaryDeployments", payloadTriggerNode);
-		String finalPayloadString = finalJson.toString();
+		String finalPayloadString = objectMapper.writeValueAsString(finalJson);
 		logger.info("Payload string to trigger test analysis : {}", finalPayloadString);
 
 		return finalPayloadString;
