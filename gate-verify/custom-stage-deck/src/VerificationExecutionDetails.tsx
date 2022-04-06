@@ -2,6 +2,7 @@ import React, { Fragment, useCallback, useMemo } from 'react';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
 import './Verification.less';
+import { ModalPopup } from '../src/modalPopUp/modalPopup';
 
 /*
  * You can use this component to provide information to users about
@@ -12,7 +13,14 @@ import './Verification.less';
  * - `props.stage.context` maps to your SimpleStage's `Context` class.
  */
 
-export function VerificationExecutionDetails(props: IExecutionDetailsSectionProps) {
+export interface IVerificationModalPopupState {
+  showSampleModal: boolean;
+}
+
+export function VerificationExecutionDetails(props: IExecutionDetailsSectionProps, state : IVerificationModalPopupState) {
+  this.state = {
+    showSampleModal: false,
+  };
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.overallScore < props.stage.context.parameters.minicanaryresult) {
@@ -40,6 +48,22 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
     </div>
   ) : null;
 
+  private showCallBack = (showSampleModal: boolean) => {
+    this.setState({ showSampleModal });
+  };
+
+  private viewDetails = () => {
+    //logger.log({ category: 'Pipelines', action: 'Create Pipeline' });
+    this.setState({ showSampleModal: true });
+  };
+
+  const modal = (
+    <SampleModal
+      show={state.showSampleModal}
+      showCallback={this.showCallBack}
+    />
+  );
+
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.overallScore >= 0 ? (
@@ -51,6 +75,14 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
               alt="logo"
               width="70px"
             ></img>
+            <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={this.viewDetails}>
+              <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
+              <Tooltip value="Create Pipeline or Strategy">
+                <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
+              </Tooltip>
+              <span className="visible-xl-inline"> View</span>
+              {modal}
+            </button>
           </div>
           <table className="table">
             <thead>
