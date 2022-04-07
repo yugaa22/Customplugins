@@ -1,10 +1,13 @@
 package com.opsmx.plugin.stage.custom;
 
 import java.io.IOException;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import com.netflix.spinnaker.fiat.model.UserPermission;
+import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.shared.FiatService;
+import com.netflix.spinnaker.fiat.shared.FiatStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.pf4j.Extension;
 import org.slf4j.Logger;
@@ -65,12 +68,21 @@ public class RBACValidationTask implements Task {
 
 	@Autowired
 	private static final ObjectMapper mapper = new ObjectMapper();
+
+	private final Optional<FiatService> fiatService;
+
+	private final FiatStatus fiatStatus;
 	
 	/* OPA spits JSON */
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 	private final OkHttpClient opaClient = new OkHttpClient();	
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
+
+	public RBACValidationTask(Optional<FiatService> fiatService, FiatStatus fiatStatus) {
+		this.fiatService = fiatService;
+		this.fiatStatus = fiatStatus;
+	}
 
 	@Override
 	public TaskResult execute(StageExecution stage) {
@@ -80,16 +92,24 @@ public class RBACValidationTask implements Task {
 		}
 		
 		Application application = mapper.convertValue(stage.getContext().get("application"), Application.class);
-				
+
 		String finalInput = null;
 		Response httpResponse;
 
 		try {
+			List<String> groupList = new ArrayList<String>();
+			if (fiatStatus.isEnabled() && fiatService.isPresent()) {
+				UserPermission.View userPermission = fiatService.get().getUserPermission(stage.getExecution().getAuthentication().getUser());
+				Set<Role.View> roles = userPermission.getRoles();
+				roles.forEach(role -> {
+					groupList.add(role.getName());
+				});
+			}
 
 			if (stage.getType().equalsIgnoreCase("CreateApplication")) {
-				finalInput = getOpaInput(application, "createApp");
+				finalInput = getOpaInput(application, "createApp", groupList, stage.getExecution().getAuthentication().getUser());
 			} else {
-				finalInput = getOpaInput(application, "updateApp");
+				finalInput = getOpaInput(application, "updateApp", groupList, stage.getExecution().getAuthentication().getUser());
 			}
 			
 
@@ -172,12 +192,12 @@ public class RBACValidationTask implements Task {
 	}
 
 	
-	private String getOpaInput(Application application, String type) {
-		ObjectNode applicationJson = applicationToJson(application, type);
+	private String getOpaInput(Application application, String type, List<String> roles, String user) {
+		ObjectNode applicationJson = applicationToJson(application, type, roles, user);
 		return addWrapper(addWrapper(applicationJson, "app"), "input").toString();
 	}
 	
-   private ObjectNode applicationToJson(Application application, String type) {
+   private ObjectNode applicationToJson(Application application, String type, List<String> userGroups, String user) {
 		
 		ObjectNode appObject = mapper.createObjectNode();
 		appObject.put(APPLICATION2, application.name);
@@ -187,7 +207,8 @@ public class RBACValidationTask implements Task {
 		appDetails.put("email", application.email);
 		appDetails.put("cloudProviders", application.cloudProviders);
 		appDetails.put("description", application.description);
-
+		appDetails.put("platformHealthOnly", application.platformHealthOnly);
+		appDetails.put("platformHealthOnlyShowOverride", application.platformHealthOnlyShowOverride);
 
 		ObjectNode permissionNode = mapper.createObjectNode();
 		if (application.getPermission() != null)  {
@@ -204,10 +225,19 @@ public class RBACValidationTask implements Task {
 				EnumSet.allOf( Authorization.class ).forEach(auth -> permissionNode.set(auth.name(), mapper.createArrayNode()));
 			}
 		}
-		
-		appDetails.set("permissions", permissionNode);
-		
-		ObjectNode jobObjectNode = mapper.createObjectNode();
+	   ObjectNode userGroupNode = mapper.createObjectNode();
+		userGroupNode.put("name", user);
+		ArrayNode groupsNode= mapper.createArrayNode();
+		if (userGroups != null && !userGroups.isEmpty()) {
+			userGroups.forEach(grp -> {
+				groupsNode.add(grp);
+			});
+		}
+		userGroupNode.set("groups", groupsNode);
+	    appDetails.set("userDetails", userGroupNode);
+	    appDetails.set("permissions", permissionNode);
+
+	   ObjectNode jobObjectNode = mapper.createObjectNode();
 		jobObjectNode.put("type", type);
 		jobObjectNode.set(APPLICATION2, appDetails);
 		appObject.set("job", mapper.createArrayNode().add(jobObjectNode));
