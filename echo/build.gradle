@@ -1,0 +1,70 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id("io.spinnaker.plugin.bundler").version("8.10.0")
+    id("com.palantir.git-version").version("0.12.2")
+    id("com.diffplug.spotless").version("5.1.0")
+}
+
+repositories {
+    mavenCentral()
+}
+
+spinnakerBundle {
+    pluginId = "Opsmx.EchoEventPlugin"
+    description = "An example of a PF4J-based plugin that provides a custom echo event."
+    provider = "https://github.com/opsmx"
+    version = rootProject.version
+}
+
+version = normalizedVersion()
+
+subprojects {
+    group = "com.opsmx.plugin.custom.event"
+    version = rootProject.version
+
+    if (name != "custom-stage-deck") {
+        apply plugin: "com.diffplug.spotless"
+        spotless {
+            kotlin {
+                ktlint().userData([
+                        disabled_rules          : "no-wildcard-imports",
+                        indent_size             : "2",
+                        continuation_indent_size: "2",
+                ])
+            }
+        }
+    }
+}
+
+String normalizedVersion() {
+    String fullVersion = gitVersion()
+    String normalized = fullVersion.split("-").first()
+    if (fullVersion.contains("dirty")) {
+        return "$normalized-SNAPSHOT"
+    } else {
+        return normalized
+    }
+}
+
+dependencies {
+    compileOnly "org.pf4j:pf4j:3.2.0"
+    compileOnly "io.spinnaker.echo:echo-api:2.33.0"
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    testCompileOnly 'org.projectlombok:lombok:1.18.22'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
+    compile 'com.rabbitmq:amqp-client:5.14.2'
+
+//    kapt "org.pf4j:pf4j:3.2.0"
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
