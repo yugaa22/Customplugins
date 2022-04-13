@@ -28,8 +28,10 @@ public class EventListenerExtension implements EventListener {
             eventMap.put("details", mapper.writeValueAsString(eventMap.get("details")));
 
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("localhost");
+            factory.setHost("rabbitmq-service");
             factory.setPort(5672);
+            factory.setUsername("rabbitmq");
+            factory.setPassword("Networks123");
             try (Connection connection = factory.newConnection();
                  Channel channel = connection.createChannel()) {
                 channel.exchangeDeclare("auditTestExchange", "direct");
