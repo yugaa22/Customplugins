@@ -12,18 +12,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.nio.charset.StandardCharsets;
 
 @Extension
 public class EventListenerExtension implements EventListener {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
     private static ObjectMapper mapper = new ObjectMapper();
+
+    private final Logger logger = LoggerFactory.getLogger(EventListenerExtension.class);
 
     @Override
     public void processEvent(Event event) {
         try {
+            logger.info("Event received : {}", event);
             Map<String, Object> eventMap = mapper.convertValue(event, Map.class);
-            log.info("event : {}", event);
             eventMap.put("content", mapper.writeValueAsString(eventMap.get("content")));
             eventMap.put("details", mapper.writeValueAsString(eventMap.get("details")));
 
@@ -35,12 +37,14 @@ public class EventListenerExtension implements EventListener {
             try (Connection connection = factory.newConnection();
                  Channel channel = connection.createChannel()) {
                 channel.exchangeDeclare("auditTestExchange", "direct");
+                String rmqMessage = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(eventMap);
 
-                channel.basicPublish("auditTestExchange", "spinnaker1", null, mapper.convertValue(eventMap, byte[].class));
+                channel.basicPublish("auditTestExchange", "spinnaker1", null, rmqMessage.getBytes(StandardCharsets.UTF_8));
 
             }
         }catch (Exception e){
-            log.error("Exception occurred while publishing the message to RMQ : {}", e);
+            logger.error("Exception occurred while processing event : {}", e);
+
         }
 
     }

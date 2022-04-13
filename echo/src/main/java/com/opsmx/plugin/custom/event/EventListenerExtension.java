@@ -10,6 +10,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.Extension;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -32,8 +33,12 @@ public class EventListenerExtension implements EventListener {
             try (Connection connection = factory.newConnection();
                  Channel channel = connection.createChannel()) {
                 channel.exchangeDeclare("auditTestExchange", "direct");
+                String rmqMessage = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(eventMap);
 
-                channel.basicPublish("auditTestExchange", "spinnaker1", null, mapper.convertValue(eventMap, byte[].class));
+
+
+
+                channel.basicPublish("auditTestExchange", "spinnaker1", null, rmqMessage.getBytes(StandardCharsets.UTF_8));
 
             }
         }catch (Exception e){
