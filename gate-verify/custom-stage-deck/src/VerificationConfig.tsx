@@ -16,9 +16,12 @@ import {
   IStageTypeConfig,
   NumberInput,
   Validators,
+  ReactSelectInput,
+  useData
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
+import { VerificationService } from './Verification.service';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -32,6 +35,18 @@ const HorizontalRule = () => (
   <div className="grid-span-4">
     <hr />
   </div>
+);
+
+const { result: metricDropdownList} = useData(
+  () => VerificationService.getMetricList(),
+  [],
+  [],
+);
+
+const { result: logDropdownList} = useData(
+  () => VerificationService.getLogTemplateList(),
+  [],
+  [],
 );
 
 export function VerificationConfig(props: IStageConfigProps) {
@@ -48,6 +63,54 @@ export function VerificationConfig(props: IStageConfigProps) {
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
+            <div className="grid-span-2">                    
+              <FormikFormField
+                name="logTemplate"
+                label="Log Template"
+                help={<HelpField id="opsmx.verification.logTemplate" />}
+                input={(props) => (
+                  <ReactSelectInput
+                  {...props}
+                  clearable={false}
+                  // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                  //   ...props.formik.setFieldValue('parameters.logTemplate', o.target.value);
+                  // }}
+                  //onChange={(e) => setLogTemplate(e.target.value)}
+                  options={logDropdownList['logTemplates'] && logDropdownList['logTemplates'].map((template : any) => ({
+                    label : template.templateName,
+                    value : template.templateName}))} 
+                  // options={(getDropdown().result || []).map((s) => ({
+                  //   label: s.label,
+                  //   value: s.value,
+                  // }))}
+                  //value={...props}
+                  //stringOptions={...props}
+                  />
+                )}
+              />               
+            </div>
+            <div className="grid-span-2">                    
+              <FormikFormField
+                name="metricTemplate"
+                label="Metric Template"
+                help={<HelpField id="opsmx.verification.metricTemplate" />}
+                input={(props) => (
+                  <ReactSelectInput
+                  {...props}
+                  clearable={false}
+                 // onChange={(e) => setMetricTemplate(e.target.value)}
+                  // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                  //   this.props.formik.setFieldValue('parameters.metricTemplate', o.target.value);
+                  // }} 
+                  options={metricDropdownList['metricTemplates'] && metricDropdownList['metricTemplates'].map((template : any) => ({
+                    label : template.templateName,
+                    value : template.templateName}))}
+                  //value={...props}
+                  //stringOptions={...props}
+                  />
+                )}
+              />               
+            </div>
               <div className="grid-span-3">
                 <FormikFormField
                   name="parameters.gateurl"

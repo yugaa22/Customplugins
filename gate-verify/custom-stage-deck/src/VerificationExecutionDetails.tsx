@@ -88,6 +88,16 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
           <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
         </>
       )}
+       <div>
+            <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }}>
+            <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
+            {/* <Tooltip value="Create Pipeline or Strategy">
+              <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
+            </Tooltip> */}
+            <span className="visible-xl-inline"> View</span>
+            {/* {modal} */}
+          </button>
+        </div>
     </ExecutionDetailsSection>
   );
 }
