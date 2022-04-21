@@ -9,17 +9,23 @@ import {
   HelpContentsRegistry,
   HelpField,
   IExecutionDetailsSectionProps,
+  IgorService,
   IStage,
   IStageConfigProps,
+  IStageForSpelPreview,
   IStageTypeConfig,
+  LayoutProvider,
   NumberInput,
+  ReactSelectInput,
+  StandardFieldLayout,
   TextAreaInput,
   TextInput,
+  useData,
   Validators,
 } from '@spinnaker/core';
 
 import './PolicyGate.less';
-
+import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
   See IStageConfigProps.ts (https://github.com/spinnaker/deck/blob/master/app/scripts/modules/core/src/pipeline/config/stages/common/IStageConfigProps.ts) for a complete list of properties.
@@ -28,6 +34,51 @@ import './PolicyGate.less';
   This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
  */
 export function PolicyGateConfig(props: IStageConfigProps) {
+
+
+  const { result: fetchAccountsResult } = useData(
+    () => IgorService.getPolicy(),
+    [],
+    [],
+  );
+  const fieldParams = { "payloadConstraint": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
+  const [chosenStage] = React.useState({} as IStageForSpelPreview);
+  const multiFieldComp = (props: any, fieldParams: any) => {
+    return fieldParams.payloadConstraint.map((dynamicField: any, index: number) => {
+      if (
+        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+        dynamicField.supportedParams.length > 1
+      ) {
+        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+        return (
+          <div className="grid-span-4 fullWidthContainer">
+            <FormikFormField
+              name={dynamicField.connectorType}
+              label={dynamicField.connectorType}
+              help={<HelpField id={dynamicField.connectorType} />}
+              input={() => (
+                <LayoutProvider value={StandardFieldLayout}>
+                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
+                    <EvaluateVariablesStageForm
+                      blockLabel={dynamicField.connectorType}
+                      chosenStage={chosenStage}
+                      headers={dynamicField.supportedParams}
+                      isMultiSupported={dynamicField.isMultiSupported}
+                      parentIndex={index}
+                      {...props}
+                    />
+                  </div>
+                </LayoutProvider>
+              )}
+            />
+          </div>
+        );
+      } else {
+        return null;
+      }
+    });
+  };
+
   const HorizontalRule = () => (
     <div className="grid-span-4">
       <hr />
@@ -42,6 +93,25 @@ export function PolicyGateConfig(props: IStageConfigProps) {
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
+            <div className="grid-span-2">
+
+<FormikFormField
+  label="Select Policy"
+  name="Select Policy"
+  input={(props) => (
+    <ReactSelectInput
+      {...props}
+      clearable={false}
+      options={fetchAccountsResult && fetchAccountsResult.map((template: any) => ({
+        label: template.policyName,
+        value: template.policyId
+      }))}
+      searchable={true}
+    />
+  )}
+/>
+
+</div>
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.policyurl"
@@ -83,6 +153,15 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                   help={<HelpField id="opsmx.policy.imageIds" />}
                   input={(props) => <TextInput {...props} />}
                 />
+              </div>
+              <HorizontalRule />
+              <div className="grid-span-4">
+                <h4 className="sticky-header ng-binding">Gate Security</h4>
+                <br />
+                <div className="grid-span-2">
+                  {fieldParams.gateUrl}
+                </div>
+                {multiFieldComp({ ...props }, fieldParams)}
               </div>
             </div>
             <div className="opsmxLogo">
