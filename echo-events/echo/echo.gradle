@@ -1,0 +1,65 @@
+
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+  }
+}
+
+apply plugin: "io.spinnaker.plugin.service-extension"
+apply plugin: "maven-publish"
+apply plugin: "kotlin"
+apply plugin: "kotlin-kapt"
+apply plugin: "kotlin-spring"
+
+repositories {
+  mavenCentral()
+  jcenter()
+  maven { url "https://spinnaker-releases.bintray.com/jars" }
+}
+
+sourceSets {
+  main {
+    java { srcDirs = ['src/main/java'] }
+  }
+}
+
+spinnakerPlugin {
+  serviceName = "echo"
+  pluginClass = "com.opsmx.plugin.custom.event.CustomEchoPlugin"
+  requires="echo>=0.0.0"
+}
+
+dependencies {
+  compileOnly "org.pf4j:pf4j:"+"${pf4jVersion}"
+  compileOnly "io.spinnaker.echo:echo-api:"+"${echoVersion}"
+  compileOnly (group: 'org.springframework', name: 'spring-context', version: "${springVersion}")
+  compileOnly (group: 'io.spinnaker.kork', name: 'kork-plugins-spring-api', version: "${korkVersion}")
+  compileOnly (group: 'org.springframework', name: 'spring-web', version: "${springVersion}")
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
+  implementation (group: 'org.apache.camel', name: 'camel-rabbitmq', version: "${camelVersion}") {
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+  implementation (group: 'org.apache.camel', name: 'camel-core', version: "${camelVersion}") {
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+  implementation (group: 'org.apache.camel', name: 'camel-jackson', version: "${camelVersion}") {
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+
+}
+
+configurations.all {
+  resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+    if (details.requested.group == 'org.apache.logging.log4j') {
+      details.useVersion '2.17.1'
+    }
+  }
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
+}
