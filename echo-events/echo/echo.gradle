@@ -39,7 +39,6 @@ dependencies {
   compileOnly (group: 'org.springframework', name: 'spring-context', version: "${springVersion}")
   compileOnly (group: 'io.spinnaker.kork', name: 'kork-plugins-spring-api', version: "${korkVersion}")
   compileOnly (group: 'org.springframework', name: 'spring-web', version: "${springVersion}")
-//  compileOnly(platform('io.spinnaker.echo:echo-bom:'+"${echoVersion}"))
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.0.1'
   implementation (group: 'org.apache.camel', name: 'camel-rabbitmq', version: "${camelVersion}") {
     exclude group: 'org.slf4j', module: 'slf4j-api'
