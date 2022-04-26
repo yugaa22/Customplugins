@@ -1,5 +1,3 @@
-import { $q } from 'ngimport';
-
 import { REST } from '@spinnaker/core';
 
 
