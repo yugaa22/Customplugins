@@ -21,7 +21,8 @@ import {
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
-import { VerificationService } from './Verification.service';
+//import { VerificationService } from './Verification.service';
+import { REST } from '@spinnaker/core';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -31,29 +32,98 @@ import { VerificationService } from './Verification.service';
   This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
  */
 
+  // const getMetricList(): PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
+  // }
+  
+  // const getLogTemplateList() : PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
+  // }
+
 const HorizontalRule = () => (
   <div className="grid-span-4">
     <hr />
   </div>
 );
 
-const { result: metricDropdownList} = useData(
-  () => VerificationService.getMetricList(),
-  [],
-  [],
-);
+let metricDropdownList = function getMetricList(): PromiseLike<any> {
+  return REST('autopilot/api/v1/applications/7/logTemplates').
+  get()
+  .then(
+    function (results) {
+      return metricDropdownList = results['logTemplates'].map((template : any) => ({
+        label : template.templateName,
+        value : template.templateName}));
+    },
+    function () {
+      return [];
+    },
+  );
+};
 
-const { result: logDropdownList} = useData(
-  () => VerificationService.getLogTemplateList(),
-  [],
-  [],
-);
+// const metricDropdownList = function getMetricList(): PromiseLike<any> {
+//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
+// };
+
+
+// const metricDropdownList : any = () => {
+//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
+//     .then(res => res.json())
+//     .then(
+//       (result) => {
+//         return result.logTemplates;
+//       },        
+//       (error) => {
+//         console.log(error);
+//         return [
+//                 {
+//                   "templateName": "test1"
+//                 },
+//                 {
+//                   "templateName": "test2"
+//                 }
+//               ];
+//       }
+//     )
+// }
+
+
+
+// const metricDropdownList = 
+//   {
+//     "metricTemplates": [
+//       {
+//         "templateName": "test1"
+//       },
+//       {
+//         "templateName": "test2"
+//       }
+//     ]
+//   };
+
+const logDropdownList = 
+  {
+    "logTemplates": [
+      {
+        "templateName": "test1"
+      },
+      {
+        "templateName": "test2"
+      }
+    ]
+  }
+;
+
+
+
+
 
 export function VerificationConfig(props: IStageConfigProps) {
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
     { label: 'False', value: 'false' },
   ];
+
   return (
     <div className="VerificationGateConfig">
       <FormikStageConfig
@@ -65,7 +135,7 @@ export function VerificationConfig(props: IStageConfigProps) {
             <div className="grid grid-4 form mainform">
             <div className="grid-span-2">                    
               <FormikFormField
-                name="logTemplate"
+                name="parameters.logTemplate"
                 label="Log Template"
                 help={<HelpField id="opsmx.verification.logTemplate" />}
                 input={(props) => (
@@ -91,7 +161,7 @@ export function VerificationConfig(props: IStageConfigProps) {
             </div>
             <div className="grid-span-2">                    
               <FormikFormField
-                name="metricTemplate"
+                name="parameters.metricTemplate"
                 label="Metric Template"
                 help={<HelpField id="opsmx.verification.metricTemplate" />}
                 input={(props) => (
@@ -102,9 +172,13 @@ export function VerificationConfig(props: IStageConfigProps) {
                   // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
                   //   this.props.formik.setFieldValue('parameters.metricTemplate', o.target.value);
                   // }} 
-                  options={metricDropdownList['metricTemplates'] && metricDropdownList['metricTemplates'].map((template : any) => ({
-                    label : template.templateName,
-                    value : template.templateName}))}
+                  // options={metricDropdownList && metricDropdownList.map((template : any) => ({
+                  //   label : template.templateName,
+                  //   value : template.templateName}))}
+                  // options={metricDropdownList['metricTemplates'] && metricDropdownList['metricTemplates'].map((template : any) => ({
+                  //   label : template.templateName,
+                  //   value : template.templateName}))}
+                  options={metricDropdownList}
                   //value={...props}
                   //stringOptions={...props}
                   />
