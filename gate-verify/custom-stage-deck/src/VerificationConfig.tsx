@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -40,26 +40,23 @@ import { REST } from '@spinnaker/core';
   //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
   // }
 
+  
+
 const HorizontalRule = () => (
   <div className="grid-span-4">
     <hr />
   </div>
 );
 
-let metricDropdownList = function getMetricList(): PromiseLike<any> {
-  return REST('autopilot/api/v1/applications/7/logTemplates').
-  get()
-  .then(
-    function (results) {
-      return metricDropdownList = results['logTemplates'].map((template : any) => ({
-        label : template.templateName,
-        value : template.templateName}));
-    },
-    function () {
-      return [];
-    },
-  );
-};
+
+
+
+// metricDropdownList = function getMetricList(): PromiseLike<any> {
+  
+// };
+
+
+
 
 // const metricDropdownList = function getMetricList(): PromiseLike<any> {
 //   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
@@ -101,24 +98,65 @@ let metricDropdownList = function getMetricList(): PromiseLike<any> {
 //     ]
 //   };
 
-const logDropdownList = 
-  {
-    "logTemplates": [
-      {
-        "templateName": "test1"
-      },
-      {
-        "templateName": "test2"
+// const logDropdownList = 
+//   {
+//     "logTemplates": [
+//       {
+//         "templateName": "test1"
+//       },
+//       {
+//         "templateName": "test2"
+//       }
+//     ]
+//   }
+// ;
+
+
+
+
+
+export function VerificationgitConfig(props: IStageConfigProps) {
+  console.log(props.application['applicationName']);
+ 
+
+  // const[applicationId , setApplicationId] = useState([])
+  
+  // useEffect(()=> {  
+  //   REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+  //   get()
+  //   .then(
+  //     function (results) {   
+  //       setApplicationId(results.applicationId);       
+  //     }
+  //   );
+  // }, []) 
+
+  const[metricDropdownList , setMetricDropdownList] = useState([])
+  
+  useEffect(()=> {
+    REST('autopilot/api/v1/applications/7/metricTemplates').
+    get()
+    .then(
+      function (results) {     
+        const response = results['metricTemplates'];
+          setMetricDropdownList(response);       
       }
-    ]
-  }
-;
+    );
+  }, [])
 
+  const[logDropdownList , setLogDropdownList] = useState([])
+  
+  useEffect(()=> {
+    REST('autopilot/api/v1/applications/7/logTemplates').
+    get()
+    .then(
+      function (results) {     
+        const response = results['logTemplates'];
+        setLogDropdownList(response);       
+      }
+    );
+  }, [])
 
-
-
-
-export function VerificationConfig(props: IStageConfigProps) {
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
     { label: 'False', value: 'false' },
@@ -133,7 +171,7 @@ export function VerificationConfig(props: IStageConfigProps) {
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
-            <div className="grid-span-2">                    
+            <div className="grid-span-1">                    
               <FormikFormField
                 name="parameters.logTemplate"
                 label="Log Template"
@@ -146,9 +184,12 @@ export function VerificationConfig(props: IStageConfigProps) {
                   //   ...props.formik.setFieldValue('parameters.logTemplate', o.target.value);
                   // }}
                   //onChange={(e) => setLogTemplate(e.target.value)}
-                  options={logDropdownList['logTemplates'] && logDropdownList['logTemplates'].map((template : any) => ({
+                  // options={logDropdownList['logTemplates'] && logDropdownList['logTemplates'].map((template : any) => ({
+                  //   label : template.templateName,
+                  //   value : template.templateName}))} 
+                  options={logDropdownList && logDropdownList .map((template : any) => ({
                     label : template.templateName,
-                    value : template.templateName}))} 
+                    value : template.templateName}))}
                   // options={(getDropdown().result || []).map((s) => ({
                   //   label: s.label,
                   //   value: s.value,
@@ -157,9 +198,14 @@ export function VerificationConfig(props: IStageConfigProps) {
                   //stringOptions={...props}
                   />
                 )}
-              />               
+              />                
             </div>
-            <div className="grid-span-2">                    
+            <div className="grid-span-1"> 
+                <a className="glyphicon glyphicon-plus"></a>  
+                <a className="glyphicon glyphicon-edit"></a>    
+                <a className="glyphicon glyphicon-trash"></a> 
+              </div>   
+            <div className="grid-span-1">                    
               <FormikFormField
                 name="parameters.metricTemplate"
                 label="Metric Template"
@@ -175,16 +221,21 @@ export function VerificationConfig(props: IStageConfigProps) {
                   // options={metricDropdownList && metricDropdownList.map((template : any) => ({
                   //   label : template.templateName,
                   //   value : template.templateName}))}
-                  // options={metricDropdownList['metricTemplates'] && metricDropdownList['metricTemplates'].map((template : any) => ({
-                  //   label : template.templateName,
-                  //   value : template.templateName}))}
-                  options={metricDropdownList}
+                  options={metricDropdownList && metricDropdownList .map((template : any) => ({
+                    label : template.templateName,
+                    value : template.templateName}))}
+                  //options={metricDropdownList}
                   //value={...props}
                   //stringOptions={...props}
                   />
                 )}
-              />               
+              />                               
             </div>
+            <div className="grid-span-1"> 
+                <a className="glyphicon glyphicon-plus"></a>  
+                <a className="glyphicon glyphicon-edit"></a>    
+                <a className="glyphicon glyphicon-trash"></a> 
+              </div> 
               <div className="grid-span-3">
                 <FormikFormField
                   name="parameters.gateurl"
