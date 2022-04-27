@@ -46,20 +46,38 @@ const HorizontalRule = () => (
   </div>
 );
 
-let metricDropdownList = function getMetricList(): PromiseLike<any> {
+// let metricDropdownList = function getMetricList(): PromiseLike<any> {
+//   return REST('autopilot/api/v1/applications/7/logTemplates').
+//   get()
+//   .then(
+//     function (results) {
+//       return metricDropdownList = results['logTemplates'].map((template : any) => ({
+//         label : template.templateName,
+//         value : template.templateName}));
+//     },
+//     function () {
+//       return [];
+//     },
+//   );
+// };
+
+const fetchMetricList = () => {
   return REST('autopilot/api/v1/applications/7/logTemplates').
   get()
-  .then(
-    function (results) {
-      return metricDropdownList = results['logTemplates'].map((template : any) => ({
+    .then((results) => {
+      // const allDimensions = flatMap(results, (r) => r.dimensions);
+      // const sortedDimensions = uniq(allDimensions.filter((d) => d).map((d) => d.name)).sort();
+      // return sortedDimensions;
+      const metricDropdownList = results['logTemplates'].map((template : any) => ({
         label : template.templateName,
         value : template.templateName}));
-    },
-    function () {
+        return metricDropdownList;
+    })
+    .catch(() => {
       return [];
-    },
-  );
+    });
 };
+const { result: metricDropdownList } = useData(fetchMetricList, [], []);
 
 // const metricDropdownList = function getMetricList(): PromiseLike<any> {
 //   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
