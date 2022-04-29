@@ -120,6 +120,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           </div>
           {singleFieldComponent(fieldParams)}
           {multiFieldComp({ ...props }, fieldParams)}
+
           <div className="grid-span-4 fullWidthContainer">
             <FormikFormField
               name="parameters.imageIds"
@@ -128,6 +129,17 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
               input={(props) => <TextInput className="fullWidthField" {...props} />}
             />
           </div>
+
+          <div className='p-4'>
+              <div className="grid-span-4">
+                <h4 className="sticky-header ng-binding">Gate Security</h4>
+                <br />
+                <div className="grid-span-2">
+                  {fieldParams.gateUrl}
+                </div>
+                {multiFieldGateSecurityComp({ ...props }, fieldParams)}
+              </div>
+        </div>
         </>
       );
     } else {
@@ -139,11 +151,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 // Gate Security
 
-  const fieldParams = { "payloadConstraint": [{ "connectorType": "PayloadConstraints-example", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
+  const fieldParams = { "connectors": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
   
   const multiFieldGateSecurityComp = (props: any, fieldParams:any) => {
     // const fieldParams = props.formik.values.parameters ?? null
-    return fieldParams.payloadConstraint.map((dynamicField: any, index: number) => {
+    return fieldParams.connectors.map((dynamicField: any, index: number) => {
       if (
         (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
         dynamicField.supportedParams.length > 1
@@ -165,8 +177,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                       chosenStage={chosenStage}
                       headers={dynamicField.supportedParams}
                       isMultiSupported={dynamicField.isMultiSupported}
-                      specificParams={props.formik.payloadConstraint}
-
                       parentIndex={index}
                       {...props}
                     />
@@ -201,20 +211,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             </div>
           </div>
 
-        {/* Render Gate Security */}
-        <HorizontalRule />
-        <div className='p-4'>
-              <div className="grid-span-4">
-                <h4 className="sticky-header ng-binding">Gate Security</h4>
-                <br />
-                <div className="grid-span-2">
-                  {fieldParams.gateUrl}
-                </div>
-                {multiFieldGateSecurityComp({ ...props }, fieldParams)}
-              </div>
-
-
-        </div>
 
             </div>
 
