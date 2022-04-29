@@ -136,12 +136,60 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     return renderContent;
   };
 
+
+// Gate Security
+
+  const fieldParams = { "payloadConstraint": [{ "connectorType": "PayloadConstraints-example", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
+  
+  const multiFieldGateSecurityComp = (props: any, fieldParams:any) => {
+    // const fieldParams = props.formik.values.parameters ?? null
+    return fieldParams.payloadConstraint.map((dynamicField: any, index: number) => {
+      if (
+        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+        dynamicField.supportedParams.length > 1
+      ) {
+        console.log("props Gate Security: ", props);
+        
+        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+        return (
+          <div className="grid-span-4 fullWidthContainer">
+            <FormikFormField
+              name={dynamicField.connectorType}
+              label={dynamicField.connectorType}
+              help={<HelpField id={dynamicField.connectorType} />}
+              input={() => (
+                <LayoutProvider value={StandardFieldLayout}>
+                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
+                    <EvaluateVariablesStageForm
+                      blockLabel={dynamicField.connectorType}
+                      chosenStage={chosenStage}
+                      headers={dynamicField.supportedParams}
+                      isMultiSupported={dynamicField.isMultiSupported}
+                      specificParams={props.formik.payloadConstraint}
+
+                      parentIndex={index}
+                      {...props}
+                    />
+                  </div>
+                </LayoutProvider>
+              )}
+            />
+          </div>
+        );
+      } else {
+        return null;
+      }
+    });
+  };
+
+
   return (
     <div className="VisibilityApprovalConfig">
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
         render={(props: IFormikStageConfigInjectedProps) => (
+          <div>
           <div className="flex">
             <div className="grid leftGrid"></div>
             <div className="grid grid-4 mainForm">{renderComponent({ ...props })}</div>
@@ -152,6 +200,25 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
               ></img>
             </div>
           </div>
+
+        {/* Render Gate Security */}
+        <HorizontalRule />
+        <div className='p-4'>
+              <div className="grid-span-4">
+                <h4 className="sticky-header ng-binding">Gate Security</h4>
+                <br />
+                <div className="grid-span-2">
+                  {fieldParams.gateUrl}
+                </div>
+                {multiFieldGateSecurityComp({ ...props }, fieldParams)}
+              </div>
+
+
+        </div>
+
+            </div>
+
+
         )}
       />
     </div>
