@@ -31,7 +31,7 @@ interface IEvaluateVariablesStageFormProps extends IFormikStageConfigInjectedPro
 export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormProps) {
   const { formik, headers, blockLabel, isMultiSupported, parentIndex, selectInput, connectorsList, accountsList,  handleOnSelection } = props;
   const stage = props.formik.values;
-  const variables: any = stage?.parameters?.payloadConstraint[parentIndex]?.values ? stage.parameters.payloadConstraint[parentIndex].values : [];
+  const variables: any = stage?.parameters?.connectors[parentIndex]?.values ?? [];
   const isMountedRef = useIsMountedRef();
   const emptyValue = (() => {
     const obj: any = {};
@@ -48,7 +48,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
       // The end effect is that the red validation warnings are shown immediately when the Evaluate Variables stage is added.
       setTimeout(
         () =>
-          isMountedRef.current && formik.setFieldValue(`parameters.payloadConstraint[${parentIndex}].values`, [emptyValue]),
+          isMountedRef.current && formik.setFieldValue(`parameters.connectors[${parentIndex}].values`, [emptyValue]),
         100,
       );
     }
@@ -84,7 +84,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
               <FormikProvider value={formik}>
             <FieldArray
               key={deleteCount}
-              name={`parameters.payloadConstraint[${parentIndex}].values`}
+              name={`parameters.connectors[${parentIndex}].values`}
               render={(arrayHelpers) => (
                 
                 <>
@@ -101,7 +101,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                           <td key={`${header.name}-td`}>
 
                           <FormikFormField
-                            name={`parameters.payloadConstraint[${parentIndex}].values[${index}][${header.name}]`}
+                            name={`parameters.connectors[${parentIndex}].values[${index}][${header.name}]`}
                             input={(inputProps) => <TextInput {...inputProps} placeholder={` Enter ${header.label}`} />
                           }
                         layout={VariableNameFormLayout}
@@ -147,7 +147,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
               <FormikProvider value={formik}>
             <FieldArray
               key={deleteCount}
-              name={`parameters.payloadConstraint[${parentIndex}].values`}
+              name={`parameters.connectors[${parentIndex}].values`}
               render={(arrayHelpers) => (
                 
                 <>
