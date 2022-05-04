@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import  {  useEffect, useState } from 'react';
+import * as React from "react";
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -17,30 +18,16 @@ import {
   NumberInput,
   Validators,
   ReactSelectInput,
-  useData
+  useData,
+  ReactModal,
+  Modal,
+  SearchResults
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
-//import { VerificationService } from './Verification.service';
 import { REST } from '@spinnaker/core';
+import { ModalPopup } from './modalPopup/modalPopup';
 
-/*
-  IStageConfigProps defines properties passed to all Spinnaker Stages.
-  See IStageConfigProps.ts (https://github.com/spinnaker/deck/blob/master/app/scripts/modules/core/src/pipeline/config/stages/common/IStageConfigProps.ts) for a complete list of properties.
-  Pass a JSON object to the `updateStageField` method to add the `maxWaitTime` to the Stage.
-
-  This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
- */
-
-  // const getMetricList(): PromiseLike<any> => {  
-  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
-  // }
-  
-  // const getLogTemplateList() : PromiseLike<any> => {  
-  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
-  // }
-
-  
 
 const HorizontalRule = () => (
   <div className="grid-span-4">
@@ -48,103 +35,62 @@ const HorizontalRule = () => (
   </div>
 );
 
+export interface LogTemplate {  
+  name: string;
+}
 
+export function VerificationConfig(props: IStageConfigProps) {
 
-
-// metricDropdownList = function getMetricList(): PromiseLike<any> {
-  
-// };
-
-
-
-
-// const metricDropdownList = function getMetricList(): PromiseLike<any> {
-//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
-// };
-
-
-// const metricDropdownList : any = () => {
-//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
-//     .then(res => res.json())
-//     .then(
-//       (result) => {
-//         return result.logTemplates;
-//       },        
-//       (error) => {
-//         console.log(error);
-//         return [
-//                 {
-//                   "templateName": "test1"
-//                 },
-//                 {
-//                   "templateName": "test2"
-//                 }
-//               ];
-//       }
-//     )
-// }
-
-
-
-// const metricDropdownList = 
-//   {
-//     "metricTemplates": [
-//       {
-//         "templateName": "test1"
-//       },
-//       {
-//         "templateName": "test2"
-//       }
-//     ]
-//   };
-
-// const logDropdownList = 
-//   {
-//     "logTemplates": [
-//       {
-//         "templateName": "test1"
-//       },
-//       {
-//         "templateName": "test2"
-//       }
-//     ]
-//   }
-// ;
-
-
-
-
-
-export function VerificationgitConfig(props: IStageConfigProps) {
-  console.log(props.application['applicationName']);
  
+  console.log(props);
 
-  // const[applicationId , setApplicationId] = useState([])
+  const[applicationId , setApplicationId] = useState()
   
-  // useEffect(()=> {  
-  //   REST('platformservice/v2/applications/name/'+props.application['applicationName']).
-  //   get()
-  //   .then(
-  //     function (results) {   
-  //       setApplicationId(results.applicationId);       
-  //     }
-  //   );
-  // }, []) 
-
   const[metricDropdownList , setMetricDropdownList] = useState([])
-  
-  useEffect(()=> {
-    REST('autopilot/api/v1/applications/7/metricTemplates').
-    get()
-    .then(
-      function (results) {     
-        const response = results['metricTemplates'];
-          setMetricDropdownList(response);       
-      }
-    );
-  }, [])
 
   const[logDropdownList , setLogDropdownList] = useState([])
+
+  const [showSampleModal, setPopupStatus] = useState(false);
+  
+  const viewDetails = () => {
+    setPopupStatus(true);
+  };
+
+  useEffect(()=> {  
+    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+    get()
+    .then(
+      (results)=> {
+        setApplicationId(results.applicationId);
+        REST('autopilot/api/v1/applications/'+results.applicationId+'/metricTemplates').
+        get()
+        .then(
+          function (results) {     
+            const response = results['metricTemplates'];
+              setMetricDropdownList(response);       
+          }
+        );
+      }
+      // function (results) {   
+      //   //setApplicationId(results.applicationId);       
+      // }      
+    )
+    //console.log(applicationId);
+      
+  }, []) 
+
+  
+  // useEffect(()=> {
+  //   REST('autopilot/api/v1/applications/7/metricTemplates').
+  //   get()
+  //   .then(
+  //     function (results) {     
+  //       const response = results['metricTemplates'];
+  //         setMetricDropdownList(response);       
+  //     }
+  //   );
+  // }, [])
+
   
   useEffect(()=> {
     REST('autopilot/api/v1/applications/7/logTemplates').
@@ -161,6 +107,49 @@ export function VerificationgitConfig(props: IStageConfigProps) {
     { label: 'True', value: 'true' },
     { label: 'False', value: 'false' },
   ];
+  
+
+  // public static show(props: ICloudFoundryCreateServerGroupProps): Promise<ICloudFoundryCreateServerGroupCommand> {
+  //   const modalProps = { dialogClassName: 'wizard-modal modal-lg' };
+  //   return ReactModal.show(CloudFoundryCreateServerGroupModal, props, modalProps);
+  // }
+
+  // const show: any(props: any): Promise<LogTemplate> => {    
+  //   const modalProps = {
+  //     dialogClassName: 'manual-execution-dialog ' + 'modal-md',
+  //   };
+  //   return ReactModal.show(ModalPopup, props, modalProps);
+  // }
+
+  
+  // const onClickLogTemplate = (e: React.MouseEvent<HTMLElement>): void => {
+  //   ModalPopup.show({
+  //     applicationId
+  //   });
+  //   // ModalPopup.showModal({
+  //   //   applicationId
+  //   // });
+  //   // ManualExecutionModal.show({
+  //   //   pipeline,
+  //   //   application: this.props.application,
+  //   //   trigger: trigger,
+  //   //   currentlyRunningExecutions: this.props.group.runningExecutions,
+  //   // })
+  //   e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
+  // };
+
+  const showCallBack = (showSampleModal: boolean) => {
+    setPopupStatus(showSampleModal);
+  };
+
+  const modal = (
+    <ModalPopup
+      show={showSampleModal}
+      showCallback={showCallBack}
+      applicationId = {applicationId}
+    />
+  );
+
 
   return (
     <div className="VerificationGateConfig">
@@ -201,7 +190,12 @@ export function VerificationgitConfig(props: IStageConfigProps) {
               />                
             </div>
             <div className="grid-span-1"> 
-                <a className="glyphicon glyphicon-plus"></a>  
+                {/* <a onClick={onClickLogTemplate} className="glyphicon glyphicon-plus" ></a>   */}
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={viewDetails}>
+                  <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />                  
+                  <span className="visible-xl-inline"> View</span>
+                  {modal}
+                </button>
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
               </div>   
@@ -331,6 +325,10 @@ export function VerificationgitConfig(props: IStageConfigProps) {
       />
     </div>
   );
+
+ 
+
+  
 }
 
 export function validate(stageConfig: IStage) {
@@ -382,3 +380,83 @@ export function validate(stageConfig: IStage) {
 
   return validator.validateForm();
 }
+
+
+/*
+  IStageConfigProps defines properties passed to all Spinnaker Stages.
+  See IStageConfigProps.ts (https://github.com/spinnaker/deck/blob/master/app/scripts/modules/core/src/pipeline/config/stages/common/IStageConfigProps.ts) for a complete list of properties.
+  Pass a JSON object to the `updateStageField` method to add the `maxWaitTime` to the Stage.
+
+  This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
+ */
+
+  // const getMetricList(): PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
+  // }
+  
+  // const getLogTemplateList() : PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
+  // }
+
+
+
+
+// metricDropdownList = function getMetricList(): PromiseLike<any> {
+  
+// };
+
+
+
+
+// const metricDropdownList = function getMetricList(): PromiseLike<any> {
+//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
+// };
+
+
+// const metricDropdownList : any = () => {
+//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
+//     .then(res => res.json())
+//     .then(
+//       (result) => {
+//         return result.logTemplates;
+//       },        
+//       (error) => {
+//         console.log(error);
+//         return [
+//                 {
+//                   "templateName": "test1"
+//                 },
+//                 {
+//                   "templateName": "test2"
+//                 }
+//               ];
+//       }
+//     )
+// }
+
+
+
+// const metricDropdownList = 
+//   {
+//     "metricTemplates": [
+//       {
+//         "templateName": "test1"
+//       },
+//       {
+//         "templateName": "test2"
+//       }
+//     ]
+//   };
+
+// const logDropdownList = 
+//   {
+//     "logTemplates": [
+//       {
+//         "templateName": "test1"
+//       },
+//       {
+//         "templateName": "test2"
+//       }
+//     ]
+//   }
+// ;

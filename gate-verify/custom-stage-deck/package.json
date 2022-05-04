@@ -31,7 +31,8 @@
     "react": "16.14.0",
     "react-dom": "16.14.0",
     "rxjs": "6.6.7",
-    "utf-8-validate": "5.0.3"
+    "utf-8-validate": "5.0.3",
+    "react-bootstrap": "0.32.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "18.0.0",
@@ -42,6 +43,7 @@
     "@rollup/plugin-url": "6.0.0",
     "@spinnaker/eslint-plugin": "1.0.13",
     "@types/react": "16.8.25",
+    "@types/react-bootstrap": "^0.32.29",
     "@typescript-eslint/eslint-plugin": "4.4.0",
     "@typescript-eslint/parser": "4.4.0",
     "eslint": "7.10.0",
