@@ -27,11 +27,15 @@ interface IEvaluateVariablesStageFormProps extends IFormikStageConfigInjectedPro
   accountsList: [];
   handleOnSelection: any ;
   parentIndex: number;
+  fieldMapName: string;
 }
 export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormProps) {
-  const { formik, headers, blockLabel, isMultiSupported, parentIndex, selectInput, connectorsList, accountsList,  handleOnSelection } = props;
+  const { formik, headers, blockLabel, isMultiSupported, parentIndex, selectInput, connectorsList, accountsList,  handleOnSelection, fieldMapName } = props;
   const stage = props.formik.values;
-  const variables: any = stage?.parameters?.connectors[parentIndex]?.values ?? [];
+  const parameters: any = stage?.parameters ?? null;
+    const keyParameters: any = fieldMapName == 'gateSecurity' ? parameters.gateSecurity : (fieldMapName == 'connectors' ? parameters.connectors :[]);
+
+  // const variables: any = stage?.parameters?.connectors[parentIndex]?.values ?? [];
   const isMountedRef = useIsMountedRef();
   const emptyValue = (() => {
     const obj: any = {};
@@ -41,18 +45,18 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
     return obj;
   })();
   React.useEffect(() => {
-    if (variables.length === 0) {
+    if (keyParameters[parentIndex].values.length === 0) {
       // This setTimeout is necessary because the interaction between pipelineConfigurer.js and stage.module.js
       // causes this component to get mounted multiple times.  The second time it gets mounted, the initial
       // variable is already added to the array, and then gets auto-touched by SpinFormik.tsx.
       // The end effect is that the red validation warnings are shown immediately when the Evaluate Variables stage is added.
       setTimeout(
         () =>
-          isMountedRef.current && formik.setFieldValue(`parameters.connectors[${parentIndex}].values`, [emptyValue]),
+          isMountedRef.current && formik.setFieldValue(`parameters.${fieldMapName}[${parentIndex}].values`, [emptyValue]),
         100,
       );
     }
-  }, [variables]);
+  }, [ keyParameters[parentIndex].values]);
   const FieldLayoutComponent = React.useContext(LayoutContext);
   const [deleteCount, setDeleteCount] = React.useState(0);
 
@@ -84,12 +88,12 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
               <FormikProvider value={formik}>
             <FieldArray
               key={deleteCount}
-              name={`parameters.connectors[${parentIndex}].values`}
+              name={`parameters.${fieldMapName}[${parentIndex}].values`}
               render={(arrayHelpers) => (
                 
                 <>
                   <FieldLayoutComponent input={null} validation={{ hidden: true } as any} />
-                  {variables.map((_: any, index: number) => {
+                  {keyParameters[parentIndex].values.map((_: any, index: number) => {
                     
                     const onDeleteClicked = () => {
                       setDeleteCount((count) => count + 1);
@@ -101,7 +105,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                           <td key={`${header.name}-td`}>
 
                           <FormikFormField
-                            name={`parameters.connectors[${parentIndex}].values[${index}][${header.name}]`}
+                            name={`parameters.${fieldMapName}[${parentIndex}].values[${index}][${header.name}]`}
                             input={(inputProps) => <TextInput {...inputProps} placeholder={` Enter ${header.label}`} />
                           }
                         layout={VariableNameFormLayout}
@@ -147,12 +151,12 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
               <FormikProvider value={formik}>
             <FieldArray
               key={deleteCount}
-              name={`parameters.connectors[${parentIndex}].values`}
+              name={`parameters.${fieldMapName}[${parentIndex}].values`}
               render={(arrayHelpers) => (
                 
                 <>
                   <FieldLayoutComponent input={null} validation={{ hidden: true } as any} />
-                  {variables.map((_: any, index: number) => {
+                  {keyParameters[parentIndex].values.map((_: any, index: number) => {
                     
                     const onDeleteClicked = () => {
                       setDeleteCount((count) => count + 1);
@@ -164,7 +168,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                           <td key={`${header.name}-td`}>
                             
                             <FormikFormField
-                              name={`parameters.connectorDetails[${parentIndex}].values[${index}][${header.name}]`}
+                              name={`parameters.${fieldMapName}[${parentIndex}].values[${index}][${header.name}]`}
                               input={(inputProps) => 
                                 <ReactSelectInput
                                   {...inputProps}
@@ -178,7 +182,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                                   }))}
                                   // value={header.label === 'Connector' ? connectorValue : accountValue}
                                   // value={...props}
-                                  onChange={(e)=> handleOnSelection(e, header.label)}
+                                  // onChange={(e)=> handleOnSelection(e, header.label)}
                                   //stringOptions={...props}
                                   
                                   />

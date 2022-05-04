@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -21,6 +21,9 @@ import {
   StandardFieldLayout,
   IFormikStageConfigInjectedProps,
   IStageForSpelPreview,
+  ReactSelectInput,
+  useData,
+  REST,
 } from '@spinnaker/core';
 import './VisibilityApproval.less';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
@@ -42,6 +45,60 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       </div>
     </div>
   );
+
+
+  // Environments
+    const[environmentsList , setenvironmentsList] = useState([]);
+    useEffect(()=> {  
+    REST('oes/accountsConfig/spinnaker/environments').
+    get()
+    .then(
+      (results)=> {
+        setenvironmentsList(results);       
+      }     
+    )
+  }, []) 
+
+  
+  // const { result: environmentsList} = useData(
+  //   () => IgorService.getEnvironments().then(() => {
+  //     return [{"id":1,"spinnakerEnvironment":"qa"},{"id":2,"spinnakerEnvironment":"QA"},{"id":3,"spinnakerEnvironment":"prod"}]
+  //   }),
+  //   [],
+  //   [],
+  // );
+
+  const handleOnEnvironmentSelect = (e:any, props:any) => {
+    const index = e.target.value;
+    const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
+          props.formik.setFieldValue("parameters.environment[0]['id']", index);
+          props.formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+  }
+
+
+    //Automated Approval
+
+    const[policyList , setpolicyList] = useState([]);
+    useEffect(()=> {  
+    REST('oes/v2/policy/users/user2/runtime?permissionId=read').
+    get()
+    .then(
+      (results)=> {
+        setenvironmentsList(results);       
+      }     
+    )
+  }, []) 
+  // const { result: policyList} = useData(
+  //   () => IgorService.getPolicyList(), [], []
+  // )
+  
+  // const [checked, setChecked] = useState(false);
+
+  const handleCheckbox = (e:any, props: any) => { 
+    // setChecked(e.target.checked);    
+    props.formik.setFieldValue('parameters.isAutomatedApproval', e.target.checked)
+    console.log('FormikValues: ', props.formik.values);     
+  }; 
 
   const singleFieldComponent = (fieldParams: any) => {
     return fieldParams.connectors.map((dynamicField: any, index: number) => {
@@ -89,6 +146,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                       chosenStage={chosenStage}
                       headers={dynamicField.supportedParams}
                       isMultiSupported={dynamicField.isMultiSupported}
+                      fieldMapName = "connectors"
                       parentIndex={index}
                       {...props}
                     />
@@ -110,6 +168,72 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     if (fieldParams !== null) {
       renderContent = (
         <>
+
+
+            <div className="grid-span-1">
+               <FormikFormField
+                // name={props.formik.values.parameters.environment[0].spinnakerEnvironment}
+                name="parameters.environment[0].id"
+                label="Environment"
+                input={() => (
+                  <ReactSelectInput
+                  {...props}
+                  clearable={false}
+                  // value={`parameters.environment[0]['id]`}
+                  onChange={(e) => {handleOnEnvironmentSelect(e, props)}}
+                  // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                  //   this.props.formik.setFieldValue('parameters.connectorType', o.target.value);
+                  // }}
+                  // stringOptions={connectorAccountList.map((e) => e.label)} 
+                  options={environmentsList.map((item:any) => (
+                    {
+                        value: item.id,
+                        label: item.spinnakerEnvironment
+                      }))}
+                  //value={...props}
+                  value={`${props.formik.values.parameters.environment[0].id}`}
+                  // stringOptions={...props}
+                  />
+                )}
+              />       
+
+            </div>
+
+            {/* Automated Approval */}
+
+            <div className="grid-span-1">
+              <input type="checkbox" checked={props.formik.values?.parameters?.isAutomatedApproval} onChange={(e) => handleCheckbox(e, props)}  />
+
+               {props.formik.values?.parameters?.isAutomatedApproval ? 
+              <div className="grid grid-4 form mainform">
+                
+                <div className="grid-span-1">              
+                  <FormikFormField
+                    name="parameters.automatedApproval[0].policyId"
+                    label="Automated Approval"
+                    input={(props) => (
+                      <ReactSelectInput
+                      {...props}
+                      clearable={false}
+                      // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                      //   this.props.formik.setFieldValue('parameters.connectorType', o.target.value);
+                      // }}
+                      options={policyList && policyList.map((policy: any) => ({
+                        label: policy.policyName,
+                        value: policy.policyId
+                      }))} 
+                      //value={...props}
+                      //stringOptions={...props}
+                      />
+                    )}
+                  />       
+                </div>
+
+              </div>
+            : null}
+
+            </div>
+
           <div className="grid-span-4 fullWidthContainer">
             <FormikFormField
               name="parameters.gateUrl"
@@ -151,11 +275,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 // Gate Security
 
-  const fieldParams = { "connectors": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
+  // const fieldParams = { "connectors": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
   
   const multiFieldGateSecurityComp = (props: any, fieldParams:any) => {
     // const fieldParams = props.formik.values.parameters ?? null
-    return fieldParams.connectors.map((dynamicField: any, index: number) => {
+    return fieldParams.gateSecurity.map((dynamicField: any, index: number) => {
       if (
         (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
         dynamicField.supportedParams.length > 1
@@ -177,6 +301,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                       chosenStage={chosenStage}
                       headers={dynamicField.supportedParams}
                       isMultiSupported={dynamicField.isMultiSupported}
+                      fieldMapName = "gateSecurity"
                       parentIndex={index}
                       {...props}
                     />
