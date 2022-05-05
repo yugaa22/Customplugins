@@ -51,11 +51,6 @@ const HorizontalRule = () => (
 
 
 
-// metricDropdownList = function getMetricList(): PromiseLike<any> {
-  
-// };
-
-
 
 
 // const metricDropdownList = function getMetricList(): PromiseLike<any> {
@@ -86,76 +81,55 @@ const HorizontalRule = () => (
 
 
 
-// const metricDropdownList = 
-//   {
-//     "metricTemplates": [
-//       {
-//         "templateName": "test1"
-//       },
-//       {
-//         "templateName": "test2"
-//       }
-//     ]
-//   };
-
-// const logDropdownList = 
-//   {
-//     "logTemplates": [
-//       {
-//         "templateName": "test1"
-//       },
-//       {
-//         "templateName": "test2"
-//       }
-//     ]
-//   }
-// ;
 
 
 
+export function VerificationConfig(props: IStageConfigProps) {
 
+  console.log(props);
 
-export function VerificationgitConfig(props: IStageConfigProps) {
-  console.log(props.application['applicationName']);
- 
-
-  // const[applicationId , setApplicationId] = useState([])
+  const[applicationId , setApplicationId] = useState()
   
-  // useEffect(()=> {  
-  //   REST('platformservice/v2/applications/name/'+props.application['applicationName']).
-  //   get()
-  //   .then(
-  //     function (results) {   
-  //       setApplicationId(results.applicationId);       
-  //     }
-  //   );
-  // }, []) 
-
   const[metricDropdownList , setMetricDropdownList] = useState([])
-  
-  useEffect(()=> {
-    REST('autopilot/api/v1/applications/7/metricTemplates').
-    get()
-    .then(
-      function (results) {     
-        const response = results['metricTemplates'];
-          setMetricDropdownList(response);       
-      }
-    );
-  }, [])
 
   const[logDropdownList , setLogDropdownList] = useState([])
-  
-  useEffect(()=> {
-    REST('autopilot/api/v1/applications/7/logTemplates').
+
+  useEffect(()=> {  
+    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
     get()
     .then(
-      function (results) {     
-        const response = results['logTemplates'];
-        setLogDropdownList(response);       
-      }
-    );
-  }, [])
+      (results)=> {
+        setApplicationId(results.applicationId);
+        REST('autopilot/api/v1/applications/'+results.applicationId+'/metricTemplates').
+        get()
+        .then(
+          function (results) {     
+            const response = results['metricTemplates'];
+              setMetricDropdownList(response);       
+          }
+        );
+      }    
+    )      
+  }, []) 
+  
+  useEffect(()=> {  
+    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+    get()
+    .then(
+      (results)=> {
+        setApplicationId(results.applicationId);
+        REST('autopilot/api/v1/applications/'+results.applicationId+'/logTemplates').
+        get()
+        .then(
+          function (results) {     
+            const response = results['logTemplates'];
+            setLogDropdownList(response);       
+          }
+        );
+      }    
+    )      
+  }, []) 
+
 
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
