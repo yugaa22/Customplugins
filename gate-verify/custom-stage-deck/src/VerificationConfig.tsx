@@ -17,11 +17,11 @@ import {
   NumberInput,
   Validators,
   ReactSelectInput,
-  useData
+  useData,
+  IFormikStageConfigInjectedProps
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
-//import { VerificationService } from './Verification.service';
 import { REST } from '@spinnaker/core';
 
 /*
@@ -32,67 +32,24 @@ import { REST } from '@spinnaker/core';
   This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
  */
 
-  // const getMetricList(): PromiseLike<any> => {  
-  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
-  // }
-  
-  // const getLogTemplateList() : PromiseLike<any> => {  
-  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
-  // }
-
-  
-
 const HorizontalRule = () => (
   <div className="grid-span-4">
     <hr />
   </div>
 );
 
-
-
-
-
-
-// const metricDropdownList = function getMetricList(): PromiseLike<any> {
-//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
-// };
-
-
-// const metricDropdownList : any = () => {
-//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
-//     .then(res => res.json())
-//     .then(
-//       (result) => {
-//         return result.logTemplates;
-//       },        
-//       (error) => {
-//         console.log(error);
-//         return [
-//                 {
-//                   "templateName": "test1"
-//                 },
-//                 {
-//                   "templateName": "test2"
-//                 }
-//               ];
-//       }
-//     )
-// }
-
-
-
-
-
-
 export function VerificationConfig(props: IStageConfigProps) {
 
   console.log(props);
+  
 
   const[applicationId , setApplicationId] = useState()
   
   const[metricDropdownList , setMetricDropdownList] = useState([])
 
   const[logDropdownList , setLogDropdownList] = useState([])
+
+  const[environmentsList , setenvironmentsList] = useState([]);
 
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
@@ -108,6 +65,18 @@ export function VerificationConfig(props: IStageConfigProps) {
               setMetricDropdownList(response);       
           }
         );
+        REST('platformservice/v4/applications/'+results.applicationId).
+        get()
+        .then(
+          function (results) { 
+            if(results['services'].length > 0 ) {
+              let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
+              props.stage['serviceId'] = results['services'][index].serviceId;
+              props.stage['pipelineId'] = results['services'][index].serviceId;
+            }     
+          }
+        );
+        props.stage['applicationId'] = results.applicationId;
       }    
     )      
   }, []) 
@@ -130,22 +99,75 @@ export function VerificationConfig(props: IStageConfigProps) {
     )      
   }, []) 
 
+   // Environments 
+  const handleOnEnvironmentSelect = (e:any, formik:any) => {
+    console.log("handleOnEnvironmentSelect");
+    console.log(e);
+    console.log(formik);
+    const index = e.target.value;
+    const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
+    formik.setFieldValue("parameters.environment[0]['id']", index);
+    formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+    // props.stage.formik.setFieldValue("parameters.environment[0]['id']", index);
+    // props.stage.formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+  }
+
+    
+   useEffect(()=> {  
+   REST('oes/accountsConfig/spinnaker/environments').
+   get()
+   .then(
+     (results)=> {
+      console.log(results);
+       setenvironmentsList(results);       
+     }     
+   )
+ }, []) 
+
 
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
     { label: 'False', value: 'false' },
   ];
 
+
   return (
+  
     <div className="VerificationGateConfig">
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
-        render={() => (
+        render={({ formik }: IFormikStageConfigInjectedProps) => (
           <div className="flex">
             <div className="grid"></div>
-            <div className="grid grid-4 form mainform">
-            <div className="grid-span-1">                    
+            <div className="grid grid-4 form mainform">             
+               <div className="grid-span-3">                    
+               <FormikFormField
+                 name="parameters.environment[0]"
+                 label="Enviornment"
+                 help={<HelpField id="opsmx.verification.environment" />}
+                 input={() => (
+                   <ReactSelectInput
+                   {...props}
+                   clearable={false}
+                   onChange={(e) => {handleOnEnvironmentSelect(e, formik)}}                
+                   options={environmentsList.map((item:any) => (
+                     {
+                         value: item.id,
+                         label: item.spinnakerEnvironment
+                       }))}
+                    //value = {formik.values.parameters.environment[0].id}
+                    //value={`${formik.values.parameters.environment[0].id}`}                  
+                   />       
+                 )}
+               />                
+             </div>
+            
+            <HorizontalRule />
+            <div className="grid-span-4">            
+              <h4>Template Configuration </h4>
+            </div>            
+            <div className="grid-span-3">                    
               <FormikFormField
                 name="parameters.logTemplate"
                 label="Log Template"
@@ -179,7 +201,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
               </div>   
-            <div className="grid-span-1">                    
+            <div className="grid-span-3">                    
               <FormikFormField
                 name="parameters.metricTemplate"
                 label="Metric Template"
@@ -210,14 +232,14 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
               </div> 
-              <div className="grid-span-3">
+              {/* <div className="grid-span-3">
                 <FormikFormField
                   name="parameters.gateurl"
                   label="Gate Url"
                   help={<HelpField id="opsmx.verification.gateUrl" />}
                   input={(props) => <TextInput {...props} />}
                 />
-              </div>
+              </div> */}
               <div>
                 <FormikFormField
                   name="parameters.lifetime"
@@ -356,3 +378,40 @@ export function validate(stageConfig: IStage) {
 
   return validator.validateForm();
 }
+
+
+
+
+// const metricDropdownList = function getMetricList(): PromiseLike<any> {
+//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
+// };
+
+
+// const metricDropdownList : any = () => {
+//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
+//     .then(res => res.json())
+//     .then(
+//       (result) => {
+//         return result.logTemplates;
+//       },        
+//       (error) => {
+//         console.log(error);
+//         return [
+//                 {
+//                   "templateName": "test1"
+//                 },
+//                 {
+//                   "templateName": "test2"
+//                 }
+//               ];
+//       }
+//     )
+// }
+
+  // const getMetricList(): PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
+  // }
+  
+  // const getLogTemplateList() : PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
+  // }
