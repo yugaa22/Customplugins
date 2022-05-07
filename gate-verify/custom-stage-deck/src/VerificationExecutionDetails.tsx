@@ -1,6 +1,6 @@
 import React, { Fragment, useCallback, useMemo } from 'react';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
 
 /*
@@ -48,12 +48,13 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
+            <span className={'score ' + getClasses()}>View Report</span>           
             <img
               src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
               alt="logo"
               width="70px"
             ></img>
-          </div>
+          </div>          
           <table className="table">
             <thead>
               <tr>
@@ -89,17 +90,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
           ></img>
           <StageFailureMessage stage={props.stage} message={props.stage.failureMessage} />
         </>
-      )}
-       <div>
-            <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }}>
-            <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
-            {/* <Tooltip value="Create Pipeline or Strategy">
-              <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
-            </Tooltip> */}
-            <span className="visible-xl-inline"> View</span>
-            {/* {modal} */}
-          </button>
-        </div>
+      )}      
     </ExecutionDetailsSection>
   );
 }
