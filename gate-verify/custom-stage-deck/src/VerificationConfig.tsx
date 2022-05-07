@@ -18,11 +18,15 @@ import {
   Validators,
   ReactSelectInput,
   useData,
-  IFormikStageConfigInjectedProps
+  IFormikStageConfigInjectedProps,
+  LayoutProvider,
+  StandardFieldLayout,
+  IStageForSpelPreview
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
 import { REST } from '@spinnaker/core';
+import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -98,8 +102,57 @@ export function VerificationConfig(props: IStageConfigProps) {
       }    
     )      
   }, []) 
+   
+  useEffect(()=> {  
+   if(!props.stage.hasOwnProperty('parameters')){
+    props.stage.parameters = {}
+  }
+   REST('oes/accountsConfig/spinnaker/environments').
+   get()
+   .then(
+     (results)=> {
+      console.log(results);
+       setenvironmentsList(results);       
+     }     
+   )
+   
+ }, []) 
 
-   // Environments 
+ const getGateSecurityParams = () => {
+  if(!props.stage.parameters.hasOwnProperty('gateSecurity')){
+    props.stage.parameters.gateSecurity = [
+    {
+      "connectorType": "PayloadConstraints",
+      "helpText": "Payload Constraints",
+      "isMultiSupported": true,
+      "label": "Payload Constraints",
+      "selectInput": false,
+      "supportedParams": [
+        {
+          "helpText": "Key",
+          "label": "Key",
+          "name": "label",
+          "type": "string"
+        },
+        {
+          "helpText": "Value",
+          "label": "Value",
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "values": [
+        {
+          "label": "",
+          "value": ""
+        }
+      ]
+    }
+  ]
+  }
+}
+
+  // Environments 
   const handleOnEnvironmentSelect = (e:any, formik:any) => {
     console.log("handleOnEnvironmentSelect");
     console.log(e);
@@ -110,19 +163,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
     // props.stage.formik.setFieldValue("parameters.environment[0]['id']", index);
     // props.stage.formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
-  }
-
-    
-   useEffect(()=> {  
-   REST('oes/accountsConfig/spinnaker/environments').
-   get()
-   .then(
-     (results)=> {
-      console.log(results);
-       setenvironmentsList(results);       
-     }     
-   )
- }, []) 
+  } 
 
 
   const ANALYSIS_TYPE_OPTIONS: any = [
@@ -130,6 +171,55 @@ export function VerificationConfig(props: IStageConfigProps) {
     { label: 'False', value: 'false' },
   ];
 
+  const [chosenStage] = React.useState({} as IStageForSpelPreview);
+
+
+  const multiFieldGateSecurityComp = (props: any, formik :any) => {
+
+    getGateSecurityParams();
+    const fieldParams = props.stage.parameters ?? null;
+     console.log("fieldParams");
+     console.log(fieldParams);
+    return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
+      if (
+        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+        dynamicField.supportedParams.length > 1
+      ) {
+        console.log("props Gate Security: ", props);
+        
+        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+        return (
+          <div className="grid-span-4 fullWidthContainer">
+            <FormikFormField
+              name={dynamicField.connectorType}
+              label={dynamicField.connectorType}
+              help={<HelpField id={dynamicField.connectorType} />}
+              input={() => (
+                <LayoutProvider value={StandardFieldLayout}>
+                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
+                    <EvaluateVariablesStageForm
+                      blockLabel={dynamicField.connectorType}
+                      chosenStage={chosenStage}
+                      headers={dynamicField.supportedParams}
+                      isMultiSupported={dynamicField.isMultiSupported}
+                      fieldMapName = "gateSecurity"
+                      parentIndex={index}
+                      formik = {formik}
+                      {...props}
+                    />
+                  </div>
+                </LayoutProvider>
+              )}
+            />
+          </div>
+        );
+      } else {
+        return null;
+      }
+    });
+  };
+
+  
 
   return (
   
@@ -138,9 +228,20 @@ export function VerificationConfig(props: IStageConfigProps) {
         {...props}
         onChange={props.updateStage}
         render={({ formik }: IFormikStageConfigInjectedProps) => (
+          
           <div className="flex">
             <div className="grid"></div>
-            <div className="grid grid-4 form mainform">             
+            <div className="grid grid-4 form mainform">    
+            
+            <div className="grid-span-4">
+                <h4 className="sticky-header ng-binding">Gate Security</h4>
+                <br />
+                <div className="grid-span-2">
+                  {/* {fieldParams.gateUrl} */}
+                </div>
+                {multiFieldGateSecurityComp({ ...props },formik)}
+              </div>
+                     
                <div className="grid-span-3">                    
                <FormikFormField
                  name="parameters.environment[0]"
