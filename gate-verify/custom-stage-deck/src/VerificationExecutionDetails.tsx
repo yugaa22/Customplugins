@@ -13,6 +13,8 @@ import './Verification.less';
  */
 
 export function VerificationExecutionDetails(props: IExecutionDetailsSectionProps) {
+  console.log("Verification Gate Execution");
+  console.log(props);
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.overallScore < props.stage.context.parameters.minicanaryresult) {

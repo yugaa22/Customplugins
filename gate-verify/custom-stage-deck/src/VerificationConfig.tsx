@@ -154,15 +154,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   // Environments 
   const handleOnEnvironmentSelect = (e:any, formik:any) => {
-    console.log("handleOnEnvironmentSelect");
-    console.log(e);
-    console.log(formik);
     const index = e.target.value;
     const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
     formik.setFieldValue("parameters.environment[0]['id']", index);
     formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
-    // props.stage.formik.setFieldValue("parameters.environment[0]['id']", index);
-    // props.stage.formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
   } 
 
 
@@ -178,15 +173,13 @@ export function VerificationConfig(props: IStageConfigProps) {
 
     getGateSecurityParams();
     const fieldParams = props.stage.parameters ?? null;
-     console.log("fieldParams");
-     console.log(fieldParams);
+     //console.log("fieldParams");
+     //console.log(fieldParams);
     return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
       if (
         (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
         dynamicField.supportedParams.length > 1
-      ) {
-        console.log("props Gate Security: ", props);
-        
+      ) {        
         HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
         return (
           <div className="grid-span-4 fullWidthContainer">
@@ -257,8 +250,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                          value: item.id,
                          label: item.spinnakerEnvironment
                        }))}
-                    //value = {formik.values.parameters.environment[0].id}
-                    //value={`${formik.values.parameters.environment[0].id}`}                  
+                    value = {formik.values.parameters.environment[0].id}                  
                    />       
                  )}
                />                
