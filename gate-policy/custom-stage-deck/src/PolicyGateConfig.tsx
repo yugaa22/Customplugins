@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   ExecutionDetailsSection,
@@ -9,6 +9,7 @@ import {
   HelpContentsRegistry,
   HelpField,
   IExecutionDetailsSectionProps,
+  IFormikStageConfigInjectedProps,
   IgorService,
   IStage,
   IStageConfigProps,
@@ -17,6 +18,7 @@ import {
   LayoutProvider,
   NumberInput,
   ReactSelectInput,
+  REST,
   StandardFieldLayout,
   TextAreaInput,
   TextInput,
@@ -35,16 +37,93 @@ import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
  */
 export function PolicyGateConfig(props: IStageConfigProps) {
 
+  console.log(props);
+  
 
-  const { result: fetchAccountsResult } = useData(
-    () => IgorService.getPolicy(),
-    [],
-    [],
-  );
-  const fieldParams = { "payloadConstraint": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
+  const[applicationId , setApplicationId] = useState()  
+
+  const[environmentsList , setenvironmentsList] = useState([]);
+
+  useEffect(()=> {  
+    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+    get()
+    .then(
+      (results)=> {
+        setApplicationId(results.applicationId);
+        REST('platformservice/v4/applications/'+results.applicationId).
+        get()
+        .then(
+          function (results) { 
+            if(results['services'].length > 0 ) {
+              let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
+              props.stage['serviceId'] = results['services'][index].serviceId;
+              props.stage['pipelineId'] = results['services'][index].serviceId;
+            }     
+          }
+        );
+        props.stage['applicationId'] = results.applicationId;
+      }    
+    )      
+  }, []) 
+
+  ///gate/oes/v2/policy/users/user2/runtime?permissionId=read
+   
+  useEffect(()=> {  
+   if(!props.stage.hasOwnProperty('parameters')){
+    props.stage.parameters = {}
+  }
+   REST('oes/accountsConfig/spinnaker/environments').
+   get()
+   .then(
+     (results)=> {
+       setenvironmentsList(results);       
+     }     
+   )
+   
+ }, []) 
+
+ const getGateSecurityParams = () => {
+  if(!props.stage.parameters.hasOwnProperty('gateSecurity')){
+    props.stage.parameters.gateSecurity = [
+    {
+      "connectorType": "PayloadConstraints",
+      "helpText": "Payload Constraints",
+      "isMultiSupported": true,
+      "label": "Payload Constraints",
+      "selectInput": false,
+      "supportedParams": [
+        {
+          "helpText": "Key",
+          "label": "Key",
+          "name": "label",
+          "type": "string"
+        },
+        {
+          "helpText": "Value",
+          "label": "Value",
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "values": [
+        {
+          "label": "",
+          "value": ""
+        }
+      ]
+    }
+  ]
+  }
+}
+
+  //const fieldParams = { "payloadConstraint": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
-  const multiFieldComp = (props: any, fieldParams: any) => {
-    return fieldParams.payloadConstraint.map((dynamicField: any, index: number) => {
+  const multiFieldComp = (props: any, formik :any) => {
+    getGateSecurityParams();
+    const fieldParams = props.stage.parameters ?? null;
+      console.log("fieldParams");
+     console.log(fieldParams);
+    return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
       if (
         (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
         dynamicField.supportedParams.length > 1
@@ -65,6 +144,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                       headers={dynamicField.supportedParams}
                       isMultiSupported={dynamicField.isMultiSupported}
                       parentIndex={index}
+                      formik = {formik}
                       {...props}
                     />
                   </div>
@@ -89,29 +169,29 @@ export function PolicyGateConfig(props: IStageConfigProps) {
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
-        render={() => (
+        render={({ formik }: IFormikStageConfigInjectedProps) => (
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
-            <div className="grid-span-2">
+            {/* <div className="grid-span-2">
 
-<FormikFormField
-  label="Select Policy"
-  name="Select Policy"
-  input={(props) => (
-    <ReactSelectInput
-      {...props}
-      clearable={false}
-      options={fetchAccountsResult && fetchAccountsResult.map((template: any) => ({
-        label: template.policyName,
-        value: template.policyId
-      }))}
-      searchable={true}
-    />
-  )}
-/>
+              <FormikFormField
+                label="Select Policy"
+                name="Select Policy"
+                input={(props) => (
+                  <ReactSelectInput
+                    {...props}
+                    clearable={false}
+                    options={fetchAccountsResult && fetchAccountsResult.map((template: any) => ({
+                      label: template.policyName,
+                      value: template.policyId
+                    }))}
+                    searchable={true}
+                  />
+                )}
+              />
 
-</div>
+            </div> */}
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.policyurl"
@@ -159,9 +239,9 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                 <h4 className="sticky-header ng-binding">Gate Security</h4>
                 <br />
                 <div className="grid-span-2">
-                  {fieldParams.gateUrl}
+                  {/* {fieldParams.gateUrl} */}
                 </div>
-                {multiFieldComp({ ...props }, fieldParams)}
+                {multiFieldComp({ ...props }, formik)}
               </div>
             </div>
             <div className="opsmxLogo">
