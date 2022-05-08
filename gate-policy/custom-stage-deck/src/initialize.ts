@@ -17,4 +17,5 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.policy.payload', 'Please enter the Payload in single line.');
   HelpContentsRegistry.register('opsmx.policy.gateName', 'Please enter Gate.');
   HelpContentsRegistry.register('opsmx.policy.imageIds', 'Please enter the Image IDs.');
+  HelpContentsRegistry.register('opsmx.policy.policyName', 'Please select Policy name');
 };

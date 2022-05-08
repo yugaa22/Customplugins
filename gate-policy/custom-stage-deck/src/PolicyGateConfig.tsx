@@ -44,6 +44,8 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
   const[environmentsList , setenvironmentsList] = useState([]);
 
+  const[policyList , setPolicyList] = useState([]);
+
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
     get()
@@ -72,6 +74,12 @@ export function PolicyGateConfig(props: IStageConfigProps) {
    if(!props.stage.hasOwnProperty('parameters')){
     props.stage.parameters = {}
   }
+  if(!props.stage.parameters.hasOwnProperty('environment')){
+    props.stage.parameters.environment = [{
+      "id": null,
+      "spinnakerEnvironment": ""
+    }]
+  }
    REST('oes/accountsConfig/spinnaker/environments').
    get()
    .then(
@@ -79,6 +87,16 @@ export function PolicyGateConfig(props: IStageConfigProps) {
        setenvironmentsList(results);       
      }     
    )
+   REST('oes/v2/policy/users/'+props.application.attributes.user+'/runtime?permissionId=read').
+   get()
+   .then(
+     (results)=> {
+      console.log("policylist");
+      console.log(results); 
+      setPolicyList(results);       
+     }     
+   )
+   
    
  }, []) 
 
@@ -116,7 +134,15 @@ export function PolicyGateConfig(props: IStageConfigProps) {
   }
 }
 
-  //const fieldParams = { "payloadConstraint": [{ "connectorType": "PayloadConstraints", "helpText": "Payload Constraints", "isMultiSupported": true, "label": "Payload Constraints", "supportedParams": [{ "helpText": "Key", "label": "Key", "name": "label", "type": "string" }, { "helpText": "Value", "label": "Value", "name": "value", "type": "string" }], "values": [{ "label": "${bn}", "value": "Dev-run-tests-on-staging-master" }] }], "gateUrl": "https://isd.prod.opsmx.net/gate/visibilityservice/v5/approvalGates/3/trigger", "imageIds": "opsmx:latest" }
+ // Environments 
+ const handleOnEnvironmentSelect = (e:any, formik:any) => {
+  const index = e.target.value;
+  const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
+  formik.setFieldValue("parameters.environment[0]['id']", index);
+  formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+} 
+
+  
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
   const multiFieldComp = (props: any, formik :any) => {
     getGateSecurityParams();
@@ -174,25 +200,46 @@ export function PolicyGateConfig(props: IStageConfigProps) {
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
-            {/* <div className="grid-span-2">
+            <div className="grid-span-3">                    
+               <FormikFormField
+                 name="parameters.environment[0]"
+                 label="Enviornment"
+                 help={<HelpField id="opsmx.policy.environment" />}
+                 input={() => (
+                   <ReactSelectInput
+                   {...props}
+                   clearable={false}
+                   onChange={(e) => {handleOnEnvironmentSelect(e, formik)}}                
+                   options={environmentsList.map((item:any) => (
+                     {
+                         value: item.id,
+                         label: item.spinnakerEnvironment
+                       }))}
+                    value = {formik.values.parameters.environment[0].id}                  
+                   />       
+                 )}
+               />                
+             </div>
+            <div className="grid-span-3">
 
               <FormikFormField
                 label="Select Policy"
-                name="Select Policy"
+                name="parameters.policyName"
+                help={<HelpField id="opsmx.policy.policyName" />}
                 input={(props) => (
                   <ReactSelectInput
                     {...props}
                     clearable={false}
-                    options={fetchAccountsResult && fetchAccountsResult.map((template: any) => ({
-                      label: template.policyName,
-                      value: template.policyId
+                    options={policyList && policyList.map((policy: any) => ({
+                      label: policy.policyName,
+                      value: policy.policyName
                     }))}
                     searchable={true}
                   />
                 )}
               />
 
-            </div> */}
+            </div>
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.policyurl"
