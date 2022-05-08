@@ -35,8 +35,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
   const { stage, formik, headers, blockLabel, isMultiSupported, parentIndex, selectInput, connectorsList, accountsList,  handleOnSelection, fieldMapName } = props;
   //const stage = props.formik.values;
   const parameters: any = stage?.parameters ?? null;
-    const keyParameters: any = fieldMapName == 'gateSecurity' ? parameters.gateSecurity : (fieldMapName == 'connectors' ? parameters.connectors :[]);
-
+    const keyParameters: any = fieldMapName == 'gateSecurity' ? parameters.gateSecurity : (fieldMapName == 'connectors' ? parameters.connectors :[]);   
   // const variables: any = stage?.parameters?.connectors[parentIndex]?.values ?? [];
   const isMountedRef = useIsMountedRef();
   const emptyValue = (() => {

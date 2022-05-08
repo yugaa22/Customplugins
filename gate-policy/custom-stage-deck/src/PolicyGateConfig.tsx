@@ -27,7 +27,7 @@ import {
 } from '@spinnaker/core';
 
 import './PolicyGate.less';
-import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
+import { EvaluateVariablesStageForm } from './input/dynamicFormFieldsGrid';
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
   See IStageConfigProps.ts (https://github.com/spinnaker/deck/blob/master/app/scripts/modules/core/src/pipeline/config/stages/common/IStageConfigProps.ts) for a complete list of properties.
@@ -143,6 +143,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                       chosenStage={chosenStage}
                       headers={dynamicField.supportedParams}
                       isMultiSupported={dynamicField.isMultiSupported}
+                      fieldMapName = "gateSecurity"
                       parentIndex={index}
                       formik = {formik}
                       {...props}
