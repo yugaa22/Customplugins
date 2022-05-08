@@ -107,6 +107,12 @@ export function VerificationConfig(props: IStageConfigProps) {
    if(!props.stage.hasOwnProperty('parameters')){
     props.stage.parameters = {}
   }
+  if(!props.stage.parameters.hasOwnProperty('environment')){
+    props.stage.parameters.environment = [{
+    "id": null,
+    "spinnakerEnvironment": ""
+  }]
+  }
    REST('oes/accountsConfig/spinnaker/environments').
    get()
    .then(
@@ -224,16 +230,7 @@ export function VerificationConfig(props: IStageConfigProps) {
           
           <div className="flex">
             <div className="grid"></div>
-            <div className="grid grid-4 form mainform">    
-            
-            <div className="grid-span-4">
-                <h4 className="sticky-header ng-binding">Gate Security</h4>
-                <br />
-                <div className="grid-span-2">
-                  {/* {fieldParams.gateUrl} */}
-                </div>
-                {multiFieldGateSecurityComp({ ...props },formik)}
-              </div>
+            <div className="grid grid-4 form mainform"> 
                      
                <div className="grid-span-3">                    
                <FormikFormField
@@ -407,6 +404,14 @@ export function VerificationConfig(props: IStageConfigProps) {
                   help={<HelpField id="opsmx.verification.imageIds" />}
                   input={(props) => <TextInput {...props} />}
                 />
+              </div>
+              <div className="grid-span-4">
+                <h4 className="sticky-header ng-binding">Gate Security</h4>
+                <br />
+                <div className="grid-span-2">
+                  {/* {fieldParams.gateUrl} */}
+                </div>
+                {multiFieldGateSecurityComp({ ...props },formik)}
               </div>
             </div>
             <div className="opsmxLogo">
