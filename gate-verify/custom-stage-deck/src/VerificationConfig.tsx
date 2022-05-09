@@ -58,6 +58,15 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const[metricCreateUrl , setMetricCreateUrl] = useState('')
 
+  const [modalIsOpen,setModalIsOpen] = useState(false);
+
+  const [metricModalClose, onMetricModalClose] = useState(false);
+
+  const[logCreateUrl , setLogCreateUrl] = useState('')
+
+  const [logmodalIsOpen,setLogModalIsOpen] = useState(false);
+
+  const [logModalClose, onLogModalClose] = useState(false);
 
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
@@ -89,7 +98,7 @@ export function VerificationConfig(props: IStageConfigProps) {
         setMetricCreateUrl(a);
       }    
     )      
-  }, []) 
+  }, [metricModalClose]) 
   
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
@@ -105,9 +114,11 @@ export function VerificationConfig(props: IStageConfigProps) {
             setLogDropdownList(response);       
           }
         );
+        let logCreateUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/meera@opsmx.io/false/write/true";        
+        setLogCreateUrl(logCreateUrl);
       }    
     )      
-  }, []) 
+  }, [logModalClose]) 
    
   useEffect(()=> {  
    if(!props.stage.hasOwnProperty('parameters')){
@@ -223,17 +234,25 @@ export function VerificationConfig(props: IStageConfigProps) {
       }
     });
   };
-
   
-  const [modalIsOpen,setModalIsOpen] = useState(false);
 
   const setModalIsOpenToTrue =()=>{
       setModalIsOpen(true)
   }
 
   const setModalIsOpenToFalse =()=>{
-      setModalIsOpen(false)
+      setModalIsOpen(false);
+      onMetricModalClose(true);      
   }
+
+const setLogModalIsOpenToTrue =()=>{
+    setLogModalIsOpen(true)
+}
+
+const setLogModalIsOpenToFalse =()=>{
+    setLogModalIsOpen(false);
+    onLogModalClose(true);      
+}
 
   return (  
     <div className="VerificationGateConfig">
@@ -300,8 +319,16 @@ export function VerificationConfig(props: IStageConfigProps) {
                 )}
               />                
             </div>
-            <div className="grid-span-1 dropdown-buttons">                
-                <a className="glyphicon glyphicon-plus"></a>  
+            <div className="grid-span-1 dropdown-buttons">  
+            <button onClick={setLogModalIsOpenToTrue}>Add</button> 
+                <Modal isOpen={logmodalIsOpen} className="modal-popup modal-content">
+                  <button onClick={setLogModalIsOpenToFalse} className="modal-close-btn">close</button>                  
+                  <div className="grid-span-4">
+                  <iframe src={logCreateUrl} title="ISD" width="900" height="680">
+                  </iframe>
+                  </div>
+                </Modal>                          
+                {/* <a className="glyphicon glyphicon-plus"></a>   */}
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
               </div>   
@@ -336,11 +363,11 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <Modal isOpen={modalIsOpen} className="modal-popup modal-content">
                   <button onClick={setModalIsOpenToFalse} className="modal-close-btn">close</button>                  
                   <div className="grid-span-4">
-                  <iframe src={metricCreateUrl} title="ISD" width="900" height="600">
+                  <iframe src={metricCreateUrl} title="ISD" width="900" height="680">
                   </iframe>
                   </div>
                 </Modal>
-                <a className="glyphicon glyphicon-plus"></a>  
+                {/* <a className="glyphicon glyphicon-plus"></a>   */}
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
             </div> 
@@ -411,14 +438,14 @@ export function VerificationConfig(props: IStageConfigProps) {
                 />
               </div>
               <HorizontalRule />
-              <div className="grid-span-2">
+              {/* <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.gate"
                   label="Gate Name"
                   help={<HelpField id="opsmx.verification.gateName" />}
                   input={(props) => <TextInput {...props} />}
                 />
-              </div>
+              </div> */}
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.imageids"

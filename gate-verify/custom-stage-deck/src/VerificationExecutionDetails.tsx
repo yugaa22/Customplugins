@@ -1,7 +1,9 @@
 import React, { Fragment, useCallback, useMemo } from 'react';
+import Modal from 'react-modal';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
+import { useState } from 'react';
 
 /*
  * You can use this component to provide information to users about
@@ -15,6 +17,9 @@ import './Verification.less';
 export function VerificationExecutionDetails(props: IExecutionDetailsSectionProps) {
   console.log("Verification Gate Execution");
   console.log(props);
+
+  const [modalIsOpen,setModalIsOpen] = useState(false);
+  
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.overallScore < props.stage.context.parameters.minicanaryresult) {
@@ -42,13 +47,29 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
     </div>
   ) : null;
 
+
+const setModalIsOpenToTrue =()=>{
+    setModalIsOpen(true)
+}
+
+const setModalIsOpenToFalse =()=>{
+    setModalIsOpen(false);      
+}
+
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.overallScore >= 0 ? (
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
-            <span className={'score ' + getClasses()}>View Report</span>           
+            <span className={'score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span>            
+                <Modal isOpen={modalIsOpen} className="modal-popup modal-content">
+                  <button onClick={setModalIsOpenToFalse} className="modal-close-btn">close</button>                  
+                  <div className="grid-span-4">
+                  <iframe src="https://oes-poc.dev.opsmx.org/ui/application/deploymentverification/luthanapp/1/68/true" title="ISD" width="900" height="700">
+                  </iframe>
+                  </div>
+                </Modal>          
             <img
               src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
               alt="logo"
