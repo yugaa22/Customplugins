@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Modal from 'react-modal';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -55,6 +56,9 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const[environmentsList , setenvironmentsList] = useState([]);
 
+  const[metricCreateUrl , setMetricCreateUrl] = useState('')
+
+
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
     get()
@@ -80,7 +84,9 @@ export function VerificationConfig(props: IStageConfigProps) {
             }     
           }
         );
-        props.stage['applicationId'] = results.applicationId;
+        props.stage['applicationId'] = results.applicationId;        
+        let a  = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/meera@opsmx.io/-1/false/false/true";
+        setMetricCreateUrl(a);
       }    
     )      
   }, []) 
@@ -219,9 +225,17 @@ export function VerificationConfig(props: IStageConfigProps) {
   };
 
   
+  const [modalIsOpen,setModalIsOpen] = useState(false);
 
-  return (
-  
+  const setModalIsOpenToTrue =()=>{
+      setModalIsOpen(true)
+  }
+
+  const setModalIsOpenToFalse =()=>{
+      setModalIsOpen(false)
+  }
+
+  return (  
     <div className="VerificationGateConfig">
       <FormikStageConfig
         {...props}
@@ -286,7 +300,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 )}
               />                
             </div>
-            <div className="grid-span-1"> 
+            <div className="grid-span-1 dropdown-buttons">                
                 <a className="glyphicon glyphicon-plus"></a>  
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
@@ -317,11 +331,19 @@ export function VerificationConfig(props: IStageConfigProps) {
                 )}
               />                               
             </div>
-            <div className="grid-span-1"> 
+            <div className="grid-span-1 dropdown-buttons"> 
+                <button onClick={setModalIsOpenToTrue}>Add</button> 
+                <Modal isOpen={modalIsOpen} className="modal-popup modal-content">
+                  <button onClick={setModalIsOpenToFalse} className="modal-close-btn">close</button>                  
+                  <div className="grid-span-4">
+                  <iframe src={metricCreateUrl} title="ISD" width="900" height="600">
+                  </iframe>
+                  </div>
+                </Modal>
                 <a className="glyphicon glyphicon-plus"></a>  
                 <a className="glyphicon glyphicon-edit"></a>    
                 <a className="glyphicon glyphicon-trash"></a> 
-              </div> 
+            </div> 
               {/* <div className="grid-span-3">
                 <FormikFormField
                   name="parameters.gateurl"
