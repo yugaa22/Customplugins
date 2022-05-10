@@ -80,6 +80,12 @@ export function PolicyGateConfig(props: IStageConfigProps) {
       "spinnakerEnvironment": ""
     }]
   }
+  if(!props.stage.parameters.hasOwnProperty('policyName')){
+    props.stage.parameters.policyName = "";
+  }
+  if(!props.stage.parameters.hasOwnProperty('policyId')){
+    props.stage.parameters.policyId = "";
+  }
    REST('oes/accountsConfig/spinnaker/environments').
    get()
    .then(
@@ -141,6 +147,14 @@ export function PolicyGateConfig(props: IStageConfigProps) {
   formik.setFieldValue("parameters.environment[0]['id']", index);
   formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
 } 
+
+const handleOnPolicySelect = (e:any, formik:any) => {
+  const index = e.target.value;
+  const name = policyList.filter(e => e.policyId == index)[0].policyName;
+  formik.setFieldValue("parameters.policyName", name);
+  formik.setFieldValue("parameters.policyId", index);
+} 
+
 
   
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
@@ -224,23 +238,25 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
               <FormikFormField
                 label="Select Policy"
-                name="parameters.policyName"
+                name="parameters.policyId"
                 help={<HelpField id="opsmx.policy.policyName" />}
                 input={(props) => (
                   <ReactSelectInput
                     {...props}
                     clearable={false}
+                    onChange={(e) => {handleOnPolicySelect(e, formik)}}
                     options={policyList && policyList.map((policy: any) => ({
                       label: policy.policyName,
-                      value: policy.policyName
+                      value: policy.policyId
                     }))}
+                    value = {formik.values.parameters.policyId}
                     searchable={true}
                   />
                 )}
               />
 
             </div>
-              <div className="grid-span-2">
+              {/* <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.policyurl"
                   label="Policy Proxy"
@@ -255,7 +271,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                   help={<HelpField id="opsmx.policy.policyPath" />}
                   input={(props) => <TextInput {...props} />}
                 />
-              </div>
+              </div> */}
               <HorizontalRule />
               <div className="grid-span-4 payloadTextarea">
                 <FormikFormField
@@ -266,14 +282,14 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                 />
               </div>
               <HorizontalRule />
-              <div className="grid-span-2">
+              {/* <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.gate"
                   label="Gate Name"
                   help={<HelpField id="opsmx.policy.gateName" />}
                   input={(props) => <TextInput {...props} />}
                 />
-              </div>
+              </div> */}
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.imageids"

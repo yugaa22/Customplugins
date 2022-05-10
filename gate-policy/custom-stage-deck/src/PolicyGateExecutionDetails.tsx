@@ -61,6 +61,8 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <th>Message</th>
                 <th style={{ width: '90px' }}>Executed By</th>
                 <th>Time</th>
+                <th>PolicyName</th>
+                <th>Policy Link</th>
               </tr>
             </thead>
             <tbody>
@@ -71,6 +73,8 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td>{props.stage.outputs.message}</td>
                 <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
+                <td>Name</td>
+                <td>Policy Link</td>
               </tr>
             </tbody>
           </table>
