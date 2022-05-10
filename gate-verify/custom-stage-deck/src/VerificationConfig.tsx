@@ -22,7 +22,8 @@ import {
   IFormikStageConfigInjectedProps,
   LayoutProvider,
   StandardFieldLayout,
-  IStageForSpelPreview
+  IStageForSpelPreview,
+  Tooltip
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
@@ -58,15 +59,20 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const[metricCreateUrl , setMetricCreateUrl] = useState('')
 
+  const[metricUrl , setMetricUrl] = useState('');
+
   const [modalIsOpen,setModalIsOpen] = useState(false);
 
-  const [metricModalClose, onMetricModalClose] = useState(false);
+  const [metricListUpdated, onmetricListUpdated] = useState(false);
 
-  const[logCreateUrl , setLogCreateUrl] = useState('')
+  const[logCreateUrl , setLogCreateUrl] = useState('');
 
   const [logmodalIsOpen,setLogModalIsOpen] = useState(false);
 
-  const [logModalClose, onLogModalClose] = useState(false);
+  const [logListUpdated, onlogListUpdated] = useState(false);
+
+  const[logUrl , setLogUrl] = useState('');
+
 
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
@@ -94,11 +100,11 @@ export function VerificationConfig(props: IStageConfigProps) {
           }
         );
         props.stage['applicationId'] = results.applicationId;        
-        let a  = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/meera@opsmx.io/-1/false/false/true";
+        let a  = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
         setMetricCreateUrl(a);
       }    
     )      
-  }, [metricModalClose]) 
+  }, [metricListUpdated]) 
   
   useEffect(()=> {  
     REST('platformservice/v2/applications/name/'+props.application['applicationName']).
@@ -114,11 +120,11 @@ export function VerificationConfig(props: IStageConfigProps) {
             setLogDropdownList(response);       
           }
         );
-        let logCreateUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/meera@opsmx.io/false/write/true";        
+        let logCreateUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
         setLogCreateUrl(logCreateUrl);
       }    
     )      
-  }, [logModalClose]) 
+  }, [logListUpdated]) 
    
   useEffect(()=> {  
    if(!props.stage.hasOwnProperty('parameters')){
@@ -236,22 +242,58 @@ export function VerificationConfig(props: IStageConfigProps) {
   };
   
 
-  const setModalIsOpenToTrue =()=>{
-      setModalIsOpen(true)
+  const setModalIsOpenToTrue =(type : any)=>{
+    if(type == 'add'){
+      setMetricUrl(metricCreateUrl);
+    }else{
+      let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/true/true";
+      setMetricUrl(editUrl);
+    }
+      setModalIsOpen(true);
   }
 
   const setModalIsOpenToFalse =()=>{
       setModalIsOpen(false);
-      onMetricModalClose(true);      
+      onmetricListUpdated(true);      
   }
 
-const setLogModalIsOpenToTrue =()=>{
-    setLogModalIsOpen(true)
+const setLogModalIsOpenToTrue =(type : any)=>{
+  if(type == 'add'){
+    setLogUrl(logCreateUrl);
+  }else{
+    let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/true";
+    setLogUrl(editUrl);
+  }
+  setLogModalIsOpen(true);
 }
 
 const setLogModalIsOpenToFalse =()=>{
     setLogModalIsOpen(false);
-    onLogModalClose(true);      
+    onlogListUpdated(true);      
+}
+
+const deleteTemplate = (type: any) =>{
+  if(type == "log"){
+    REST('autopilot/api/v1/applications/'+applicationId+"/deleteLogTemplate/"+props.stage.parameters.logTemplate).
+    delete()
+    .then(
+      (results)=> {
+        console.log("logDelete");
+        console.log(results);
+        onlogListUpdated(true); 
+      }     
+   )
+  }else if (type == "metric"){
+    REST('autopilot/api/v1/applications/'+applicationId+"/deleteMetricTemplate/"+props.stage.parameters.metricTemplate).
+    delete()
+    .then(
+      (results)=> {
+        console.log("metricDelete");
+        console.log(results);
+        onmetricListUpdated(true);        
+      }     
+    )
+  }
 }
 
   return (  
@@ -290,7 +332,7 @@ const setLogModalIsOpenToFalse =()=>{
             <div className="grid-span-4">            
               <h4>Template Configuration </h4>
             </div>            
-            <div className="grid-span-3">                    
+            <div className="grid-span-2">                    
               <FormikFormField
                 name="parameters.logTemplate"
                 label="Log Template"
@@ -319,20 +361,46 @@ const setLogModalIsOpenToFalse =()=>{
                 )}
               />                
             </div>
-            <div className="grid-span-1 dropdown-buttons">  
-            <button onClick={setLogModalIsOpenToTrue}>Add</button> 
+            <div className="grid-span-2 dropdown-buttons">  
+            {/* <button onClick={() =>setLogModalIsOpenToTrue('add')}>Add</button>  */}
                 <Modal isOpen={logmodalIsOpen} className="modal-popup modal-content">
                   <button onClick={setLogModalIsOpenToFalse} className="modal-close-btn">close</button>                  
                   <div className="grid-span-4">
-                  <iframe src={logCreateUrl} title="ISD" width="900" height="680">
+                  <iframe src={logUrl} title="ISD" width="900" height="680">
                   </iframe>
                   </div>
-                </Modal>                          
+                </Modal>
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() =>setLogModalIsOpenToTrue('add')}>
+                  <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
+                  <Tooltip value="Create LogTemplate">
+                    <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Create</span>        
+                </button>
+
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() =>setLogModalIsOpenToTrue('edit')}>
+                  <span className="fa fa-cog visible-xl-inline" />
+                  <Tooltip value="Edit LogTemplate">
+                    <span className="fa fa-cog hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Edit</span>        
+                </button>
+
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('log')}>
+                  <span className="glyphicon glyphicon-trash visible-xl-inline" />
+                  <Tooltip value="Remove LogTemplate">
+                    <span className="glyphicon glyphicon-trash hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Remove</span>        
+                </button>
+                
                 {/* <a className="glyphicon glyphicon-plus"></a>   */}
-                <a className="glyphicon glyphicon-edit"></a>    
-                <a className="glyphicon glyphicon-trash"></a> 
+                {/* <button onClick={() =>setLogModalIsOpenToTrue('edit')}>Edit</button> */}
+                {/* <button onClick={() => deleteTemplate('log')}>delete</button>   */}
+                {/* <a className="glyphicon glyphicon-edit"></a>     */}
+                {/* <a className="glyphicon glyphicon-trash"></a>  */}
               </div>   
-            <div className="grid-span-3">                    
+            <div className="grid-span-2">                    
               <FormikFormField
                 name="parameters.metricTemplate"
                 label="Metric Template"
@@ -358,18 +426,45 @@ const setLogModalIsOpenToFalse =()=>{
                 )}
               />                               
             </div>
-            <div className="grid-span-1 dropdown-buttons"> 
-                <button onClick={setModalIsOpenToTrue}>Add</button> 
-                <Modal isOpen={modalIsOpen} className="modal-popup modal-content">
+            <div className="grid-span-2 dropdown-buttons"> 
+                {/* <button onClick={() => setModalIsOpenToTrue('add')}>Add</button>  */}
+                <Modal isOpen={modalIsOpen} className="modal-popup modal-content">                 
                   <button onClick={setModalIsOpenToFalse} className="modal-close-btn">close</button>                  
                   <div className="grid-span-4">
-                  <iframe src={metricCreateUrl} title="ISD" width="900" height="680">
+                  <iframe src={metricUrl} title="ISD" width="900" height="680">
                   </iframe>
                   </div>
                 </Modal>
+
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('add')}>
+                  <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
+                  <Tooltip value="Create MetricTemplate">
+                    <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Create</span>        
+                </button>
+
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('edit')}>
+                  <span className="fa fa-cog visible-xl-inline" />
+                  <Tooltip value="Edit MetricTemplate">
+                    <span className="fa fa-cog hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Edit</span>        
+                </button>
+
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('metric')}>
+                  <span className="glyphicon glyphicon-trash visible-xl-inline" />
+                  <Tooltip value="Remove MetricTemplate">
+                    <span className="glyphicon glyphicon-trash hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Remove</span>        
+                </button>
+
+                {/* <button onClick={() => setModalIsOpenToTrue('edit')}>Edit</button> */}
+                {/* <button onClick={() => deleteTemplate('metric')}>delete</button>   */}
                 {/* <a className="glyphicon glyphicon-plus"></a>   */}
-                <a className="glyphicon glyphicon-edit"></a>    
-                <a className="glyphicon glyphicon-trash"></a> 
+                {/* <a className="glyphicon glyphicon-edit"></a>     */}
+                {/* <a className="glyphicon glyphicon-trash"></a>  */}
             </div> 
               {/* <div className="grid-span-3">
                 <FormikFormField
