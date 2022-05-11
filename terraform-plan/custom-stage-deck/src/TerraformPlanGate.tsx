@@ -2,7 +2,7 @@ import React from 'react';
 import { ExecutionDetailsTasks, IStageTypeConfig } from '@spinnaker/core';
 
 import { TerraformPlanGateExecutionDetails } from './TerraformPlanGateExecutionDetails';
-import { TerraformPlanGateConfig, validate } from './TerraformPlanGateConfig';
+import { TerraformPlanGateConfig } from './TerraformPlanGateConfig';
 
 /*
   Define Spinnaker Stages with IStageTypeConfig.
@@ -13,10 +13,10 @@ import { TerraformPlanGateConfig, validate } from './TerraformPlanGateConfig';
   - component -> The rendered React component
   - validateFn -> A validation function for the stage config form.
  */
-export const terraformplan: IStageTypeConfig = {
-  key: 'terraformplan',
+export const customTSPlanJobStage: IStageTypeConfig = {
+  key: 'customTSPlanJobStage',
   label: `Terraform Plan`,
-  description: 'Spinnaker Terraform Evaluation and Decision Stage',
+  description: 'Stage for terraspin plan operation',
   component: TerraformPlanGateConfig, // stage config
   executionDetailsSections: [TerraformPlanGateExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,

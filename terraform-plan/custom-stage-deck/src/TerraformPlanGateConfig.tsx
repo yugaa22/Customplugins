@@ -44,6 +44,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
 
   useEffect(() => {
     loadAccounts();
+    props.stage.alias = 'runJob';
   }, [])
 
   const HorizontalRule = () => (
@@ -51,6 +52,8 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
       <hr />
     </div>
   );
+
+
   return (
     <div className="TeraformPlanGateConfig">
       <FormikStageConfig
@@ -64,7 +67,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.AWSAccountName"
                   label="AWS Account Name"
-                  help={<HelpField id="opsmx.terraformplan.AWSAccountName" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.AWSAccountName" />}
                   input={(props) => (
                     <ReactSelectInput
                       clearable={false}
@@ -83,7 +86,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.spinnakerNamespace"
                   label="Spinnaker Namespace"
-                  help={<HelpField id="opsmx.terraformplan.spinnakerNamespace" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.spinnakerNamespace" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -91,7 +94,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfScriptAccpint"
                   label="Tf Script Account"
-                  help={<HelpField id="opsmx.terraformplan.tfScriptAccount" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.tfScriptAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -99,7 +102,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfScriptRepo"
                   label="Tf Plan Script Repo"
-                  help={<HelpField id="opsmx.terraformplan.tfPlanScriptRepo" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.tfPlanScriptRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -107,7 +110,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfLocation"
                   label="Tf Location"
-                  help={<HelpField id="opsmx.terraformplan.tfLocation" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.tfLocation" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -115,7 +118,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.overrideFile"
                   label="Override File"
-                  help={<HelpField id="opsmx.terraformplan.overrideFile" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.overrideFile" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -123,7 +126,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfStateAccount"
                   label="Tf State Account"
-                  help={<HelpField id="opsmx.terraformplan.tfStateAccount" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.tfStateAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -131,7 +134,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.artifactRepo"
                   label="Artifact Repository"
-                  help={<HelpField id="opsmx.terraformplan.artifactRepo" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.artifactRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -139,7 +142,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.artifactUUID"
                   label="Artifact UUID"
-                  help={<HelpField id="opsmx.terraformplan.artifactUUID" />}
+                  help={<HelpField id="opsmx.customTSPlanJobStage.artifactUUID" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
