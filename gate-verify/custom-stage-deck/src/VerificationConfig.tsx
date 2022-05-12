@@ -152,7 +152,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     props.stage.parameters.gateSecurity = [
     {
       "connectorType": "PayloadConstraints",
-      "helpText": "Payload Constraints",
+      "helpText": "Payload Constraints for Gate Security",
       "isMultiSupported": true,
       "label": "Payload Constraints",
       "selectInput": false,
@@ -296,6 +296,9 @@ const deleteTemplate = (type: any) =>{
   }
 }
 
+
+//mat-focus-indicator btn btn-primary btnColor mat-button mat-button-base
+//mat-button-wrapper
   return (  
     <div className="VerificationGateConfig">
       <FormikStageConfig
@@ -361,15 +364,22 @@ const deleteTemplate = (type: any) =>{
                 )}
               />                
             </div>
-            <div className="grid-span-2 dropdown-buttons">  
-            {/* <button onClick={() =>setLogModalIsOpenToTrue('add')}>Add</button>  */}
-                <Modal isOpen={logmodalIsOpen} className="modal-popup modal-content">
-                  <button onClick={setLogModalIsOpenToFalse} className="modal-close-btn">close</button>                  
-                  <div className="grid-span-4">
-                  <iframe src={logUrl} title="ISD" width="900" height="680">
-                  </iframe>
-                  </div>
+            <div className="grid-span-2 dropdown-buttons"> 
+                <Modal id="logtemplate-modal" isOpen={logmodalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setLogModalIsOpenToFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Log Template</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                      <iframe src={logUrl} title="ISD" width="1200" height="750">
+                      </iframe>
+                    </div>                    
+                  </div>                  
                 </Modal>
+
                 <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() =>setLogModalIsOpenToTrue('add')}>
                   <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
                   <Tooltip value="Create LogTemplate">
@@ -377,28 +387,26 @@ const deleteTemplate = (type: any) =>{
                   </Tooltip>
                   <span className="visible-xl-inline"> Create</span>        
                 </button>
-
-                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() =>setLogModalIsOpenToTrue('edit')}>
-                  <span className="fa fa-cog visible-xl-inline" />
-                  <Tooltip value="Edit LogTemplate">
-                    <span className="fa fa-cog hidden-xl-inline" />
-                  </Tooltip>
-                  <span className="visible-xl-inline"> Edit</span>        
-                </button>
-
-                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('log')}>
-                  <span className="glyphicon glyphicon-trash visible-xl-inline" />
-                  <Tooltip value="Remove LogTemplate">
-                    <span className="glyphicon glyphicon-trash hidden-xl-inline" />
-                  </Tooltip>
-                  <span className="visible-xl-inline"> Remove</span>        
-                </button>
                 
-                {/* <a className="glyphicon glyphicon-plus"></a>   */}
-                {/* <button onClick={() =>setLogModalIsOpenToTrue('edit')}>Edit</button> */}
-                {/* <button onClick={() => deleteTemplate('log')}>delete</button>   */}
-                {/* <a className="glyphicon glyphicon-edit"></a>     */}
-                {/* <a className="glyphicon glyphicon-trash"></a>  */}
+                { props.stage.parameters.logTemplate != null ? (
+                  <><button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setLogModalIsOpenToTrue('edit')}>
+                    <span className="fa fa-cog visible-xl-inline" />
+                    <Tooltip value="Edit LogTemplate">
+                      <span className="fa fa-cog hidden-xl-inline" />
+                    </Tooltip>
+                    <span className="visible-xl-inline"> Edit</span>
+                  </button>
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('log')}>
+                      <span className="glyphicon glyphicon-trash visible-xl-inline" />
+                      <Tooltip value="Remove LogTemplate">
+                        <span className="glyphicon glyphicon-trash hidden-xl-inline" />
+                      </Tooltip>
+                      <span className="visible-xl-inline"> Remove</span>
+                    </button></>
+                ) :
+                (
+                 null
+                )}
               </div>   
             <div className="grid-span-2">                    
               <FormikFormField
@@ -426,16 +434,23 @@ const deleteTemplate = (type: any) =>{
                 )}
               />                               
             </div>
-            <div className="grid-span-2 dropdown-buttons"> 
-                {/* <button onClick={() => setModalIsOpenToTrue('add')}>Add</button>  */}
-                <Modal isOpen={modalIsOpen} className="modal-popup modal-content">                 
-                  <button onClick={setModalIsOpenToFalse} className="modal-close-btn">close</button>                  
-                  <div className="grid-span-4">
-                  <iframe src={metricUrl} title="ISD" width="900" height="680">
-                  </iframe>
+            <div className="grid-span-2 dropdown-buttons">            
+
+                <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup modal-content" overlayClassName="react-modal-custom"> 
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setModalIsOpenToFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Metric Template</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                      <iframe src={metricUrl} title="ISD" width="1200" height="750">
+                      </iframe>
+                    </div>                    
                   </div>
                 </Modal>
-
+                
                 <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('add')}>
                   <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
                   <Tooltip value="Create MetricTemplate">
@@ -443,28 +458,28 @@ const deleteTemplate = (type: any) =>{
                   </Tooltip>
                   <span className="visible-xl-inline"> Create</span>        
                 </button>
+                { props.stage.parameters.logTemplate != null ? (
+                  <>
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('edit')}>
+                    <span className="fa fa-cog visible-xl-inline" />
+                    <Tooltip value="Edit MetricTemplate">
+                      <span className="fa fa-cog hidden-xl-inline" />
+                    </Tooltip>
+                    <span className="visible-xl-inline"> Edit</span>        
+                  </button>
 
-                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('edit')}>
-                  <span className="fa fa-cog visible-xl-inline" />
-                  <Tooltip value="Edit MetricTemplate">
-                    <span className="fa fa-cog hidden-xl-inline" />
-                  </Tooltip>
-                  <span className="visible-xl-inline"> Edit</span>        
-                </button>
-
-                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('metric')}>
-                  <span className="glyphicon glyphicon-trash visible-xl-inline" />
-                  <Tooltip value="Remove MetricTemplate">
-                    <span className="glyphicon glyphicon-trash hidden-xl-inline" />
-                  </Tooltip>
-                  <span className="visible-xl-inline"> Remove</span>        
-                </button>
-
-                {/* <button onClick={() => setModalIsOpenToTrue('edit')}>Edit</button> */}
-                {/* <button onClick={() => deleteTemplate('metric')}>delete</button>   */}
-                {/* <a className="glyphicon glyphicon-plus"></a>   */}
-                {/* <a className="glyphicon glyphicon-edit"></a>     */}
-                {/* <a className="glyphicon glyphicon-trash"></a>  */}
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('metric')}>
+                    <span className="glyphicon glyphicon-trash visible-xl-inline" />
+                    <Tooltip value="Remove MetricTemplate">
+                      <span className="glyphicon glyphicon-trash hidden-xl-inline" />
+                    </Tooltip>
+                    <span className="visible-xl-inline"> Remove</span>        
+                  </button>
+                  </>
+                ) :
+                (
+                 null
+                )}
             </div> 
               {/* <div className="grid-span-3">
                 <FormikFormField
