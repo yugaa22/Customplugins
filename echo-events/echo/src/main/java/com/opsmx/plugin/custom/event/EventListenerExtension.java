@@ -1,0 +1,47 @@
+package com.opsmx.plugin.custom.event;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.echo.api.events.Event;
+import com.netflix.spinnaker.echo.api.events.EventListener;
+import com.netflix.spinnaker.kork.plugins.api.spring.ExposeToApp;
+import com.opsmx.plugin.custom.event.constants.EchoConstant;
+import org.apache.camel.ProducerTemplate;
+import org.pf4j.Extension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
+import java.util.Map;
+
+@Primary
+@Component
+@Extension
+@ExposeToApp
+public class EventListenerExtension implements EventListener {
+
+    private static ObjectMapper mapper = new ObjectMapper();
+
+    private final Logger logger = LoggerFactory.getLogger(EventListenerExtension.class);
+
+    @Autowired
+    private ProducerTemplate producerTemplate;
+
+
+    @Override
+    public void processEvent(Event event) {
+        try {
+            logger.info("Event received : {}", event);
+            Map<String, Object> eventMap = mapper.convertValue(event, Map.class);
+            eventMap.put("content", mapper.writeValueAsString(eventMap.get("content")));
+            eventMap.put("details", mapper.writeValueAsString(eventMap.get("details")));
+
+            String rmqMessage = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(eventMap);
+            producerTemplate.sendBody(EchoConstant.echoEventDirectEndPointUrl, rmqMessage);
+        }catch (Exception e){
+            logger.error("Exception occurred while processing event : {}", e);
+
+        }
+    }
+}
