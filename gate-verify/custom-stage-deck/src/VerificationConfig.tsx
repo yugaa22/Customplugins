@@ -95,7 +95,12 @@ export function VerificationConfig(props: IStageConfigProps) {
             if(results['services'].length > 0 ) {
               let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
               props.stage['serviceId'] = results['services'][index].serviceId;
-              props.stage['pipelineId'] = results['services'][index].serviceId;
+              //props.stage['pipelineId'] = results['services'][index].serviceId;
+              const pipelines =  results.services[index].pipelines;
+              const pipelineIndex = pipelines.findIndex((pipeline:any) => pipeline.pipelineName == props.pipeline.name);
+              if(pipelineIndex >= 0){
+                props.stage['pipelineId'] = pipelines[pipelineIndex].pipelineId;
+              }
             }     
           }
         );
@@ -308,12 +313,21 @@ const deleteTemplate = (type: any) =>{
           
           <div className="flex">
             <div className="grid"></div>
-            <div className="grid grid-4 form mainform"> 
-                     
+            <div className="grid grid-4 form mainform">
+             
+              {/* <div className="grid-span-3">
+                <FormikFormField
+                  name="parameters.environment"
+                  label="Environment"
+                  help={<HelpField id="opsmx.verification.environment" />}
+                  input={(props) => <TextInput {...props} />}
+                />
+              </div>  */}
+              
                <div className="grid-span-3">                    
                <FormikFormField
                  name="parameters.environment[0]"
-                 label="Enviornment"
+                 label="Environment"
                  help={<HelpField id="opsmx.verification.environment" />}
                  input={() => (
                    <ReactSelectInput
@@ -388,8 +402,9 @@ const deleteTemplate = (type: any) =>{
                   <span className="visible-xl-inline"> Create</span>        
                 </button>
                 
-                { props.stage.parameters.logTemplate != null ? (
-                  <><button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setLogModalIsOpenToTrue('edit')}>
+                {/* { props.stage.parameters.logTemplate != null ? (
+                  <> */}
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setLogModalIsOpenToTrue('edit')}>
                     <span className="fa fa-cog visible-xl-inline" />
                     <Tooltip value="Edit LogTemplate">
                       <span className="fa fa-cog hidden-xl-inline" />
@@ -402,11 +417,12 @@ const deleteTemplate = (type: any) =>{
                         <span className="glyphicon glyphicon-trash hidden-xl-inline" />
                       </Tooltip>
                       <span className="visible-xl-inline"> Remove</span>
-                    </button></>
+                    </button>
+                    {/* </>
                 ) :
                 (
                  null
-                )}
+                )} */}
               </div>   
             <div className="grid-span-2">                    
               <FormikFormField
@@ -458,8 +474,8 @@ const deleteTemplate = (type: any) =>{
                   </Tooltip>
                   <span className="visible-xl-inline"> Create</span>        
                 </button>
-                { props.stage.parameters.logTemplate != null ? (
-                  <>
+                {/* { props.stage.parameters.logTemplate != null ? (
+                  <> */}
                   <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('edit')}>
                     <span className="fa fa-cog visible-xl-inline" />
                     <Tooltip value="Edit MetricTemplate">
@@ -475,11 +491,11 @@ const deleteTemplate = (type: any) =>{
                     </Tooltip>
                     <span className="visible-xl-inline"> Remove</span>        
                   </button>
-                  </>
+                  {/* </>
                 ) :
                 (
                  null
-                )}
+                )} */}
             </div> 
               {/* <div className="grid-span-3">
                 <FormikFormField
