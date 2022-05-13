@@ -77,7 +77,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
       console.log("Store Connector: ", storeconnector);
       
       return storeconnector.map((option: any) => ({
-              "value": option.id,
+              "value": option.name,
               "label": option.name
             }));
 
@@ -198,10 +198,9 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                         {headers.map((header: any) => (
                           <td key={`${header.name}-td`}>
 
-                           {
+                            {
                              header.label == "Connector" ?
-                            
-                            <FormikFormField
+                              <FormikFormField
                               name={`parameters.${fieldMapName}[${parentIndex}].values[${index}][${header.name}]`}
                               input={(inputProps) => 
                                 <ReactSelectInput
@@ -211,34 +210,27 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                                     value: e,
                                     label: e
                                   })) }
-                                  
                                   value={header.label === 'Connector' ? props.formik.values.parameters.selectedConnectors[0].values[index].connector : props.formik.values.parameters.selectedConnectors[0].values[index].account}
-                                  // value={...props}
                                   onChange={(e)=> handleOnSelection(e, header.label, index, props)}
                                   //stringOptions={...props}
-                                  
                                   />
                                   
                             }
                               layout={VariableNameFormLayout}
                             />
                             :
-                            <div>
-                              {/* options: {JSON.stringify(accountsOfSelectedConnector(index))} */}
                              <FormikFormField
                               name={`parameters.${fieldMapName}[${parentIndex}].values[${index}][${header.name}]`}
                               input={(inputProps) => 
                                 <ReactSelectInput
                                   {...inputProps}
                                   clearable={false}
-                                  // options={mapAccountsList(props.formik.values.parameters.selectedConnectors[0].values[index].connector)}
                                   options={accountsOfSelectedConnector(props.formik.values.parameters.selectedConnectors[0].values[index].connector)}
-                                  />
                                   
+                                  />
                             }
                               layout={VariableNameFormLayout}
                             />
-                            </div>
                            }
                           </td>
                         ))}

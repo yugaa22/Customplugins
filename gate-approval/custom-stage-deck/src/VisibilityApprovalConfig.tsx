@@ -58,8 +58,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
     useEffect(()=> {  
     if(!props.stage.hasOwnProperty('parameters')){
-      console.log("First Call");
-      
       props.stage.parameters = {}
     }
     
@@ -76,6 +74,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     
     if(!props.stage.parameters.hasOwnProperty('approvalGroups')){
       props.stage.parameters.approvalGroups = []
+    }
+
+    if(!props.stage.parameters.hasOwnProperty('automatedApproval')){
+      props.stage.parameters.automatedApproval = [{
+        "policyId": null,
+        "policyName": ""
+      }]
     }
 
     REST(`visibilityservice/v6/getAllConnectorFields`).
@@ -182,8 +187,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
       //Add Serivce and Pipeline Details to the JSON
   const getServicePipelineDetails = (data: any) =>{
-      console.log("Fourth Call - getting Service Pipeline Details");
-
     const pipelineName = props.pipeline.name;
     const index = data.services.findIndex((service:any) => service.serviceName == pipelineName);
     if(index >= 0){
@@ -197,29 +200,58 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   }
 
     // Environments
-    const[environmentsList , setenvironmentsList] = useState([]);
-    useEffect(()=> {  
-      console.log("Environment API Called");
+    const[environmentsList , setEnvironmentList] = useState([]);
+    const [showEnvironment, setshowEnvironment] = useState(false);
 
+    useEffect(()=> {  
     REST('oes/accountsConfig/spinnaker/environments').
     get()
     .then(
-      (results)=> {
-        console.log("Environemnt results: ", results);
-        
-        setenvironmentsList(results);       
+      (response)=> {
+        let temp = response;
+        temp.push({
+          "id": 0,
+        "spinnakerEnvironment": "Add new Environment"
+      });
+      setEnvironmentList(temp);
+      console.log("Environmen API: ", temp);
+      
+
       }     
     )
   }, []) 
 
 
-  const handleOnEnvironmentSelect = (e:any, props:any) => {
+  const handleOnEnvironmentSelect = (e:any, formik:any) => {
+
+
+
+
+
+    console.log("Handle Environment: ", props);
+    
+
+    if(e.target.value === 0){
+      setshowEnvironment(true);
+    props.stage.parameters.environment[0].id = 0;
+    props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment'
+
+    // props.formik.setFieldValue("parameters.environment]", [{
+    //   "id": 0,
+    //   "spinnakerEnvironment": 'Add new Environment'
+    // }]); 
+
+    }else{
+      setshowEnvironment(false);
+      props.stage.parameters.customEnvironment = "";
     const index = e.target.value;
-    const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
-        props.formik.setFieldValue("parameters.environment]", [{
-      "id": index,
-      "spinnakerEnvironment": spinnValue
-    }]); 
+    const spinnValue = environmentsList.filter((e:any) => e.id == index)[0].spinnakerEnvironment;
+    console.log("spinnValue", props.stage.parameters);
+      formik.setFieldValue("parameters.environment[0]['id']", index);
+      formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+    }
+
+
     console.log("After update handleOnEnvironmentSelect", props);
   }
 
@@ -236,6 +268,16 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     )
   }, []) 
 
+  const handleAutomatedApproval = (e:any, props: any) => {
+    console.log("Automated Approval: ", props);
+    const index = e.target.value;
+    const policyName = policyList.filter((e:any) => e.policyId == index)[0].policyName;
+    props.formik.setFieldValue("parameters.automatedApproval]", [{
+      "policyId": index,
+      "policyName": policyName
+    }]); 
+  }
+
 
   // Approval Groups
   const [approvalGroupsList , setapprovalGroupsList] = useState([]);
@@ -251,8 +293,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
   const handleApprovalGroups = (e:any, props:any) => {
     console.log("handle Approval Groups: ", props);
-    console.log("e Value: ", e);
-    
     props.formik.setFieldValue(`parameters.approvalGroups`, e)
   }
   
@@ -276,11 +316,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       setConnectorTypeList(response)
     })
   }, [])
-  // const { result: connectorTypeList} = useData(
-  //   () => IgorService.getConnectorsList(),
-  //   [],
-  //   [],
-  //   );
 
 
   const [selectedConnector, setSelectedConnector] = useState("");
@@ -288,8 +323,10 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   const [loadConnectors, setLoadConnectors] = useState(true);
 
   React.useEffect(()=> {
-    console.log("Start---------------------- ", selectedConnector);
 
+    if(!selectedConnector){
+      return;
+    }
     REST(`platformservice/v6/users/user2/datasources?datasourceType=${selectedConnector}&permissionId=view`).
     get()
     .then((response) => {
@@ -306,8 +343,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       }
     })
     
-    console.log("listOfConnectors After: ", listOfConnectors);
-    console.log("End---------------------- ", selectedConnector);
 
   }, [selectedConnector])
 
@@ -318,7 +353,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
    
     // Check if connectors are present in the Parameters
     if(listOfConnectors.length > 0){
-      console.log("Connectors Absent and list of connectors Present", listOfConnectors);
+      console.log(" list of connectors Present", listOfConnectors);
 
         // Find the object of selected Connectors in listOfConnectors and push it to connectors
         const indexOfSelectedConnector = listOfConnectors.findIndex((connector: any) => connector.connectorType.toLowerCase() == selectedConnector.toLowerCase());
@@ -381,8 +416,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
 
   const multiFieldComp = (props: any) => {
-    console.log("Loaded multiFieldComp", props);
-
     const fieldParams = props.formik.values.parameters ?? null
     if(!(fieldParams && fieldParams.connectors)){
       return;
@@ -428,8 +461,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       if(!propsFormik?.parameters){
         return;
       }
-        console.log("Props present ---", props);
-
         return <>
         <div className='grid grid-4'>
 
@@ -444,7 +475,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                   {...props}
                   clearable={false}
                   // value={`parameters.environment[0]['id]`}
-                  onChange={(e) => {handleOnEnvironmentSelect(e, props)}}
+                  onChange={(e) => {handleOnEnvironmentSelect(e, props.formik)}}
                   // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
                   //   this.props.formik.setFieldValue('parameters.connectorType', o.target.value);
                   // }}
@@ -455,12 +486,25 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                         label: item.spinnakerEnvironment
                       }))}
                   //value={...props}
-                  value={propsFormik?.parameters.environment[0].id}
+                  value={props.formik.values?.parameters.environment[0].id}
                   // stringOptions={...props}
                   />
                 )}
               />       
 
+            </div>
+
+            <div className="grid-span-1 fullWidthContainer">
+              {showEnvironment ?
+                  <FormikFormField
+                  name="parameters.customEnvironment"
+                  label="Add new Environment"
+                  help={<HelpField id="opsmx.approval.customEnvironment" />}
+                  input={(props) => <TextInput {...props} />} 
+                  />
+                  :
+                  null
+                }
             </div>
 
 
@@ -481,18 +525,18 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                   <FormikFormField
                     name="parameters.automatedApproval[0].policyId"
                     label=""
-                    input={(props) => (
+                    input={(automatedApproval) => (
                       <ReactSelectInput
-                      {...props}
+                      {...automatedApproval}
                       clearable={false}
-                      // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                      onChange={(e:any) => handleAutomatedApproval(e,props)}
                       //   this.props.formik.setFieldValue('parameters.connectorType', o.target.value);
                       // }}
                       options={policyList && policyList.map((policy: any) => ({
-                        label: policy.policyName,
-                        value: policy.policyId
+                        value: policy.policyId,
+                        label: policy.policyName
                       }))} 
-                      //value={...props}
+                      value={props.formik.values.parameters?.automatedApproval[0].policyId}
                       //stringOptions={...props}
                       />
                     )}
@@ -513,9 +557,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 <p className='approvalGroupsHeader'>Approval Groups</p> 
                 <MultiSelect
                   options = {approvalGroupsList && approvalGroupsList.map((approvalGroup: any) => ({
-                              label: approvalGroup.userGroupName,
-                              value: approvalGroup.userGroupId
-                            }))} 
+                            label: approvalGroup.userGroupName,
+                            value: approvalGroup.userGroupId,
+                            userGroupName: approvalGroup.userGroupName,
+                            userGroupId: approvalGroup.userGroupId,
+                            isAdmin: approvalGroup.isAdmin,
+                            isSuperAdmin: approvalGroup.isSuperAdmin
+                          }))} 
                   onChange={(e:any) => handleApprovalGroups(e,props)}
                   labelledBy="Select"
                   value={propsFormik?.parameters?.approvalGroups}
@@ -590,8 +638,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   
   const multiFieldGateSecurityComp = (props: any) => {
     getGateSecurityParams();
-              console.log("Loaded multiFieldGateSecurityComp", props);
-
 
     const fieldParams = props.formik.values?.parameters ?? null
     if(!(fieldParams && fieldParams.gateSecurity)){
