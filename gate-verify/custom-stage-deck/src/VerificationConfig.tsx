@@ -57,6 +57,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const[environmentsList , setenvironmentsList] = useState([]);
 
+  const [showEnvironment, setshowEnvironment] = useState(false);
+
+  //const [newEnvironment, setnewEnvironment] = useState("");
+
   const[metricCreateUrl , setMetricCreateUrl] = useState('')
 
   const[metricUrl , setMetricUrl] = useState('');
@@ -141,18 +145,32 @@ export function VerificationConfig(props: IStageConfigProps) {
     "spinnakerEnvironment": ""
   }]
   }
+  // if(!props.stage.parameters.hasOwnProperty('customEnvironment')){
+  //   props.stage.parameters.customEnvironment = "";
+  // }
+
    REST('oes/accountsConfig/spinnaker/environments').
    get()
    .then(
      (results)=> {
       console.log(results);
+      let temp = results;
+      temp.push({
+        "id": 0,
+        "spinnakerEnvironment": "Add new Environment"
+      });
        setenvironmentsList(results);       
      }     
    )
    
  }, []) 
 
- const getGateSecurityParams = () => {
+// const pushNewEnvironment = (data: any) => {
+//     setnewEnvironment(data);
+//     props.stage.parameters.customEnvironment = data;
+// }
+
+const getGateSecurityParams = () => {
   if(!props.stage.parameters.hasOwnProperty('gateSecurity')){
     props.stage.parameters.gateSecurity = [
     {
@@ -188,10 +206,22 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   // Environments 
   const handleOnEnvironmentSelect = (e:any, formik:any) => {
-    const index = e.target.value;
-    const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
-    formik.setFieldValue("parameters.environment[0]['id']", index);
-    formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+    if(e.target.value === 0){
+      setshowEnvironment(true);
+      props.stage.parameters.environment[0].id = 0;
+      props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment';
+    }else{
+      setshowEnvironment(false);
+      props.stage.parameters.customEnvironment = "";
+      const index = e.target.value;
+      const spinnValue = environmentsList.filter((e:any) => e.id == index)[0].spinnakerEnvironment;
+      formik.setFieldValue("parameters.environment[0]['id']", index);
+      formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+      //   formik.setFieldValue("parameters.environment]", [{
+      //   "id": index,
+      //   "spinnakerEnvironment": spinnValue
+      // }]); 
+    }
   } 
 
 
@@ -324,11 +354,12 @@ const deleteTemplate = (type: any) =>{
                 />
               </div>  */}
               
-               <div className="grid-span-3">                    
+               <div className="grid-span-2">                    
                <FormikFormField
                  name="parameters.environment[0]"
                  label="Environment"
                  help={<HelpField id="opsmx.verification.environment" />}
+                 required={true}
                  input={() => (
                    <ReactSelectInput
                    {...props}
@@ -344,7 +375,22 @@ const deleteTemplate = (type: any) =>{
                  )}
                />                
              </div>
-            
+             {showEnvironment ? (
+                <>
+                  <div className="grid-span-2">  
+                  {/* <TextInput onChange={(e) => {pushNewEnvironment(e.target.value)}} value={newEnvironment} /> */}
+                  <FormikFormField
+                  name="parameters.customEnvironment"
+                  label="Add new Environment"
+                  help={<HelpField id="opsmx.verification.customEnvironment" />}           
+                  input={(props) => <TextInput {...props}/>}
+                  />                  
+                  </div>
+                </>
+             ):(
+                null
+             )
+            }
             <HorizontalRule />
             <div className="grid-span-4">            
               <h4>Template Configuration </h4>
@@ -510,6 +556,7 @@ const deleteTemplate = (type: any) =>{
                   name="parameters.lifetime"
                   label="LifeTimeHours"
                   help={<HelpField id="opsmx.verification.lifeTimeHours" />}
+                  required={true}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -520,6 +567,7 @@ const deleteTemplate = (type: any) =>{
                   label="Minimum Canary Result"
                   help={<HelpField id="opsmx.verification.minimumCanaryResult" />}
                   input={(props) => <TextInput {...props} />}
+                  required={true}
                 />
               </div>
               <div>
@@ -528,6 +576,7 @@ const deleteTemplate = (type: any) =>{
                   label="Canary Result Score"
                   help={<HelpField id="opsmx.verification.canaryResultScore" />}
                   input={(props) => <TextInput {...props} />}
+                  required={true}
                 />
               </div>
               <div style={{ paddingLeft: '4em' }}>
@@ -552,6 +601,7 @@ const deleteTemplate = (type: any) =>{
                   name="parameters.baselinestarttime"
                   label="Baseline StartTime"
                   help={<HelpField id="opsmx.verification.baselineStartTime" />}
+                  required={true}
                   input={(props) => <DateTimePicker {...props} />}
                 />
               </div>
@@ -560,6 +610,7 @@ const deleteTemplate = (type: any) =>{
                   name="parameters.canarystarttime"
                   label="Canary StartTime"
                   help={<HelpField id="opsmx.verification.canarystarttime" />}
+                  required={true}
                   input={(props) => <DateTimePicker {...props} />}
                 />
               </div>
@@ -577,6 +628,7 @@ const deleteTemplate = (type: any) =>{
                   name="parameters.imageids"
                   label="Image Ids"
                   help={<HelpField id="opsmx.verification.imageIds" />}
+                  required={true}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -605,10 +657,10 @@ const deleteTemplate = (type: any) =>{
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
-  validator
-    .field('parameters.gateurl')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
+  // validator
+  //   .field('parameters.gateurl')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
 
   validator
     .field('parameters.lifetime')
@@ -635,10 +687,10 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Metric Analysis is required` : undefined));
 
-  validator
-    .field('parameters.gate')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Gate Name is required` : undefined));
+  // validator
+  //   .field('parameters.gate')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Gate Name is required` : undefined));
 
   validator
     .field('parameters.imageids')
