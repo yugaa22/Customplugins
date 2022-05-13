@@ -44,6 +44,10 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
   const[environmentsList , setenvironmentsList] = useState([]);
 
+  const [showEnvironment, setshowEnvironment] = useState(false);
+
+  //const [newEnvironment, setnewEnvironment] = useState("");
+
   const[policyList , setPolicyList] = useState([]);
 
   useEffect(()=> {  
@@ -59,7 +63,12 @@ export function PolicyGateConfig(props: IStageConfigProps) {
             if(results['services'].length > 0 ) {
               let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
               props.stage['serviceId'] = results['services'][index].serviceId;
-              props.stage['pipelineId'] = results['services'][index].serviceId;
+              //props.stage['pipelineId'] = results['services'][index].serviceId;
+              const pipelines =  results.services[index].pipelines;
+              const pipelineIndex = pipelines.findIndex((pipeline:any) => pipeline.pipelineName == props.pipeline.name);
+              if(pipelineIndex >= 0){
+                props.stage['pipelineId'] = pipelines[pipelineIndex].pipelineId;
+              }
             }     
           }
         );
@@ -80,6 +89,9 @@ export function PolicyGateConfig(props: IStageConfigProps) {
       "spinnakerEnvironment": ""
     }]
   }
+  // if(!props.stage.parameters.hasOwnProperty('customEnvironment')){
+  //   props.stage.parameters.customEnvironment = "";
+  // }
   if(!props.stage.parameters.hasOwnProperty('policyName')){
     props.stage.parameters.policyName = "";
   }
@@ -90,6 +102,11 @@ export function PolicyGateConfig(props: IStageConfigProps) {
    get()
    .then(
      (results)=> {
+      let temp = results;
+      temp.push({
+        "id": 0,
+        "spinnakerEnvironment": "Add new Environment"
+      });
        setenvironmentsList(results);       
      }     
    )
@@ -142,10 +159,22 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
  // Environments 
  const handleOnEnvironmentSelect = (e:any, formik:any) => {
-  const index = e.target.value;
-  const spinnValue = environmentsList.filter(e => e.id == index)[0].spinnakerEnvironment;
-  formik.setFieldValue("parameters.environment[0]['id']", index);
-  formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+  if(e.target.value === 0){
+    setshowEnvironment(true);
+    props.stage.parameters.environment[0].id = 0;
+    props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment';
+  }else{
+    setshowEnvironment(false);
+    props.stage.parameters.customEnvironment = "";
+    const index = e.target.value;
+    const spinnValue = environmentsList.filter((e:any) => e.id == index)[0].spinnakerEnvironment;
+    formik.setFieldValue("parameters.environment[0]['id']", index);
+    formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+    //   formik.setFieldValue("parameters.environment]", [{
+    //   "id": index,
+    //   "spinnakerEnvironment": spinnValue
+    // }]); 
+  }
 } 
 
 const handleOnPolicySelect = (e:any, formik:any) => {
@@ -154,6 +183,11 @@ const handleOnPolicySelect = (e:any, formik:any) => {
   formik.setFieldValue("parameters.policyName", name);
   formik.setFieldValue("parameters.policyId", index);
 } 
+
+// const pushNewEnvironment = (data: any) => {
+//   //setnewEnvironment(data);
+//   props.stage.parameters.customEnvironment = data;
+// }
 
 
   
@@ -214,7 +248,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
-            <div className="grid-span-3">                    
+            <div className="grid-span-2">                    
                <FormikFormField
                  name="parameters.environment[0]"
                  label="Enviornment"
@@ -223,6 +257,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
                    <ReactSelectInput
                    {...props}
                    clearable={false}
+                   required = {true}
                    onChange={(e) => {handleOnEnvironmentSelect(e, formik)}}                
                    options={environmentsList.map((item:any) => (
                      {
@@ -234,6 +269,22 @@ const handleOnPolicySelect = (e:any, formik:any) => {
                  )}
                />                
              </div>
+             {showEnvironment ? (
+                <>
+                  <div className="grid-span-2">  
+                  {/* <TextInput onChange={(e) => {pushNewEnvironment(e.target.value)}} value={newEnvironment} /> */}
+                  <FormikFormField
+                  name="parameters.customEnvironment"
+                  label="Add new Environment"
+                  help={<HelpField id="opsmx.policy.customEnvironment" />}           
+                  input={(props) => <TextInput {...props}/>}
+                  />
+                  </div>
+                </>
+             ):(
+                null
+             )
+            }
             <div className="grid-span-3">
 
               <FormikFormField
@@ -244,6 +295,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
                   <ReactSelectInput
                     {...props}
                     clearable={false}
+                    required={true}
                     onChange={(e) => {handleOnPolicySelect(e, formik)}}
                     options={policyList && policyList.map((policy: any) => ({
                       label: policy.policyName,
@@ -296,6 +348,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
                   label="Image IDs"
                   help={<HelpField id="opsmx.policy.imageIds" />}
                   input={(props) => <TextInput {...props} />}
+                  required={true}
                 />
               </div>
               <HorizontalRule />
@@ -325,17 +378,17 @@ export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
   validator
-    .field('parameters.policyurl')
+    .field('parameters.environment')
     .required()
-    .withValidators((value, label) => (value = '' ? `Policy Proxy is required` : undefined));
+    .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
+  // validator
+  //   .field('parameters.policypath')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Policy Path is required` : undefined));
   validator
-    .field('parameters.policypath')
+    .field('parameters.policyName')
     .required()
-    .withValidators((value, label) => (value = '' ? `Policy Path is required` : undefined));
-  validator
-    .field('parameters.gate')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Gate Name is required` : undefined));
+    .withValidators((value, label) => (value = '' ? `policy Name is required` : undefined));
   validator
     .field('parameters.imageids')
     .required()
