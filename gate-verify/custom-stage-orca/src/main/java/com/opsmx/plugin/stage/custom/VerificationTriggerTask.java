@@ -1,11 +1,15 @@
 package com.opsmx.plugin.stage.custom;
 
+import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -26,10 +30,15 @@ import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import org.springframework.beans.factory.annotation.Value;
 
 @Extension
 @PluginComponent
 public class VerificationTriggerTask implements Task {
+
+
+	@Value("${isd.gate.url:http://oes-gate:8084}")
+	private String isdGateUrl;
 
 	private static final String METRIC = "metric";
 
@@ -47,57 +56,57 @@ public class VerificationTriggerTask implements Task {
 	
 	private static final String PAYLOAD_CONSTRAINT = "payloadConstraint";
 
+	private final String LIFETIME_HOUR = "0.152";
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private ObjectMapper objectMapper = new ObjectMapper();
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@NotNull
 	@Override
 	public TaskResult execute(@NotNull StageExecution stage) {
+		logger.info(" VerificationGateStage execute start ");
+		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}", stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
+		return triggerAnalysis(stage);
+	}
 
+
+	private TaskResult triggerAnalysis(StageExecution stage) {
 		Map<String, Object> contextMap = new HashMap<>();
 		Map<String, Object> outputs = new HashMap<>();
-
-		logger.info(" VerificationGateStage execute start ");
-		VerificationContext context = stage.mapTo("/parameters", VerificationContext.class);
-		if (context.getGateurl() == null || context.getGateurl().isEmpty()) {
-			logger.info("Gate Url should not be empty");
-			outputs.put(OesConstants.REASON, "Gate Url should not be empty");
-			outputs.put(OesConstants.OVERALL_SCORE, 0.0);
-			outputs.put(OesConstants.OVERALL_RESULT, "Fail");
-			outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
+		String triggerUrl = getTriggerURL(stage, outputs);
+		logger.info("Gate trigger url: {}", triggerUrl);
+		if (triggerUrl == null) {
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
 					.context(contextMap)
 					.outputs(outputs)
 					.build();
 		}
 
-		logger.info("Application name : {}, Service name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
-		
+		return triggerAnalysis(stage, outputs, contextMap, triggerUrl);
+	}
+
+	private TaskResult triggerAnalysis(StageExecution stage, Map<String, Object> outputs,Map<String, Object> contextMap, String triggerUrl) {
+		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
-
-			HttpPost request = new HttpPost(context.getGateurl());
-			String triggerPayload = getPayloadString(stage.getExecution().getApplication(), stage.getExecution().getName(), context,
-					stage.getExecution().getAuthentication().getUser(), stage.getExecution().getId(), stage.getContext().get(PAYLOAD_CONSTRAINT));
+			String triggerPayload = getPayloadString(stage);
+			HttpPost requestPost = new HttpPost(triggerUrl);
 			outputs.put("trigger_json", String.format("Payload Json - %s", triggerPayload));
-			request.setEntity(new StringEntity(triggerPayload));
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
-			
-			CloseableHttpClient httpClient = HttpClients.createDefault();
-			CloseableHttpResponse response = httpClient.execute(request);
+			requestPost.setEntity(new StringEntity(triggerPayload));
+			requestPost.setHeader("Content-type", "application/json");
+			requestPost.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
 
+			CloseableHttpResponse response = httpClient.execute(requestPost);
 			HttpEntity entity = response.getEntity();
 			String registerResponse = "";
 			if (entity != null) {
 				registerResponse = EntityUtils.toString(entity);
 			}
-			
-			logger.info("Verification trigger response : {}, User : {}", registerResponse, stage.getExecution().getAuthentication().getUser());
 
+			logger.info("Verification trigger response : {}, User : {}", registerResponse, stage.getExecution().getAuthentication().getUser());
 			if (response.getStatusLine().getStatusCode() != 202) {
-				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s", 
+				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 				outputs.put(OesConstants.OVERALL_RESULT, "Fail");
@@ -124,18 +133,16 @@ public class VerificationTriggerTask implements Task {
 
 			String canaryUrl = response.getLastHeader(OesConstants.LOCATION).getValue();
 			logger.info("Analysis autopilot link : {}", canaryUrl);
-			
+
 			outputs.put(OesConstants.LOCATION, canaryUrl);
 			outputs.put(OesConstants.TRIGGER, OesConstants.SUCCESS);
-
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)
 					.context(contextMap)
 					.outputs(outputs)
 					.build();
-
 		} catch (Exception e) {
 			logger.error("Failed to execute verification gate", e);
-			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while processing, %s", e));
+			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while getting trigger endpoint, %s", e));
 			outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 			outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 			outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
@@ -143,61 +150,134 @@ public class VerificationTriggerTask implements Task {
 					.context(contextMap)
 					.outputs(outputs)
 					.build();
+		} finally {
+			if (httpClient != null) {
+				try {
+					httpClient.close();
+				} catch (IOException e) {
+					logger.warn("exception while closing the connection : {}",
+							e.getMessage());
+				}
+			}
 		}
 	}
 
-	private String getPayloadString(String applicationName, String pipelineName, VerificationContext context,
-			String user, String executionId, Object gateSecurity) throws JsonProcessingException  {
+	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
+
+		String triggerEndpoint = constructGateEnpoint(stage);
+		logger.info("Gate endpoint to get trigger endpoint : {}", triggerEndpoint);
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		try {
+			HttpGet request = new HttpGet(triggerEndpoint);
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
+			CloseableHttpResponse response = httpClient.execute(request);
+
+			HttpEntity entity = response.getEntity();
+			String registerResponse = "";
+			if (entity != null) {
+				registerResponse = EntityUtils.toString(entity);
+			}
+
+			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			if (response.getStatusLine().getStatusCode() != 200) {
+				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
+						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
+				outputs.put(OesConstants.OVERALL_RESULT, "Fail");
+				outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
+				return null;
+			}
+
+			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
+			String triggerUrl = readValue.get("gateurl").asText();
+			if (triggerUrl == null) {
+				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
+						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
+				outputs.put(OesConstants.OVERALL_RESULT, "Fail");
+				outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
+				return null;
+			}
+			return triggerUrl;
+		} catch (Exception e) {
+			logger.error("Failed to execute verification gate", e);
+			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while getting trigger endpoint, %s", e));
+			outputs.put(OesConstants.OVERALL_SCORE, 0.0);
+			outputs.put(OesConstants.OVERALL_RESULT, "Fail");
+			outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
+			return null;
+		} finally {
+			if (httpClient != null) {
+				try {
+					httpClient.close();
+				} catch (IOException e) {
+					logger.warn("exception while closing the connection : {}",
+							e.getMessage());
+				}
+			}
+		}
+	}
+
+	private String constructGateEnpoint(StageExecution stage) {
+		//applications/{applicationname}/pipeline/{pipelineName}/reference/{ref}/gates/{gatesName}?type={gateType}
+		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=verification",
+				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
+				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getRefId(),
+				stage.getName());
+	}
+
+	private String getPayloadString(StageExecution stage) throws JsonProcessingException {
 
 		ObjectNode finalJson = objectMapper.createObjectNode();
-		finalJson.put("application", applicationName);
+		finalJson.put("application", stage.getExecution().getApplication());
 		finalJson.put("isJsonResponse", true);
-		finalJson.put("executionId", executionId);
+		finalJson.put("executionId", stage.getExecution().getId());
+		Map<String, Object> parameterContext = (Map<String, Object>) stage.getContext().get("parameters");
+		String imageIds = parameterContext.get("imageids") != null ? (String) parameterContext.get("imageids"): null;
 		ArrayNode imageIdsNode = objectMapper.createArrayNode();
-		String imageIds = context.getImageids();
 		if (imageIds != null && ! imageIds.isEmpty()) {
 			Arrays.asList(imageIds.split(",")).forEach(tic -> {
 				imageIdsNode.add(tic.trim());
 			});
 		}
 		finalJson.set("imageIds", imageIdsNode);
-		if (gateSecurity != null) {
-			String gateSecurityPayload = objectMapper.writeValueAsString(gateSecurity);
-			finalJson.set(PAYLOAD_CONSTRAINT, objectMapper.readTree(gateSecurityPayload));
+		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
+		if (parameterContext.get("gateSecurity") != null) {
+			String gateSecurityPayload = objectMapper.writeValueAsString(parameterContext.get("gateSecurity"));
+			ArrayNode securityNode = (ArrayNode) objectMapper.readTree(gateSecurityPayload);
+			securityNode.forEach(secNode -> {
+				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
+				for (JsonNode jsonNode : valuesNode) {
+					payloadConstraintNode.add(objectMapper.createObjectNode()
+							.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+				}
+			});
 		}
-		
+		finalJson.set(PAYLOAD_CONSTRAINT, payloadConstraintNode);
+
 		ObjectNode canaryConfig = objectMapper.createObjectNode();
-		canaryConfig.put("lifetimeHours", context.getLifetime());
-		canaryConfig.set("canaryHealthCheckHandler", objectMapper.createObjectNode().put(MINIMUM_CANARY_RESULT_SCORE, context.getMinicanaryresult()));
-		canaryConfig.set("canarySuccessCriteria", objectMapper.createObjectNode().put("canaryResultScore", context.getCanaryresultscore()));
-		canaryConfig.put("name", user);
+		canaryConfig.put("lifetimeHours", parameterContext.get("lifetime") != null ? (String) parameterContext.get("lifetime") : LIFETIME_HOUR);
+		canaryConfig.set("canaryHealthCheckHandler", objectMapper.createObjectNode()
+				.put(MINIMUM_CANARY_RESULT_SCORE, parameterContext.get("minicanaryresult") != null ? (String) parameterContext.get("minicanaryresult") : "70" ));
+		canaryConfig.set("canarySuccessCriteria", objectMapper.createObjectNode()
+				.put("canaryResultScore", parameterContext.get("canaryresultscore") != null ? (String) parameterContext.get("canaryresultscore") : "90"));
+		canaryConfig.put("name", stage.getExecution().getAuthentication().getUser());
 
 		ObjectNode baselinePayload = objectMapper.createObjectNode();
 		ObjectNode canaryPayload = objectMapper.createObjectNode();
-		if (context.getLog().equals(Boolean.TRUE)) {
-			baselinePayload.set(LOG, 
-					objectMapper.createObjectNode().set(pipelineName, 
-							objectMapper.createObjectNode()
-							.put(PIPELINE_NAME, pipelineName)
-							.put(SERVICE_GATE, context.getGate())));
-			canaryPayload.set(LOG, 
-					objectMapper.createObjectNode().set(pipelineName, 
-							objectMapper.createObjectNode()
-							.put(PIPELINE_NAME, pipelineName)
-							.put(SERVICE_GATE, context.getGate())));
+		if (parameterContext.get("log") != null && parameterContext.get("log").equals(Boolean.TRUE)) {
+			baselinePayload.set(LOG,
+					prepareJson(stage.getName(), stage.getExecution().getName()));
+			canaryPayload.set(LOG,
+					prepareJson(stage.getName(), stage.getExecution().getName()));
 		}
 
-		if (context.getMetric().equals(Boolean.TRUE)) {
-			baselinePayload.set(METRIC, 
-					objectMapper.createObjectNode().set(pipelineName, 
-							objectMapper.createObjectNode()
-							.put(PIPELINE_NAME, pipelineName)
-							.put(SERVICE_GATE, context.getGate())));
-			canaryPayload.set(METRIC, 
-					objectMapper.createObjectNode().set(pipelineName, 
-							objectMapper.createObjectNode()
-							.put(PIPELINE_NAME, pipelineName)
-							.put(SERVICE_GATE, context.getGate())));
+		if (parameterContext.get("metric") != null && parameterContext.get("metric").equals(Boolean.TRUE)) {
+			baselinePayload.set(METRIC,
+					prepareJson(stage.getName(), stage.getExecution().getName()));
+			canaryPayload.set(METRIC,
+					prepareJson(stage.getName(), stage.getExecution().getName()));
 		}
 
 		ObjectNode triggerPayload = objectMapper.createObjectNode();
@@ -206,13 +286,22 @@ public class VerificationTriggerTask implements Task {
 
 		ArrayNode payloadTriggerNode = objectMapper.createArrayNode();
 		payloadTriggerNode.add(triggerPayload);
-		triggerPayload.put("baselineStartTimeMs", context.getBaselinestarttime());
-		triggerPayload.put("canaryStartTimeMs", context.getCanarystarttime());
+		triggerPayload.put("baselineStartTimeMs",
+				parameterContext.get("baselinestarttime") != null ? (Long) parameterContext.get("baselinestarttime") : Instant.now().toEpochMilli());
+		triggerPayload.put("canaryStartTimeMs",
+				parameterContext.get("canarystarttime") != null ? (Long) parameterContext.get("canarystarttime") : Instant.now().toEpochMilli());
 
 		finalJson.set(CANARY_CONFIG, canaryConfig);
 		finalJson.set("canaryDeployments", payloadTriggerNode);
 		String finalPayloadString = objectMapper.writeValueAsString(finalJson);
 		logger.debug("Payload string to trigger analysis : {}", finalPayloadString);
 		return finalPayloadString;
+	}
+
+	private JsonNode prepareJson(String stageName, String pipelineName) {
+		return objectMapper.createObjectNode().set(pipelineName,
+				objectMapper.createObjectNode()
+						.put(PIPELINE_NAME, pipelineName)
+						.put(SERVICE_GATE, stageName));
 	}
 }
