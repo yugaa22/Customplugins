@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Value;
 @PluginComponent
 public class VerificationTriggerTask implements Task {
 
-
 	@Value("${isd.gate.url:http://oes-gate:8084}")
 	private String isdGateUrl;
 
@@ -66,7 +65,6 @@ public class VerificationTriggerTask implements Task {
 	@NotNull
 	@Override
 	public TaskResult execute(@NotNull StageExecution stage) {
-		logger.info(" VerificationGateStage execute start ");
 		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}", stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
 		return triggerAnalysis(stage);
 	}
@@ -119,7 +117,6 @@ public class VerificationTriggerTask implements Task {
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String canaryId = readValue.get(CANARY_ID).asText();
-
 			if (canaryId == null || canaryId.isEmpty()) {
 				outputs.put(OesConstants.EXCEPTION, "Something went wrong while triggering registry analysis");
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
@@ -133,7 +130,6 @@ public class VerificationTriggerTask implements Task {
 
 			String canaryUrl = response.getLastHeader(OesConstants.LOCATION).getValue();
 			logger.info("Analysis autopilot link : {}", canaryUrl);
-
 			outputs.put(OesConstants.LOCATION, canaryUrl);
 			outputs.put(OesConstants.TRIGGER, OesConstants.SUCCESS);
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)
@@ -142,7 +138,7 @@ public class VerificationTriggerTask implements Task {
 					.build();
 		} catch (Exception e) {
 			logger.error("Failed to execute verification gate", e);
-			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while getting trigger endpoint, %s", e));
+			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while triggering analysis, %s", e));
 			outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 			outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 			outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
@@ -190,7 +186,7 @@ public class VerificationTriggerTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			String triggerUrl = readValue.get("gateurl").asText();
+			String triggerUrl = readValue.get("gateUrl").asText();
 			if (triggerUrl == null) {
 				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
@@ -249,8 +245,11 @@ public class VerificationTriggerTask implements Task {
 			securityNode.forEach(secNode -> {
 				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
 				for (JsonNode jsonNode : valuesNode) {
-					payloadConstraintNode.add(objectMapper.createObjectNode()
-							.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+					if (jsonNode.get("label") != null && !jsonNode.get("label").asText().isBlank() &&
+							jsonNode.get("value") != null && !jsonNode.get("value").asText().isBlank()) {
+						payloadConstraintNode.add(objectMapper.createObjectNode()
+								.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+					}
 				}
 			});
 		}
@@ -266,14 +265,14 @@ public class VerificationTriggerTask implements Task {
 
 		ObjectNode baselinePayload = objectMapper.createObjectNode();
 		ObjectNode canaryPayload = objectMapper.createObjectNode();
-		if (parameterContext.get("log") != null && parameterContext.get("log").equals(Boolean.TRUE)) {
+		if (parameterContext.get("log") != null && ((String) parameterContext.get("log")).equalsIgnoreCase("true")) {
 			baselinePayload.set(LOG,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 			canaryPayload.set(LOG,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 		}
 
-		if (parameterContext.get("metric") != null && parameterContext.get("metric").equals(Boolean.TRUE)) {
+		if (parameterContext.get("metric") != null && ((String) parameterContext.get("metric")).equalsIgnoreCase("true")) {
 			baselinePayload.set(METRIC,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 			canaryPayload.set(METRIC,
