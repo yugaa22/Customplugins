@@ -216,8 +216,11 @@ public class PolicyTask implements Task {
 			securityNode.forEach(secNode -> {
 				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
 				for (JsonNode jsonNode : valuesNode) {
-					payloadConstraintNode.add(objectMapper.createObjectNode()
-							.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+					if (jsonNode.get("label") != null && !jsonNode.get("label").asText().isBlank() &&
+							jsonNode.get("value") != null && !jsonNode.get("value").asText().isBlank()) {
+						payloadConstraintNode.add(objectMapper.createObjectNode()
+								.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+					}
 				}
 			});
 		}
@@ -281,7 +284,7 @@ public class PolicyTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			String triggerUrl = readValue.get("gateurl").asText();
+			String triggerUrl = readValue.get("gateUrl").asText();
 			if (triggerUrl == null) {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Failed to get the trigger url with status code :: %s, %s",
