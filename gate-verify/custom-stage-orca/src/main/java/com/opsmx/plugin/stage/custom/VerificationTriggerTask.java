@@ -186,8 +186,8 @@ public class VerificationTriggerTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			String triggerUrl = readValue.get("gateUrl").asText();
-			if (triggerUrl == null) {
+			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
+			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);

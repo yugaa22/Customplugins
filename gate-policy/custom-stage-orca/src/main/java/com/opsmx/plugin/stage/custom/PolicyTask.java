@@ -284,8 +284,8 @@ public class PolicyTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			String triggerUrl = readValue.get("gateUrl").asText();
-			if (triggerUrl == null) {
+			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
+			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Failed to get the trigger url with status code :: %s, %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
