@@ -184,12 +184,11 @@ public class ApprovalTriggerTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			if (readValue.get(NAVIGATIONAL_URL) != null  &&  !readValue.get(NAVIGATIONAL_URL).isNull()) {
-				outputs.put(NAVIGATIONAL_URL, readValue.get(NAVIGATIONAL_URL).asText());
-			}
-
 			outputs.put(LOCATION, response.getLastHeader(LOCATION).getValue());
 			outputs.put(TRIGGER, SUCCESS);
+			if (readValue.get(NAVIGATIONAL_URL) != null  &&  !readValue.get(NAVIGATIONAL_URL).isNull()) {
+				outputs.put(NAVIGATIONAL_URL, String.format("%s?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
+			}
 
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)
 					.context(contextMap)
