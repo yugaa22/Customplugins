@@ -2,11 +2,9 @@ package com.opsmx.plugin.stage.custom;
 
 public class VerificationContext {
 
-    private String gateurl;
-    private String lifetime;
+	private String lifetime;
     private Integer minicanaryresult;
     private Integer canaryresultscore;
-    private String gate;
     private String imageids;
     private Boolean log;
     private Boolean metric;
@@ -15,27 +13,17 @@ public class VerificationContext {
     
     public VerificationContext(){}
 
-	public VerificationContext(String gateurl, String lifetime, Integer minicanaryresult, Integer canaryresultscore,
-			String gate, String imageids, Boolean log, Boolean metric, Long baselinestarttime, Long canarystarttime) {
+	public VerificationContext(String lifetime, Integer minicanaryresult, Integer canaryresultscore,
+							   String imageids, Boolean log, Boolean metric, Long baselinestarttime, Long canarystarttime) {
 		super();
-		this.gateurl = gateurl;
 		this.lifetime = lifetime;
 		this.minicanaryresult = minicanaryresult;
 		this.canaryresultscore = canaryresultscore;
-		this.gate = gate;
 		this.imageids = imageids;
 		this.log = log;
 		this.metric = metric;
 		this.baselinestarttime = baselinestarttime;
 		this.canarystarttime = canarystarttime;
-	}
-
-	public String getGateurl() {
-		return gateurl;
-	}
-
-	public void setGateurl(String gateurl) {
-		this.gateurl = gateurl;
 	}
 
 	public String getLifetime() {
@@ -60,14 +48,6 @@ public class VerificationContext {
 
 	public void setCanaryresultscore(Integer canaryresultscore) {
 		this.canaryresultscore = canaryresultscore;
-	}
-
-	public String getGate() {
-		return gate;
-	}
-
-	public void setGate(String gate) {
-		this.gate = gate;
 	}
 
 	public String getImageids() {

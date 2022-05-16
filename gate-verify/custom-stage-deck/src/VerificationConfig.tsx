@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import Modal from 'react-modal';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -16,9 +17,18 @@ import {
   IStageTypeConfig,
   NumberInput,
   Validators,
+  ReactSelectInput,
+  useData,
+  IFormikStageConfigInjectedProps,
+  LayoutProvider,
+  StandardFieldLayout,
+  IStageForSpelPreview,
+  Tooltip
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
+import { REST } from '@spinnaker/core';
+import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -35,32 +45,518 @@ const HorizontalRule = () => (
 );
 
 export function VerificationConfig(props: IStageConfigProps) {
+
+  console.log(props);
+  
+
+  const[applicationId , setApplicationId] = useState()
+  
+  const[metricDropdownList , setMetricDropdownList] = useState([])
+
+  const[logDropdownList , setLogDropdownList] = useState([])
+
+  const[environmentsList , setenvironmentsList] = useState([]);
+
+  const [showEnvironment, setshowEnvironment] = useState(false);
+
+  //const [newEnvironment, setnewEnvironment] = useState("");
+
+  const[metricCreateUrl , setMetricCreateUrl] = useState('')
+
+  const[metricUrl , setMetricUrl] = useState('');
+
+  const [modalIsOpen,setModalIsOpen] = useState(false);
+
+  const [metricListUpdated, onmetricListUpdated] = useState(false);
+
+  const[logCreateUrl , setLogCreateUrl] = useState('');
+
+  const [logmodalIsOpen,setLogModalIsOpen] = useState(false);
+
+  const [logListUpdated, onlogListUpdated] = useState(false);
+
+  const[logUrl , setLogUrl] = useState('');
+
+
+  useEffect(()=> {  
+    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+    get()
+    .then(
+      (results)=> {
+        setApplicationId(results.applicationId);
+        REST('autopilot/api/v1/applications/'+results.applicationId+'/metricTemplates').
+        get()
+        .then(
+          function (results) {     
+            const response = results['metricTemplates'];
+              setMetricDropdownList(response);       
+          }
+        );
+        REST('platformservice/v4/applications/'+results.applicationId).
+        get()
+        .then(
+          function (results) { 
+            if(results['services'].length > 0 ) {
+              let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
+              props.stage['serviceId'] = results['services'][index].serviceId;
+              //props.stage['pipelineId'] = results['services'][index].serviceId;
+              const pipelines =  results.services[index].pipelines;
+              const pipelineIndex = pipelines.findIndex((pipeline:any) => pipeline.pipelineName == props.pipeline.name);
+              if(pipelineIndex >= 0){
+                props.stage['pipelineId'] = pipelines[pipelineIndex].pipelineId;
+              }
+            }     
+          }
+        );
+        props.stage['applicationId'] = results.applicationId;        
+        let a  = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
+        setMetricCreateUrl(a);
+      }    
+    )      
+  }, [metricListUpdated]) 
+  
+  useEffect(()=> {  
+    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+    get()
+    .then(
+      (results)=> {
+        setApplicationId(results.applicationId);
+        REST('autopilot/api/v1/applications/'+results.applicationId+'/logTemplates').
+        get()
+        .then(
+          function (results) {     
+            const response = results['logTemplates'];
+            setLogDropdownList(response);       
+          }
+        );
+        let logCreateUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
+        setLogCreateUrl(logCreateUrl);
+      }    
+    )      
+  }, [logListUpdated]) 
+   
+  useEffect(()=> {  
+   if(!props.stage.hasOwnProperty('parameters')){
+    props.stage.parameters = {}
+  }
+  if(!props.stage.parameters.hasOwnProperty('environment')){
+    props.stage.parameters.environment = [{
+    "id": null,
+    "spinnakerEnvironment": ""
+  }]
+  }
+  // if(!props.stage.parameters.hasOwnProperty('customEnvironment')){
+  //   props.stage.parameters.customEnvironment = "";
+  // }
+
+   REST('oes/accountsConfig/spinnaker/environments').
+   get()
+   .then(
+     (results)=> {
+      console.log(results);
+      let temp = results;
+      temp.push({
+        "id": 0,
+        "spinnakerEnvironment": "Add new Environment"
+      });
+       setenvironmentsList(results);       
+     }     
+   )
+   
+ }, []) 
+
+// const pushNewEnvironment = (data: any) => {
+//     setnewEnvironment(data);
+//     props.stage.parameters.customEnvironment = data;
+// }
+
+const getGateSecurityParams = () => {
+  if(!props.stage.parameters.hasOwnProperty('gateSecurity')){
+    props.stage.parameters.gateSecurity = [
+    {
+      "connectorType": "PayloadConstraints",
+      "helpText": "Payload Constraints for Gate Security",
+      "isMultiSupported": true,
+      "label": "Payload Constraints",
+      "selectInput": false,
+      "supportedParams": [
+        {
+          "helpText": "Key",
+          "label": "Key",
+          "name": "label",
+          "type": "string"
+        },
+        {
+          "helpText": "Value",
+          "label": "Value",
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "values": [
+        {
+          "label": "",
+          "value": ""
+        }
+      ]
+    }
+  ]
+  }
+}
+
+  // Environments 
+  const handleOnEnvironmentSelect = (e:any, formik:any) => {
+    if(e.target.value === 0){
+      setshowEnvironment(true);
+      props.stage.parameters.environment[0].id = 0;
+      props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment';
+    }else{
+      setshowEnvironment(false);
+      props.stage.parameters.customEnvironment = "";
+      const index = e.target.value;
+      const spinnValue = environmentsList.filter((e:any) => e.id == index)[0].spinnakerEnvironment;
+      formik.setFieldValue("parameters.environment[0]['id']", index);
+      formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
+      //   formik.setFieldValue("parameters.environment]", [{
+      //   "id": index,
+      //   "spinnakerEnvironment": spinnValue
+      // }]); 
+    }
+  } 
+
+
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
     { label: 'False', value: 'false' },
   ];
-  return (
+
+  const [chosenStage] = React.useState({} as IStageForSpelPreview);
+
+
+  const multiFieldGateSecurityComp = (props: any, formik :any) => {
+
+    getGateSecurityParams();
+    const fieldParams = props.stage.parameters ?? null;
+     //console.log("fieldParams");
+     //console.log(fieldParams);
+    return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
+      if (
+        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+        dynamicField.supportedParams.length > 1
+      ) {        
+        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+        return (
+          <div className="grid-span-4 fullWidthContainer">
+            <FormikFormField
+              name={dynamicField.connectorType}
+              label={dynamicField.connectorType}
+              help={<HelpField id={dynamicField.connectorType} />}
+              input={() => (
+                <LayoutProvider value={StandardFieldLayout}>
+                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
+                    <EvaluateVariablesStageForm
+                      blockLabel={dynamicField.connectorType}
+                      chosenStage={chosenStage}
+                      headers={dynamicField.supportedParams}
+                      isMultiSupported={dynamicField.isMultiSupported}
+                      fieldMapName = "gateSecurity"
+                      parentIndex={index}
+                      formik = {formik}
+                      {...props}
+                    />
+                  </div>
+                </LayoutProvider>
+              )}
+            />
+          </div>
+        );
+      } else {
+        return null;
+      }
+    });
+  };
+  
+
+  const setModalIsOpenToTrue =(type : any)=>{
+    if(type == 'add'){
+      setMetricUrl(metricCreateUrl);
+    }else{
+      let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/true/true";
+      setMetricUrl(editUrl);
+    }
+      setModalIsOpen(true);
+  }
+
+  const setModalIsOpenToFalse =()=>{
+      setModalIsOpen(false);
+      onmetricListUpdated(true);      
+  }
+
+const setLogModalIsOpenToTrue =(type : any)=>{
+  if(type == 'add'){
+    setLogUrl(logCreateUrl);
+  }else{
+    let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/true";
+    setLogUrl(editUrl);
+  }
+  setLogModalIsOpen(true);
+}
+
+const setLogModalIsOpenToFalse =()=>{
+    setLogModalIsOpen(false);
+    onlogListUpdated(true);      
+}
+
+const deleteTemplate = (type: any) =>{
+  if(type == "log"){
+    REST('autopilot/api/v1/applications/'+applicationId+"/deleteLogTemplate/"+props.stage.parameters.logTemplate).
+    delete()
+    .then(
+      (results)=> {
+        console.log("logDelete");
+        console.log(results);
+        onlogListUpdated(true); 
+      }     
+   )
+  }else if (type == "metric"){
+    REST('autopilot/api/v1/applications/'+applicationId+"/deleteMetricTemplate/"+props.stage.parameters.metricTemplate).
+    delete()
+    .then(
+      (results)=> {
+        console.log("metricDelete");
+        console.log(results);
+        onmetricListUpdated(true);        
+      }     
+    )
+  }
+}
+
+
+//mat-focus-indicator btn btn-primary btnColor mat-button mat-button-base
+//mat-button-wrapper
+  return (  
     <div className="VerificationGateConfig">
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
-        render={() => (
+        render={({ formik }: IFormikStageConfigInjectedProps) => (
+          
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
-              <div className="grid-span-3">
+             
+              {/* <div className="grid-span-3">
+                <FormikFormField
+                  name="parameters.environment"
+                  label="Environment"
+                  help={<HelpField id="opsmx.verification.environment" />}
+                  input={(props) => <TextInput {...props} />}
+                />
+              </div>  */}
+              
+               <div className="grid-span-2">                    
+               <FormikFormField
+                 name="parameters.environment[0]"
+                 label="Environment"
+                 help={<HelpField id="opsmx.verification.environment" />}
+                 required={true}
+                 input={() => (
+                   <ReactSelectInput
+                   {...props}
+                   clearable={false}
+                   onChange={(e) => {handleOnEnvironmentSelect(e, formik)}}                
+                   options={environmentsList.map((item:any) => (
+                     {
+                         value: item.id,
+                         label: item.spinnakerEnvironment
+                       }))}
+                    value = {formik.values.parameters.environment[0].id}                  
+                   />       
+                 )}
+               />                
+             </div>
+             {showEnvironment ? (
+                <>
+                  <div className="grid-span-2">  
+                  {/* <TextInput onChange={(e) => {pushNewEnvironment(e.target.value)}} value={newEnvironment} /> */}
+                  <FormikFormField
+                  name="parameters.customEnvironment"
+                  label="Add new Environment"
+                  help={<HelpField id="opsmx.verification.customEnvironment" />}           
+                  input={(props) => <TextInput {...props}/>}
+                  />                  
+                  </div>
+                </>
+             ):(
+                null
+             )
+            }
+            <HorizontalRule />
+            <div className="grid-span-4">            
+              <h4>Template Configuration </h4>
+            </div>            
+            <div className="grid-span-2">                    
+              <FormikFormField
+                name="parameters.logTemplate"
+                label="Log Template"
+                help={<HelpField id="opsmx.verification.logTemplate" />}
+                input={(props) => (
+                  <ReactSelectInput
+                  {...props}
+                  clearable={false}
+                  // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                  //   ...props.formik.setFieldValue('parameters.logTemplate', o.target.value);
+                  // }}
+                  //onChange={(e) => setLogTemplate(e.target.value)}
+                  // options={logDropdownList['logTemplates'] && logDropdownList['logTemplates'].map((template : any) => ({
+                  //   label : template.templateName,
+                  //   value : template.templateName}))} 
+                  options={logDropdownList && logDropdownList .map((template : any) => ({
+                    label : template.templateName,
+                    value : template.templateName}))}
+                  // options={(getDropdown().result || []).map((s) => ({
+                  //   label: s.label,
+                  //   value: s.value,
+                  // }))}
+                  //value={...props}
+                  //stringOptions={...props}
+                  />
+                )}
+              />                
+            </div>
+            <div className="grid-span-2 dropdown-buttons"> 
+                <Modal id="logtemplate-modal" isOpen={logmodalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setLogModalIsOpenToFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Log Template</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                      <iframe src={logUrl} title="ISD" width="1200" height="750">
+                      </iframe>
+                    </div>                    
+                  </div>                  
+                </Modal>
+
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() =>setLogModalIsOpenToTrue('add')}>
+                  <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
+                  <Tooltip value="Create LogTemplate">
+                    <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Create</span>        
+                </button>
+                
+                {/* { props.stage.parameters.logTemplate != null ? (
+                  <> */}
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setLogModalIsOpenToTrue('edit')}>
+                    <span className="fa fa-cog visible-xl-inline" />
+                    <Tooltip value="Edit LogTemplate">
+                      <span className="fa fa-cog hidden-xl-inline" />
+                    </Tooltip>
+                    <span className="visible-xl-inline"> Edit</span>
+                  </button>
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('log')}>
+                      <span className="glyphicon glyphicon-trash visible-xl-inline" />
+                      <Tooltip value="Remove LogTemplate">
+                        <span className="glyphicon glyphicon-trash hidden-xl-inline" />
+                      </Tooltip>
+                      <span className="visible-xl-inline"> Remove</span>
+                    </button>
+                    {/* </>
+                ) :
+                (
+                 null
+                )} */}
+              </div>   
+            <div className="grid-span-2">                    
+              <FormikFormField
+                name="parameters.metricTemplate"
+                label="Metric Template"
+                help={<HelpField id="opsmx.verification.metricTemplate" />}
+                input={(props) => (
+                  <ReactSelectInput
+                  {...props}
+                  clearable={false}
+                 // onChange={(e) => setMetricTemplate(e.target.value)}
+                  // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
+                  //   this.props.formik.setFieldValue('parameters.metricTemplate', o.target.value);
+                  // }} 
+                  // options={metricDropdownList && metricDropdownList.map((template : any) => ({
+                  //   label : template.templateName,
+                  //   value : template.templateName}))}
+                  options={metricDropdownList && metricDropdownList .map((template : any) => ({
+                    label : template.templateName,
+                    value : template.templateName}))}
+                  //options={metricDropdownList}
+                  //value={...props}
+                  //stringOptions={...props}
+                  />
+                )}
+              />                               
+            </div>
+            <div className="grid-span-2 dropdown-buttons">            
+
+                <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup modal-content" overlayClassName="react-modal-custom"> 
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setModalIsOpenToFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Metric Template</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                      <iframe src={metricUrl} title="ISD" width="1200" height="750">
+                      </iframe>
+                    </div>                    
+                  </div>
+                </Modal>
+                
+                <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('add')}>
+                  <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
+                  <Tooltip value="Create MetricTemplate">
+                    <span className="glyphicon glyphicon-plus-sign hidden-xl-inline" />
+                  </Tooltip>
+                  <span className="visible-xl-inline"> Create</span>        
+                </button>
+                {/* { props.stage.parameters.logTemplate != null ? (
+                  <> */}
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('edit')}>
+                    <span className="fa fa-cog visible-xl-inline" />
+                    <Tooltip value="Edit MetricTemplate">
+                      <span className="fa fa-cog hidden-xl-inline" />
+                    </Tooltip>
+                    <span className="visible-xl-inline"> Edit</span>        
+                  </button>
+
+                  <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => deleteTemplate('metric')}>
+                    <span className="glyphicon glyphicon-trash visible-xl-inline" />
+                    <Tooltip value="Remove MetricTemplate">
+                      <span className="glyphicon glyphicon-trash hidden-xl-inline" />
+                    </Tooltip>
+                    <span className="visible-xl-inline"> Remove</span>        
+                  </button>
+                  {/* </>
+                ) :
+                (
+                 null
+                )} */}
+            </div> 
+              {/* <div className="grid-span-3">
                 <FormikFormField
                   name="parameters.gateurl"
                   label="Gate Url"
                   help={<HelpField id="opsmx.verification.gateUrl" />}
                   input={(props) => <TextInput {...props} />}
                 />
-              </div>
+              </div> */}
               <div>
                 <FormikFormField
                   name="parameters.lifetime"
                   label="LifeTimeHours"
                   help={<HelpField id="opsmx.verification.lifeTimeHours" />}
+                  required={true}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -71,6 +567,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   label="Minimum Canary Result"
                   help={<HelpField id="opsmx.verification.minimumCanaryResult" />}
                   input={(props) => <TextInput {...props} />}
+                  required={true}
                 />
               </div>
               <div>
@@ -79,6 +576,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   label="Canary Result Score"
                   help={<HelpField id="opsmx.verification.canaryResultScore" />}
                   input={(props) => <TextInput {...props} />}
+                  required={true}
                 />
               </div>
               <div style={{ paddingLeft: '4em' }}>
@@ -103,6 +601,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   name="parameters.baselinestarttime"
                   label="Baseline StartTime"
                   help={<HelpField id="opsmx.verification.baselineStartTime" />}
+                  required={true}
                   input={(props) => <DateTimePicker {...props} />}
                 />
               </div>
@@ -111,25 +610,35 @@ export function VerificationConfig(props: IStageConfigProps) {
                   name="parameters.canarystarttime"
                   label="Canary StartTime"
                   help={<HelpField id="opsmx.verification.canarystarttime" />}
+                  required={true}
                   input={(props) => <DateTimePicker {...props} />}
                 />
               </div>
               <HorizontalRule />
-              <div className="grid-span-2">
+              {/* <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.gate"
                   label="Gate Name"
                   help={<HelpField id="opsmx.verification.gateName" />}
                   input={(props) => <TextInput {...props} />}
                 />
-              </div>
+              </div> */}
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.imageids"
                   label="Image Ids"
                   help={<HelpField id="opsmx.verification.imageIds" />}
+                  required={true}
                   input={(props) => <TextInput {...props} />}
                 />
+              </div>
+              <div className="grid-span-4">
+                <h4 className="sticky-header ng-binding">Gate Security</h4>
+                <br />
+                <div className="grid-span-2">
+                  {/* {fieldParams.gateUrl} */}
+                </div>
+                {multiFieldGateSecurityComp({ ...props },formik)}
               </div>
             </div>
             <div className="opsmxLogo">
@@ -148,10 +657,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
-  validator
-    .field('parameters.gateurl')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
+  // validator
+  //   .field('parameters.gateurl')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
 
   validator
     .field('parameters.lifetime')
@@ -178,10 +687,10 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Metric Analysis is required` : undefined));
 
-  validator
-    .field('parameters.gate')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Gate Name is required` : undefined));
+  // validator
+  //   .field('parameters.gate')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Gate Name is required` : undefined));
 
   validator
     .field('parameters.imageids')
@@ -194,3 +703,40 @@ export function validate(stageConfig: IStage) {
 
   return validator.validateForm();
 }
+
+
+
+
+// const metricDropdownList = function getMetricList(): PromiseLike<any> {
+//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
+// };
+
+
+// const metricDropdownList : any = () => {
+//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
+//     .then(res => res.json())
+//     .then(
+//       (result) => {
+//         return result.logTemplates;
+//       },        
+//       (error) => {
+//         console.log(error);
+//         return [
+//                 {
+//                   "templateName": "test1"
+//                 },
+//                 {
+//                   "templateName": "test2"
+//                 }
+//               ];
+//       }
+//     )
+// }
+
+  // const getMetricList(): PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
+  // }
+  
+  // const getLogTemplateList() : PromiseLike<any> => {  
+  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
+  // }

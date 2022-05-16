@@ -22,4 +22,8 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.verification.canaryStartTime', 'Please select Canry Start Time');
   HelpContentsRegistry.register('opsmx.verification.gateName', 'Please enter Gate Name that is created in OES');
   HelpContentsRegistry.register('opsmx.verification.imageIds', 'Please enter the Image IDs');
+  HelpContentsRegistry.register('opsmx.verification.logTemplate', 'A collection of all the information needed to run the log analysis');
+  HelpContentsRegistry.register('opsmx.verification.metricTemplate', 'Information needed to run the metric analysis');
+  HelpContentsRegistry.register('opsmx.verification.environment', 'Specify Environment for this Gate');  
+  HelpContentsRegistry.register('opsmx.verification.customEnvironment', 'Add new environment');
 };
