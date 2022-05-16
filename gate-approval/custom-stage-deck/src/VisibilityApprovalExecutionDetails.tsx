@@ -1,4 +1,5 @@
-import React, { Fragment, useCallback, useMemo } from 'react';
+import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import Modal from 'react-modal';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
 import './VisibilityApproval.less';
@@ -13,6 +14,12 @@ import './VisibilityApproval.less';
  */
 
 export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSectionProps) {
+
+  console.log("Aprroval Gate Execution");
+  console.log(props);
+
+  const [modalIsOpen,setModalIsOpen] = useState(false);
+  
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.status == 'approved') {
@@ -43,12 +50,35 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
     </div>
   ) : null;
 
+  const setModalIsOpenToTrue =()=>{
+    setModalIsOpen(true)
+  }
+
+  const setModalIsOpenToFalse =()=>{
+      setModalIsOpen(false);      
+  }
+
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.status !== undefined ? (
         <div>
           <div className="detailpagelogo">
             <span className={'approvalStatus ' + getClasses()}>{getStatus()}</span>
+            <span className={'clikable approvalStatus ' + getClasses()} onClick={setModalIsOpenToTrue}>View Details</span>
+            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+              <div className="modal-content">
+                <div className="modal-header">                      
+                  <button onClick={setModalIsOpenToFalse} className="close">
+                    <span>x</span>
+                  </button>
+                  <h4 className="modal-title">Approval Details</h4>
+                </div>                                      
+                <div className="grid-span-4 modal-body">
+                <iframe src="https://oes-poc.dev.opsmx.org/ui/application/deploymentverification/luthanapp/1/68/true" title="ISD" width="1200" height="750">
+                </iframe>
+                </div>                    
+              </div>
+            </Modal>    
             <img
               src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
               alt="logo"
@@ -107,3 +137,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
 export namespace VisibilityApprovalExecutionDetails {
   export const title = 'Approval';
 }
+// function useState(arg0: boolean): [any, any] {
+//   throw new Error('Function not implemented.');
+// }
+
