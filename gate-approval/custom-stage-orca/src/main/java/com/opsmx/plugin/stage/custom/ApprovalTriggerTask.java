@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -29,10 +30,14 @@ import com.netflix.spinnaker.orca.api.pipeline.Task;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import org.springframework.beans.factory.annotation.Value;
 
 @Extension
 @PluginComponent
 public class ApprovalTriggerTask implements Task {
+
+	@Value("${isd.gate.url:http://oes-gate:8084}")
+	private String isdGateUrl;
 
 	private static final String PAYLOAD_CONSTRAINT = "payloadConstraint";
 
@@ -63,8 +68,6 @@ public class ApprovalTriggerTask implements Task {
 	private static final String TRIGGER_JSON = "trigger_json";
 
 	private static final String CONNECTORS = "connectors";
-
-	private static final String GATE_URL = "gateUrl";
 
 	private static final String VALUES = "values";
 
@@ -125,6 +128,7 @@ public class ApprovalTriggerTask implements Task {
 	private static final String EXCEPTION = "exception";
 
 	public static final String STATUS = "status";
+
 	public static final String NAVIGATIONAL_URL = "navigationalURL";
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -142,27 +146,18 @@ public class ApprovalTriggerTask implements Task {
 		logger.info("Approval execution started, Application name : {}, Pipeline name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
 		CloseableHttpClient httpClient = null;
 		try {
-
-			Map<String, Object> jsonContext = (Map<String, Object>) stage.getContext().get("parameters");
-
-			if (jsonContext.get(GATE_URL) == null || ((String) jsonContext.get(GATE_URL)).isEmpty()) {
-				logger.info("Gate Url should not be empty");
-				outputs.put(EXCEPTION, "Gate Url should not be empty");
-				outputs.put(TRIGGER, FAILED);
-				outputs.put(STATUS, REJECTED);
+			String triggerUrl = getTriggerURL(stage, outputs);
+			logger.info("Gate trigger url: {}", triggerUrl);
+			if (triggerUrl == null) {
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
 						.outputs(outputs)
 						.build();
 			}
 
-			Object gateSecurity = stage.getContext().get(PAYLOAD_CONSTRAINT);
-
-			String gateUrl = (String) jsonContext.get(GATE_URL);
-			logger.info("Application name : {}, pipeline name : {}, GateUrl : {}", stage.getExecution().getApplication(), stage.getExecution().getName(), gateUrl);
-
-			HttpPost request = new HttpPost(gateUrl);
-			String triggerPayload = preparePayload(jsonContext, stage.getExecution().getId(), gateSecurity);
+			logger.info("Application name : {}, pipeline name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
+			HttpPost request = new HttpPost(triggerUrl);
+			String triggerPayload = preparePayload((Map<String, Object>) stage.getContext().get("parameters"), stage.getExecution().getId());
 			outputs.put(TRIGGER_JSON, String.format("Payload json - %s", triggerPayload));
 			request.setEntity(new StringEntity(triggerPayload));
 			request.setHeader("Content-type", "application/json");
@@ -215,12 +210,13 @@ public class ApprovalTriggerTask implements Task {
 				try {
 					httpClient.close();
 				} catch (IOException e) {
+					logger.info("Error while closing client connection");
 				}
 			}
 		}
 	}
 
-	private String preparePayload(Map<String, Object> parameterContext, String executionId, Object gateSecurity) throws JsonProcessingException {
+	private String preparePayload(Map<String, Object> parameterContext, String executionId) throws JsonProcessingException {
 
 		ObjectNode finalJson = objectMapper.createObjectNode();
 
@@ -230,26 +226,36 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode imageIdsNode = objectMapper.createArrayNode();
 		String imageIds = (String) parameterContext.get("imageIds");
 		if (imageIds != null && ! imageIds.isEmpty()) {
-			Arrays.asList(imageIds.split(",")).forEach(tic -> 
-			imageIdsNode.add(tic.trim())
-					);
+			Arrays.asList(imageIds.split(",")).forEach(tic ->
+					imageIdsNode.add(tic.trim())
+			);
 		}
-		ArrayNode gateSecurityNode = objectMapper.createArrayNode();
-		if (gateSecurity != null) {
-			String gateSecurityPayload = objectMapper.writeValueAsString(gateSecurity);
-			gateSecurityNode = (ArrayNode) objectMapper.readTree(gateSecurityPayload);
-			finalJson.set(PAYLOAD_CONSTRAINT, gateSecurityNode);
-		}
+
 		finalJson.set("imageIds", imageIdsNode);
 		String connectorJson = objectMapper.writeValueAsString(parameterContext.get(CONNECTORS));
 		ArrayNode connectorNode = (ArrayNode) objectMapper.readTree(connectorJson);
 		ArrayNode toolConnectorPayloads = objectMapper.createArrayNode();
-		connectorNode.forEach(connector -> 
-		setParameters(toolConnectorPayloads, connector)
-				);
-
+		connectorNode.forEach(connector ->
+				setParameters(toolConnectorPayloads, connector)
+		);
 		finalJson.set(TOOL_CONNECTOR_PARAMETERS, toolConnectorPayloads);
 		finalJson.set("customConnectorData", objectMapper.createArrayNode());
+		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
+		if (parameterContext.get("gateSecurity") != null) {
+			String gateSecurityPayload = objectMapper.writeValueAsString(parameterContext.get("gateSecurity"));
+			ArrayNode securityNode = (ArrayNode) objectMapper.readTree(gateSecurityPayload);
+			securityNode.forEach(secNode -> {
+				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
+				for (JsonNode jsonNode : valuesNode) {
+					if (jsonNode.get("label") != null && !jsonNode.get("label").asText().isBlank() &&
+							jsonNode.get("value") != null && !jsonNode.get("value").asText().isBlank()) {
+						payloadConstraintNode.add(objectMapper.createObjectNode()
+								.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+					}
+				}
+			});
+		}
+		finalJson.set(PAYLOAD_CONSTRAINT, payloadConstraintNode);
 		logger.debug("Payload string to trigger approval : {}", finalJson);
 
 		return objectMapper.writeValueAsString(finalJson);
@@ -259,7 +265,6 @@ public class ApprovalTriggerTask implements Task {
 
 		ArrayNode supporetedParams = (ArrayNode) connector.get("supportedParams");
 		boolean hasType =  supporetedParams.get(0).has(TYPE);
-
 		if(hasType) {
 			dynamicPayload(toolConnectorPayloads, connector, supporetedParams);
 		} else {
@@ -269,32 +274,46 @@ public class ApprovalTriggerTask implements Task {
 
 	private void nonDynamic(ArrayNode toolConnectorPayloads, JsonNode connector) {
 		String connectorType = connector.get(CONNECTOR_TYPE).asText();
-		if (connectorType.equals(JIRA)) {
-			singlePayload(toolConnectorPayloads, connector, JIRA, JIRA_TICKET_NO);
-		} else if (connectorType.equals(AUTOPILOT)) {
-			singlePayload(toolConnectorPayloads, connector, AUTOPILOT, CANARY_ID);
-		} else if (connectorType.equals(AQUAWAVE)) {
-			singlePayload(toolConnectorPayloads, connector, AQUAWAVE, IMAGE_ID);
-		} else if (connectorType.equals(APPSCAN)) {
-			singlePayload(toolConnectorPayloads, connector, APPSCAN, REPORT_ID);
-		} else if (connectorType.equals(SONARQUBE)) {
-			singlePayload(toolConnectorPayloads, connector, SONARQUBE, PROJECT_KEY);
-		} else if (connectorType.equals(JFROG)) {
-			singlePayload(toolConnectorPayloads, connector, JFROG, WATCH_NAME);
-		} else if (connectorType.equals(GIT)) {
-			gitPayload(toolConnectorPayloads, connector);
-		} else if (connectorType.equals(JENKINS)) {
-			jenkinsPayload(toolConnectorPayloads, connector);
-		} else if (connectorType.equals(BAMBOO)) {
-			bambooPayload(toolConnectorPayloads, connector);
-		}  else if (connectorType.equals(PRISMACLOUD)) {
-			singlePayload(toolConnectorPayloads, connector, PRISMACLOUD, IMAGE_ID);
-		} else if (connectorType.equals(BITBUCKET)) {
-			bitBucket(toolConnectorPayloads, connector);
-		} else if (connectorType.equals(SERVICENOW)) {
-			singlePayload(toolConnectorPayloads, connector, SERVICENOW, NUMBER);
-		} else if (connectorType.equals(ARTIFACTORY)) {
-			artifactoryBucket(toolConnectorPayloads, connector);
+		switch (connectorType) {
+			case JIRA:
+				singlePayload(toolConnectorPayloads, connector, JIRA, JIRA_TICKET_NO);
+				break;
+			case AUTOPILOT:
+				singlePayload(toolConnectorPayloads, connector, AUTOPILOT, CANARY_ID);
+				break;
+			case AQUAWAVE:
+				singlePayload(toolConnectorPayloads, connector, AQUAWAVE, IMAGE_ID);
+				break;
+			case APPSCAN:
+				singlePayload(toolConnectorPayloads, connector, APPSCAN, REPORT_ID);
+				break;
+			case SONARQUBE:
+				singlePayload(toolConnectorPayloads, connector, SONARQUBE, PROJECT_KEY);
+				break;
+			case JFROG:
+				singlePayload(toolConnectorPayloads, connector, JFROG, WATCH_NAME);
+				break;
+			case GIT:
+				gitPayload(toolConnectorPayloads, connector);
+				break;
+			case JENKINS:
+				jenkinsPayload(toolConnectorPayloads, connector);
+				break;
+			case BAMBOO:
+				bambooPayload(toolConnectorPayloads, connector);
+				break;
+			case PRISMACLOUD:
+				singlePayload(toolConnectorPayloads, connector, PRISMACLOUD, IMAGE_ID);
+				break;
+			case BITBUCKET:
+				bitBucket(toolConnectorPayloads, connector);
+				break;
+			case SERVICENOW:
+				singlePayload(toolConnectorPayloads, connector, SERVICENOW, NUMBER);
+				break;
+			case ARTIFACTORY:
+				artifactoryBucket(toolConnectorPayloads, connector);
+				break;
 		}
 	}
 
@@ -316,9 +335,9 @@ public class ApprovalTriggerTask implements Task {
 									payloadObject.put(key, a.get(key).asText().trim());
 								} else {
 									ArrayNode paramsNode = objectMapper.createArrayNode();
-									Arrays.asList(a.get(key).asText().split(",")).forEach(tic -> 
-									paramsNode.add(tic.trim())
-											);
+									Arrays.asList(a.get(key).asText().split(",")).forEach(tic ->
+											paramsNode.add(tic.trim())
+									);
 									payloadObject.set(key, paramsNode);
 								}
 							}
@@ -343,7 +362,7 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode parameterArrayNode = objectMapper.createArrayNode();
 		ArrayNode valuesNode = (ArrayNode) connector.get(VALUES);
 		valuesNode.forEach(gitNode -> {
-			if (gitNode != null && gitNode.get(REPOSITORY_PATH) != null && ! gitNode.get(REPOSITORY_PATH).asText().isEmpty()) {				
+			if (gitNode != null && gitNode.get(REPOSITORY_PATH) != null && ! gitNode.get(REPOSITORY_PATH).asText().isEmpty()) {
 
 				parameterArrayNode.add(objectMapper.createObjectNode().put(REPOSITORY_PATH, gitNode.get(REPOSITORY_PATH).asText().trim()));
 			}
@@ -361,8 +380,8 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode parameterArrayNode = objectMapper.createArrayNode();
 		ArrayNode valuesNode = (ArrayNode) connector.get(VALUES);
 		valuesNode.forEach(gitNode -> {
-			if (gitNode != null && gitNode.get(REPOSITORY_NAME) != null && ! gitNode.get(REPOSITORY_NAME).asText().isEmpty() 
-					&& gitNode.get(COMMIT_ID) != null && ! gitNode.get(COMMIT_ID).asText().isEmpty()) {				
+			if (gitNode != null && gitNode.get(REPOSITORY_NAME) != null && ! gitNode.get(REPOSITORY_NAME).asText().isEmpty()
+					&& gitNode.get(COMMIT_ID) != null && ! gitNode.get(COMMIT_ID).asText().isEmpty()) {
 
 				parameterArrayNode.add(objectMapper.createObjectNode().put(REPOSITORY_NAME, gitNode.get(REPOSITORY_NAME).asText()).put(COMMIT_ID, gitNode.get(COMMIT_ID).asText()));
 			}
@@ -380,7 +399,7 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode parameterArrayNode = objectMapper.createArrayNode();
 		ArrayNode valuesNode = (ArrayNode) connector.get(VALUES);
 		valuesNode.forEach(bambooNode -> {
-			if (bambooNode != null && bambooNode.get(PROJECT_NAME) != null && ! (bambooNode.get(PROJECT_NAME).asText()).isEmpty() 
+			if (bambooNode != null && bambooNode.get(PROJECT_NAME) != null && ! (bambooNode.get(PROJECT_NAME).asText()).isEmpty()
 					&& bambooNode.get(PLAN_NAME) != null && ! bambooNode.get(PLAN_NAME).asText().isEmpty()
 					&& bambooNode.get(BUILD_NUMBER) != null && ! bambooNode.get(BUILD_NUMBER).asText().isEmpty()) {
 				parameterArrayNode.add(objectMapper.createObjectNode()
@@ -402,7 +421,7 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode parameterArrayNode = objectMapper.createArrayNode();
 		ArrayNode valuesNode = (ArrayNode) connector.get(VALUES);
 		valuesNode.forEach(jenkinsNode -> {
-			if (jenkinsNode != null && jenkinsNode.get(JOB) != null && ! (jenkinsNode.get(JOB).asText()).isEmpty() 
+			if (jenkinsNode != null && jenkinsNode.get(JOB) != null && ! (jenkinsNode.get(JOB).asText()).isEmpty()
 					&& jenkinsNode.get(BUILD_ID) != null && ! (jenkinsNode.get(BUILD_ID).asText()).isEmpty()) {
 				parameterArrayNode.add(objectMapper.createObjectNode()
 						.put(JOB, jenkinsNode.get(JOB).asText().trim())
@@ -423,12 +442,12 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode parameterArrayNode = objectMapper.createArrayNode();
 		ArrayNode valuesNode = (ArrayNode) connector.get(VALUES);
 		valuesNode.forEach(gitNode -> {
-			if (gitNode != null && gitNode.get(REPO) != null && ! gitNode.get(REPO).asText().isEmpty() 
+			if (gitNode != null && gitNode.get(REPO) != null && ! gitNode.get(REPO).asText().isEmpty()
 					&& gitNode.get(COMMIT_ID) != null && ! gitNode.get(COMMIT_ID).asText().isEmpty()) {
 				ArrayNode commitIds = objectMapper.createArrayNode();
-				Arrays.asList(gitNode.get(COMMIT_ID).asText().split(",")).forEach(a -> 
-				commitIds.add(a.trim())
-						);
+				Arrays.asList(gitNode.get(COMMIT_ID).asText().split(",")).forEach(a ->
+						commitIds.add(a.trim())
+				);
 
 				parameterArrayNode.add(objectMapper.createObjectNode().put(REPO, gitNode.get(REPO).asText()).set(COMMIT_ID, commitIds));
 			}
@@ -447,12 +466,76 @@ public class ApprovalTriggerTask implements Task {
 		ArrayNode valuesNode = (ArrayNode) connector.get(VALUES);
 		valuesNode.forEach(a -> {
 			if (a != null) {
-				Arrays.asList(a.get(param).asText().split(",")).forEach(tic -> 
-				paramsNode.add(tic.trim())
-						);
+				Arrays.asList(a.get(param).asText().split(",")).forEach(tic ->
+						paramsNode.add(tic.trim())
+				);
 			}
 		});
 		singleObjectNode.set(PARAMETERS, objectMapper.createArrayNode().add(objectMapper.createObjectNode().set(param, paramsNode)));
 		toolConnectorPayloads.add(singleObjectNode);
+	}
+
+
+
+	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
+
+		String triggerEndpoint = constructGateEnpoint(stage);
+		logger.info("Gate endpoint to get trigger endpoint : {}", triggerEndpoint);
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		try {
+			HttpGet request = new HttpGet(triggerEndpoint);
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
+			CloseableHttpResponse response = httpClient.execute(request);
+
+			HttpEntity entity = response.getEntity();
+			String registerResponse = "";
+			if (entity != null) {
+				registerResponse = EntityUtils.toString(entity);
+			}
+
+			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			if (response.getStatusLine().getStatusCode() != 200) {
+				outputs.put(EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
+						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(TRIGGER, FAILED);
+				outputs.put(STATUS, REJECTED);
+				return null;
+			}
+
+			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
+			String triggerUrl = readValue.get("gateUrl").asText();
+			if (triggerUrl == null) {
+				outputs.put(EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
+						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(TRIGGER, FAILED);
+				outputs.put(STATUS, REJECTED);
+				return null;
+			}
+			return triggerUrl;
+		} catch (Exception e) {
+			logger.error("Failed to execute verification gate", e);
+			outputs.put(EXCEPTION, String.format("Error occurred while getting trigger endpoint, %s", e));
+			outputs.put(TRIGGER, FAILED);
+			outputs.put(STATUS, REJECTED);
+			return null;
+		} finally {
+			if (httpClient != null) {
+				try {
+					httpClient.close();
+				} catch (IOException e) {
+					logger.warn("exception while closing the connection : {}",
+							e.getMessage());
+				}
+			}
+		}
+	}
+
+	private String constructGateEnpoint(StageExecution stage) {
+		//applications/{applicationname}/pipeline/{pipelineName}/reference/{ref}/gates/{gatesName}?type={gateType}
+		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=verification",
+				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
+				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getRefId(),
+				stage.getName());
 	}
 }
