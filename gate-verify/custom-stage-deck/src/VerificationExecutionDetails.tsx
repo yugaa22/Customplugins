@@ -72,7 +72,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src="https://oes-poc.dev.opsmx.org/ui/application/deploymentverification/luthanapp/1/68/true" title="ISD" width="1200" height="750">
+                <iframe src={props.stage.outputs.canaryReportURL+"/true"} title="ISD" width="1200" height="750">
                 </iframe>
                 </div>                    
               </div>
