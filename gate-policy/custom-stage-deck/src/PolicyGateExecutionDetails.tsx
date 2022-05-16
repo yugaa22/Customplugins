@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Modal from 'react-modal';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
 
@@ -11,6 +12,7 @@ import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMes
  * - `props.stage.context` maps to your SimpleStage's `Context` class.
  */
 export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps) {
+  const [modalIsOpen,setModalIsOpen] = useState(false);
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.status == 'allow') {
@@ -42,6 +44,16 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
     </div>
   ) : null;
 
+
+  const setModalIsOpenToTrue =()=>{
+    setModalIsOpen(true)
+  }
+
+  const setModalIsOpenToFalse =()=>{
+    setModalIsOpen(false);      
+  }
+
+
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.trigger_json !== undefined ? (
@@ -61,6 +73,8 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <th>Message</th>
                 <th style={{ width: '90px' }}>Executed By</th>
                 <th>Time</th>
+                <th>Policy Name</th>
+                <th>Policy Link</th>
               </tr>
             </thead>
             <tbody>
@@ -71,6 +85,23 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td>{props.stage.outputs.message}</td>
                 <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
+                <td>Name</td>
+                <td><span className={'PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
+                <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setModalIsOpenToFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Policy Details</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                    <iframe src="https://oes-poc.dev.opsmx.org/ui/setup/policymanagement/createpolicy/custpolicy/true" title="ISD" width="1200" height="750">
+                    </iframe>
+                    </div>                    
+                  </div>
+                </Modal>      
+                </td>
               </tr>
             </tbody>
           </table>

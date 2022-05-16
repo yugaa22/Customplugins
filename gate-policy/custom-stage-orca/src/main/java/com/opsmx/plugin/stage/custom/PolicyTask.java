@@ -1,15 +1,16 @@
 package com.opsmx.plugin.stage.custom;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -35,10 +36,14 @@ import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 
 import jline.internal.Log;
+import org.springframework.beans.factory.annotation.Value;
 
 @Extension
 @PluginComponent
 public class PolicyTask implements Task {
+
+	@Value("${isd.gate.url:http://oes-gate:8084}")
+	private String isdGateUrl;
 	
 	private static final String PAYLOAD_CONSTRAINT = "payloadConstraint";
 
@@ -66,14 +71,13 @@ public class PolicyTask implements Task {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static final String EXCEPTION = "exception";
-
 	@Autowired
 	private ObjectMapper objectMapper = new ObjectMapper();
 
+	private final Gson gson = new Gson();
+
 	public PolicyTask() {
 	}
-
 
 	@NotNull
 	@Override
@@ -83,45 +87,28 @@ public class PolicyTask implements Task {
 		Map<String, Object> outputs = new HashMap<>();
 		logger.info("Policy gate execution start ");
 
-		CloseableHttpClient httpClient = null;
+		String triggerUrl = getTriggerURL(stage, outputs);
+		logger.info("Gate trigger url: {}", triggerUrl);
+		if (triggerUrl == null) {
+			return TaskResult.builder(ExecutionStatus.TERMINAL)
+					.context(contextMap)
+					.outputs(outputs)
+					.build();
+		}
+
+		return verifyPolicy(stage, outputs, contextMap, triggerUrl);
+	}
+
+	private TaskResult verifyPolicy(StageExecution stage, Map<String, Object> outputs, Map<String, Object> contextMap, String triggerUrl) {
+		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
-			Map<String, Object> jsonContext = (Map<String, Object>) stage.getContext().get("parameters");
-
-			if (jsonContext.get("policyurl") == null || ((String) jsonContext.get("policyurl")).isEmpty()) {
-				logger.info("Policyproxy Url should not be empty");
-				outputs.put(EXCEPTION, "Policyproxy Url should not be empty");
-				return TaskResult.builder(ExecutionStatus.TERMINAL)
-						.context(contextMap)
-						.outputs(outputs)
-						.build();
-			}
-
-			PolicyContext context = new PolicyContext();
-			context.setPolicyurl(((String) jsonContext.get("policyurl")));
-			context.setPolicypath(((String) jsonContext.get("policypath")));
-			context.setGate(((String) jsonContext.get("gate")));
-			context.setImageids(((String) jsonContext.get("imageids")));
-
-			Object payload = jsonContext.get("payload");
-			if (payload != null) {
-				if (payload instanceof String) {
-					context.setPayload((String) payload);
-				} else {
-					context.setPayload(objectMapper.writeValueAsString(objectMapper.convertValue((Map<String, Object>) jsonContext.get("payload"), ObjectNode.class)));
-				}
-			}
-
-			String url = String.format("%s/%s", context.getPolicyurl().endsWith("/") ? context.getPolicyurl().substring(0, context.getPolicyurl().length() - 1) : context.getPolicyurl(), context.getPolicypath().startsWith("/") ? context.getPolicypath().substring(1) : context.getPolicypath());
-
-			HttpPost request = new HttpPost(url);
-			String triggerPayload = getPayloadString(context, stage.getExecution().getApplication(), stage.getExecution().getName(),
-					stage.getExecution().getId(), stage.getExecution().getAuthentication().getUser(), context.getPayload(), stage.getContext().get(PAYLOAD_CONSTRAINT));
+			HttpPost request = new HttpPost(triggerUrl);
+			String triggerPayload = getPayloadString(stage, outputs);
 			outputs.put(TRIGGER_JSON, String.format("Payload json - %s", triggerPayload));
 			request.setEntity(new StringEntity(triggerPayload));
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
 
-			httpClient = HttpClients.createDefault();
 			CloseableHttpResponse response = httpClient.execute(request);
 
 			HttpEntity entity = response.getEntity();
@@ -135,13 +122,8 @@ public class PolicyTask implements Task {
 
 			if (response.getStatusLine().getStatusCode() == 200 ) {
 				StringBuilder message = new StringBuilder();
-				getMessage(registerResponse, ALLOW).forEach(a -> {
-					if (StringUtils.isNotBlank(message)) {
-						message.append(",\n");
-					}
-					message.append(a);
-				});
-
+				JsonObject opaResponse = gson.fromJson(registerResponse, JsonObject.class);
+				extractDenyMessage(opaResponse, message, ALLOW);
 				outputs.put(STATUS, ALLOW);
 				outputs.put(MESSAGE, message.toString());
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
@@ -152,13 +134,8 @@ public class PolicyTask implements Task {
 
 			} else  if (response.getStatusLine().getStatusCode() == 401 ) {
 				StringBuilder message = new StringBuilder();
-				getMessage(registerResponse, DENY).forEach(a -> {
-					if (StringUtils.isNotBlank(message)) {
-						message.append(",\n");
-					}
-					message.append(a);
-				});
-
+				JsonObject opaResponse = gson.fromJson(registerResponse, JsonObject.class);
+				extractDenyMessage(opaResponse, message, DENY);
 				outputs.put(STATUS, DENY);
 				outputs.put(MESSAGE, message.toString());
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
@@ -176,8 +153,7 @@ public class PolicyTask implements Task {
 						.context(contextMap)
 						.outputs(outputs)
 						.build();
-			}			
-
+			}
 		} catch (Exception e) {
 			logger.error("Error occurred while triggering policy ", e);
 			outputs.put(STATUS, DENY);
@@ -196,74 +172,154 @@ public class PolicyTask implements Task {
 		}
 	}
 
+	private String getPayloadString(StageExecution stage, Map<String, Object> outputs) throws JsonProcessingException {
+		ObjectNode finalJson = objectMapper.createObjectNode();
 
-	private List<String> getMessage(String registerResponse, String key) throws JsonProcessingException, JsonMappingException {
-		List<String> deny = Lists.newArrayList();
-		JsonNode rootNode = objectMapper.readTree(registerResponse);  
-		iterateJsonObject(key, deny, rootNode);
-		return deny;
-	}
-
-
-	private void iterateJsonObject(String key, List<String> deny, JsonNode rootNode) {
-		Iterator<Map.Entry<String,JsonNode>> fieldsIterator = rootNode.fields();
-		while (fieldsIterator.hasNext()) {
-			Map.Entry<String,JsonNode> field = fieldsIterator.next();
-			if (field.getKey().equalsIgnoreCase(key)) {
-				Iterator<JsonNode> iterator = field.getValue().iterator();
-				if (iterator.hasNext()) {
-					deny.add(iterator.next().asText());
-				}
+		Object payloadContext = ((Map<String, Object>) stage.getContext().get("parameters")).get("payload");
+		Map<String, Object> parameterContext = (Map<String, Object>) stage.getContext().get("parameters");
+		if (parameterContext.get("policyName") != null) {
+			outputs.put("policyName", (String) parameterContext.get("policyName"));
+		}
+		String payload = "";
+		if (payloadContext != null) {
+			if (payloadContext instanceof String) {
+				payload = (String) payloadContext;
 			} else {
-				if (field.getValue() instanceof ObjectNode ) {
-					iterateJsonObject(key, deny, field.getValue());
-				} else if (field.getValue() instanceof ArrayNode ) {
-					((ArrayNode) field.getValue()).forEach(obj -> {
-						iterateJsonObject(key, deny, obj);
-					});
-				}
+				payload = objectMapper.writeValueAsString(
+						objectMapper.convertValue((Map<String, Object>) ((Map<String, Object>) stage.getContext().get("parameters")).get("payload"), ObjectNode.class));
 			}
 		}
-	}
-
-	private String getPayloadString(PolicyContext context, String application, String name, String executionId, String user, String payload, Object gateSecurity) throws JsonProcessingException {
-		ObjectNode finalJson = objectMapper.createObjectNode();
 
 		if (payload != null && ! payload.trim().isEmpty()) {
 			finalJson = (ObjectNode) objectMapper.readTree(payload);
-			finalJson.put("executionId", executionId);
-			finalJson.put(START_TIME, System.currentTimeMillis());
-			finalJson.put(APPLICATION2, application);
-			finalJson.put(NAME2, name);
-			finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, user));
-			if (context.getImageids() != null && !context.getImageids().isEmpty()) {
-				ArrayNode images = objectMapper.createArrayNode();
-				Arrays.asList(context.getImageids().split(",")).forEach(a -> {
-					images.add(a.trim());
-				});
-				finalJson.set("imageIds", images);
-			}
-		} else {
-			finalJson.put(START_TIME, System.currentTimeMillis());
-			finalJson.put(APPLICATION2, application);
-			finalJson.put(NAME2, name);
-			finalJson.put("stage", context.getGate());
-			finalJson.put("executionId", executionId);
-			finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, user));
-			if (context.getImageids() != null && !context.getImageids().isEmpty()) {
-				ArrayNode images = objectMapper.createArrayNode();
-				Arrays.asList(context.getImageids().split(",")).forEach(a -> {
-					images.add(a.trim());
-				});
-				finalJson.set("imageIds", images);
-			}
 		}
 
-		if (gateSecurity != null) {
-			String gateSecurityPayload = objectMapper.writeValueAsString(gateSecurity);
-			finalJson.set(PAYLOAD_CONSTRAINT, objectMapper.readTree(gateSecurityPayload));
+		String imageIds = parameterContext.get("imageids") != null ? (String) parameterContext.get("imageids"): null;
+		ArrayNode imageIdsNode = objectMapper.createArrayNode();
+		if (imageIds != null && ! imageIds.isEmpty()) {
+			Arrays.asList(imageIds.split(",")).forEach(tic -> {
+				imageIdsNode.add(tic.trim());
+			});
 		}
+		finalJson.set("imageIds", imageIdsNode);
+		finalJson.put(START_TIME, System.currentTimeMillis());
+		finalJson.put(APPLICATION2, stage.getExecution().getApplication());
+		finalJson.put(NAME2, stage.getExecution().getName());
+		finalJson.put("stage", stage.getName());
+		finalJson.put("executionId", stage.getExecution().getId());
+		finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, stage.getExecution().getAuthentication().getUser()));
+
+		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
+		if (parameterContext.get("gateSecurity") != null) {
+			String gateSecurityPayload = objectMapper.writeValueAsString(parameterContext.get("gateSecurity"));
+			ArrayNode securityNode = (ArrayNode) objectMapper.readTree(gateSecurityPayload);
+			securityNode.forEach(secNode -> {
+				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
+				for (JsonNode jsonNode : valuesNode) {
+					if (jsonNode.get("label") != null && !jsonNode.get("label").asText().isBlank() &&
+							jsonNode.get("value") != null && !jsonNode.get("value").asText().isBlank()) {
+						payloadConstraintNode.add(objectMapper.createObjectNode()
+								.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+					}
+				}
+			});
+		}
+		finalJson.set(PAYLOAD_CONSTRAINT, payloadConstraintNode);
 
 		return objectMapper.writeValueAsString(finalJson);
+	}
+
+	private void extractDenyMessage(JsonObject opaResponse, StringBuilder messageBuilder, String key) {
+		Set<Map.Entry<String, JsonElement>> fields = opaResponse.entrySet();
+		fields.forEach(field -> {
+			if (field.getKey().equalsIgnoreCase(key)) {
+				JsonArray resultKey = field.getValue().getAsJsonArray();
+				if (resultKey.size() != 0) {
+					resultKey.forEach(result -> {
+						if (StringUtils.isNotEmpty(messageBuilder)) {
+							messageBuilder.append(", ");
+						}
+						messageBuilder.append(result.getAsString());
+					});
+				}
+			}else if (field.getValue().isJsonObject()) {
+				if (!field.getValue().isJsonPrimitive()) {
+					extractDenyMessage(field.getValue().getAsJsonObject(), messageBuilder, key);
+				}
+			} else if (field.getValue().isJsonArray()){
+				field.getValue().getAsJsonArray().forEach(obj -> {
+					if (!obj.isJsonPrimitive()) {
+						extractDenyMessage(obj.getAsJsonObject(), messageBuilder, key);
+					}
+				});
+			}
+		});
+	}
+
+	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
+
+		String triggerEndpoint = constructGateEnpoint(stage);
+		logger.info("Gate endpoint to get trigger endpoint : {}", triggerEndpoint);
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+		try {
+			HttpGet request = new HttpGet(triggerEndpoint);
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
+			CloseableHttpResponse response = httpClient.execute(request);
+
+			HttpEntity entity = response.getEntity();
+			String registerResponse = "";
+			if (entity != null) {
+				registerResponse = EntityUtils.toString(entity);
+			}
+
+			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			if (response.getStatusLine().getStatusCode() != 200) {
+				outputs.put(STATUS, DENY);
+				outputs.put("REASON", String.format("Failed to get the trigger url with status code :: %s, %s",
+						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(MESSAGE, String.format("Failed to get the trigger url with status code :: %s", response.getStatusLine().getStatusCode()));
+				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
+				return null;
+			}
+
+			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
+			String triggerUrl = readValue.get("gateUrl").asText();
+			if (triggerUrl == null) {
+				outputs.put(STATUS, DENY);
+				outputs.put("REASON", String.format("Failed to get the trigger url with status code :: %s, %s",
+						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(MESSAGE, String.format("Failed to get the trigger url with status code :: %s", response.getStatusLine().getStatusCode()));
+				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
+				return null;
+			}
+			if (readValue.get("policyUrl") != null ) {
+				outputs.put("policyLink", readValue.get("policyUrl").asText());
+			}
+			return triggerUrl;
+		} catch (Exception e) {
+			logger.error("Failed to execute policy stage", e);
+			outputs.put(STATUS, DENY);
+			outputs.put(MESSAGE, String.format("Policy trigger failed with exception :: %s", e.getMessage()));
+			outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
+			return null;
+		} finally {
+			if (httpClient != null) {
+				try {
+					httpClient.close();
+				} catch (IOException e) {
+					logger.warn("exception while closing the connection : {}",
+							e.getMessage());
+				}
+			}
+		}
+	}
+
+	private String constructGateEnpoint(StageExecution stage) {
+		//applications/{applicationname}/pipeline/{pipelineName}/reference/{ref}/gates/{gatesName}?type={gateType}
+		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=policy",
+				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
+				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getRefId(),
+				stage.getName());
 	}
 }
