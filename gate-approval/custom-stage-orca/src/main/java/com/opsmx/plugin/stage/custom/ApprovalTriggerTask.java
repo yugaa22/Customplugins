@@ -504,8 +504,8 @@ public class ApprovalTriggerTask implements Task {
 			}
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
-			String triggerUrl = readValue.get("gateUrl").asText();
-			if (triggerUrl == null) {
+			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
+			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put(EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
 				outputs.put(TRIGGER, FAILED);
@@ -533,7 +533,7 @@ public class ApprovalTriggerTask implements Task {
 
 	private String constructGateEnpoint(StageExecution stage) {
 		//applications/{applicationname}/pipeline/{pipelineName}/reference/{ref}/gates/{gatesName}?type={gateType}
-		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=verification",
+		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=approval",
 				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
 				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getRefId(),
 				stage.getName());
