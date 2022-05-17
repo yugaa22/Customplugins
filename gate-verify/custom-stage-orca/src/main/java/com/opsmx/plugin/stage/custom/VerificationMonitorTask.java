@@ -49,7 +49,7 @@ public class VerificationMonitorTask implements RetryableTask {
 		} else if (trigger.equals(OesConstants.SUCCESS)) {
 			logger.info("Verification Monitoring started for application : {}, pipeline : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
 			String approvalUrl = (String) outputs.get(OesConstants.LOCATION);
-			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs);
+			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, (String) stage.getContext().get("serviceId"));
 		} else {
 			logger.info("Verification Monitoring not starting because trigger task not completed");
 			return TaskResult.builder(ExecutionStatus.RUNNING)
@@ -59,7 +59,7 @@ public class VerificationMonitorTask implements RetryableTask {
 		}
 	}
 
-	private TaskResult getVerificationStatus(String canaryUrl, String user, Map<String, Object> outputs) {
+	private TaskResult getVerificationStatus(String canaryUrl, String user, Map<String, Object> outputs, String serviceId) {
 		HttpGet request = new HttpGet(canaryUrl);
 
 		CloseableHttpClient httpClient = null;
@@ -78,11 +78,10 @@ public class VerificationMonitorTask implements RetryableTask {
 						.build();
 			}
 
-			String canaryUiUrl = readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText();
-
 			if (analysisStatus.equalsIgnoreCase(OesConstants.CANCELLED)) {
 				outputs.put(OesConstants.OVERALL_RESULT, OesConstants.CANCELLED);
-				outputs.put(OesConstants.CANARY_REPORTURL, canaryUiUrl);
+				outputs.put(OesConstants.CANARY_REPORTURL,
+						String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 				outputs.put(OesConstants.EXCEPTION, "Analysis got cancelled");
 
