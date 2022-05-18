@@ -87,7 +87,7 @@ const setModalIsOpenToFalse =()=>{
             <thead>
               <tr>
                 <th>Result</th>
-                <th>Report</th>
+                {/* <th>Report</th> */}
                 <th>Last Updated</th>
               </tr>
             </thead>
