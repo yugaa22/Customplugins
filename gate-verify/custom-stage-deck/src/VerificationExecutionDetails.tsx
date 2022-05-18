@@ -58,7 +58,7 @@ const setModalIsOpenToFalse =()=>{
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.exception != undefined && props.stage.outputs.overallScore >= 0 ? (
+      {props.stage.outputs.exception == undefined && props.stage.outputs.overallScore >= 0 ? (
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
@@ -97,9 +97,9 @@ const setModalIsOpenToFalse =()=>{
                   <span className={'scoreSmall ' + getClasses()}>{props.stage.outputs.overallScore}</span>
                 </td>
                 <td>
-                  <a href={props.stage.outputs.canaryReportURL} target="_blank">
+                  {/* <a href={props.stage.outputs.canaryReportURL} target="_blank">
                     Report
-                  </a>
+                  </a> */}
                 </td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
               </tr>

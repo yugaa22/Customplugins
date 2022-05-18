@@ -278,10 +278,11 @@ const getGateSecurityParams = () => {
   
 
   const setModalIsOpenToTrue =(type : any)=>{
+    onmetricListUpdated(false);
     if(type == 'add'){
       setMetricUrl(metricCreateUrl);
     }else{
-      let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/true/true";
+      let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/false/true";
       setMetricUrl(editUrl);
     }
       setModalIsOpen(true);
@@ -293,6 +294,7 @@ const getGateSecurityParams = () => {
   }
 
 const setLogModalIsOpenToTrue =(type : any)=>{
+  onlogListUpdated(false);
   if(type == 'add'){
     setLogUrl(logCreateUrl);
   }else{
@@ -309,6 +311,7 @@ const setLogModalIsOpenToFalse =()=>{
 
 const deleteTemplate = (type: any) =>{
   if(type == "log"){
+    onlogListUpdated(false);
     REST('autopilot/api/v1/applications/'+applicationId+"/deleteLogTemplate/"+props.stage.parameters.logTemplate).
     delete()
     .then(
@@ -319,6 +322,7 @@ const deleteTemplate = (type: any) =>{
       }     
    )
   }else if (type == "metric"){
+    onmetricListUpdated(false);
     REST('autopilot/api/v1/applications/'+applicationId+"/deleteMetricTemplate/"+props.stage.parameters.metricTemplate).
     delete()
     .then(
