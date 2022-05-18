@@ -58,7 +58,7 @@ const setModalIsOpenToFalse =()=>{
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.overallScore >= 0 ? (
+      {props.stage.outputs.exception != undefined && props.stage.outputs.overallScore >= 0 ? (
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
@@ -72,7 +72,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.canaryReportURL+"/true"} title="ISD" width="1200" height="750">
+                <iframe src={props.stage.outputs.canaryReportURL+"/true"} title="ISD" width="1200" height="650">
                 </iframe>
                 </div>                    
               </div>
