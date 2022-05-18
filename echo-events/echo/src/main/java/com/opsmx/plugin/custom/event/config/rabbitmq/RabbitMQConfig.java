@@ -1,15 +1,18 @@
 package com.opsmx.plugin.custom.event.config.rabbitmq;
 
 import com.netflix.spinnaker.kork.plugins.api.spring.ExposeToApp;
+import com.opsmx.plugin.custom.event.config.CamelConfig;
 import com.opsmx.plugin.custom.event.config.CamelRouteConfig;
 import com.opsmx.plugin.custom.event.config.MessageBrokerConfig;
 import com.opsmx.plugin.custom.event.config.SpinnakerConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 
 @ExposeToApp
 @Configuration
+@ConditionalOnBean({CamelConfig.class})
 @ConditionalOnProperty(value = "message-broker.endpoint.name", havingValue = "rabbitmq")
 public class RabbitMQConfig implements CamelRouteConfig {
 

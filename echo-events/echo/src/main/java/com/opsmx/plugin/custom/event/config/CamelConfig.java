@@ -7,11 +7,13 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @ExposeToApp
 @Configuration
+@ConditionalOnExpression("${message-broker.enabled:true}")
 public class CamelConfig {
 
     @Autowired
@@ -34,6 +36,7 @@ public class CamelConfig {
 
     @ExposeToApp
     @Configuration
+    @ConditionalOnExpression("${message-broker.enabled:true}")
     public static class CamelRouteConfiguration extends RouteBuilder{
 
         @Autowired
