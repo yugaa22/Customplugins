@@ -83,8 +83,8 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>
+          {/* <tr>
+            <td> */}
               {!selectInput ? 
               
               <FormikProvider value={formik}>
@@ -230,8 +230,8 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
               }
 
           
-            </td>
-          </tr>
+            {/* </td>
+          </tr> */}
         </tbody>
       </table>
     </>
