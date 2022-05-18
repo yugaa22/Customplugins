@@ -434,7 +434,7 @@ const deleteTemplate = (type: any) =>{
                       <h4 className="modal-title">Log Template</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                      <iframe src={logUrl} title="ISD" width="1200" height="750">
+                      <iframe src={logUrl} title="ISD" width="1100" height="650">
                       </iframe>
                     </div>                    
                   </div>                  
@@ -507,7 +507,7 @@ const deleteTemplate = (type: any) =>{
                       <h4 className="modal-title">Metric Template</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                      <iframe src={metricUrl} title="ISD" width="1200" height="750">
+                      <iframe src={metricUrl} title="ISD" width="1100" height="650">
                       </iframe>
                     </div>                    
                   </div>

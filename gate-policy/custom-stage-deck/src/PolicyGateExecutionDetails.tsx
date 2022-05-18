@@ -12,6 +12,8 @@ import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMes
  * - `props.stage.context` maps to your SimpleStage's `Context` class.
  */
 export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps) {
+  console.log("Policy Execution");
+  console.log(props);
   const [modalIsOpen,setModalIsOpen] = useState(false);
   const getClasses = () => {
     let classes = '';
@@ -96,7 +98,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                       <h4 className="modal-title">Policy Details</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                    <iframe src="https://oes-poc.dev.opsmx.org/ui/setup/policymanagement/createpolicy/custpolicy/true" title="ISD" width="1200" height="750">
+                    <iframe src={props.stage.outputs.policyLink +"/true"} title="ISD" width="1100" height="650">
                     </iframe>
                     </div>                    
                   </div>
