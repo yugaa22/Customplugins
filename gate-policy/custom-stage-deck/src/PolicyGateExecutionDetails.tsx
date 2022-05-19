@@ -88,7 +88,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
                 <td>Name</td>
-                <td><span className={'PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
+                <td><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                   <div className="modal-content">
                     <div className="modal-header">                      
@@ -98,7 +98,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                       <h4 className="modal-title">Policy Details</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                    <iframe src={props.stage.outputs.policyLink +"/true"} title="ISD" width="1100" height="650">
+                    <iframe src={ window.location.origin + "/ui/setup" + props.stage.outputs.policyLink +"/true"} title="ISD" width="1100" height="650">
                     </iframe>
                     </div>                    
                   </div>
