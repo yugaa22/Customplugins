@@ -58,7 +58,7 @@ const setModalIsOpenToFalse =()=>{
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.overallScore >= 0 ? (
+      {props.stage.outputs.exception == undefined && props.stage.outputs.overallScore >= 0 ? (
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
@@ -72,7 +72,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.canaryReportURL+"/true"} title="ISD" width="1200" height="750">
+                <iframe src={props.stage.outputs.canaryReportURL+"/true"} title="ISD" width="1100" height="650">
                 </iframe>
                 </div>                    
               </div>
@@ -87,7 +87,7 @@ const setModalIsOpenToFalse =()=>{
             <thead>
               <tr>
                 <th>Result</th>
-                <th>Report</th>
+                {/* <th>Report</th> */}
                 <th>Last Updated</th>
               </tr>
             </thead>
@@ -96,11 +96,11 @@ const setModalIsOpenToFalse =()=>{
                 <td>
                   <span className={'scoreSmall ' + getClasses()}>{props.stage.outputs.overallScore}</span>
                 </td>
-                <td>
+                {/* <td>
                   <a href={props.stage.outputs.canaryReportURL} target="_blank">
                     Report
                   </a>
-                </td>
+                </td> */}
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
               </tr>
             </tbody>

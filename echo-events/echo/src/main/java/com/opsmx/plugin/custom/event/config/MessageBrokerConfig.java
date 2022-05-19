@@ -1,6 +1,7 @@
 package com.opsmx.plugin.custom.event.config;
 
 import com.netflix.spinnaker.kork.plugins.api.spring.ExposeToApp;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @ExposeToApp
 @Configuration
 @EnableConfigurationProperties
+@ConditionalOnBean({CamelConfig.class})
 @ConfigurationProperties(prefix = "message-broker")
 public class MessageBrokerConfig {
 
@@ -61,6 +63,7 @@ public class MessageBrokerConfig {
     @ExposeToApp
     @Configuration
     @EnableConfigurationProperties
+    @ConditionalOnBean({CamelConfig.class})
     @ConfigurationProperties(prefix = "message-broker.endpoint")
     public static class Endpoint{
 

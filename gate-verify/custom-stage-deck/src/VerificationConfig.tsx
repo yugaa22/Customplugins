@@ -109,7 +109,7 @@ export function VerificationConfig(props: IStageConfigProps) {
           }
         );
         props.stage['applicationId'] = results.applicationId;        
-        let a  = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
+        let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
         setMetricCreateUrl(a);
       }    
     )      
@@ -129,7 +129,7 @@ export function VerificationConfig(props: IStageConfigProps) {
             setLogDropdownList(response);       
           }
         );
-        let logCreateUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
+        let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
         setLogCreateUrl(logCreateUrl);
       }    
     )      
@@ -159,7 +159,16 @@ export function VerificationConfig(props: IStageConfigProps) {
         "id": 0,
         "spinnakerEnvironment": "Add new Environment"
       });
-       setenvironmentsList(results);       
+       setenvironmentsList(results); 
+       if(props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0 ){
+        //Find Id from Environment list
+        const findId = temp.findIndex((val:any) => val.spinnakerEnvironment == props.stage.parameters.customEnvironment);
+        if(findId > 0){
+          props.stage.parameters.environment[0].id = temp[findId].id;
+          props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
+        }
+      }
+      console.log("Environmen API: ", temp);      
      }     
    )
    
@@ -278,10 +287,11 @@ const getGateSecurityParams = () => {
   
 
   const setModalIsOpenToTrue =(type : any)=>{
+    onmetricListUpdated(false);
     if(type == 'add'){
       setMetricUrl(metricCreateUrl);
     }else{
-      let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/true/true";
+      let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/false/true";
       setMetricUrl(editUrl);
     }
       setModalIsOpen(true);
@@ -293,10 +303,11 @@ const getGateSecurityParams = () => {
   }
 
 const setLogModalIsOpenToTrue =(type : any)=>{
+  onlogListUpdated(false);
   if(type == 'add'){
     setLogUrl(logCreateUrl);
   }else{
-    let editUrl = "https://oes-poc.dev.opsmx.org/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/true";
+    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/true";
     setLogUrl(editUrl);
   }
   setLogModalIsOpen(true);
@@ -309,6 +320,7 @@ const setLogModalIsOpenToFalse =()=>{
 
 const deleteTemplate = (type: any) =>{
   if(type == "log"){
+    onlogListUpdated(false);
     REST('autopilot/api/v1/applications/'+applicationId+"/deleteLogTemplate/"+props.stage.parameters.logTemplate).
     delete()
     .then(
@@ -319,6 +331,7 @@ const deleteTemplate = (type: any) =>{
       }     
    )
   }else if (type == "metric"){
+    onmetricListUpdated(false);
     REST('autopilot/api/v1/applications/'+applicationId+"/deleteMetricTemplate/"+props.stage.parameters.metricTemplate).
     delete()
     .then(
@@ -434,7 +447,7 @@ const deleteTemplate = (type: any) =>{
                       <h4 className="modal-title">Log Template</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                      <iframe src={logUrl} title="ISD" width="1200" height="750">
+                      <iframe src={logUrl} title="ISD" width="1100" height="650">
                       </iframe>
                     </div>                    
                   </div>                  
@@ -507,7 +520,7 @@ const deleteTemplate = (type: any) =>{
                       <h4 className="modal-title">Metric Template</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                      <iframe src={metricUrl} title="ISD" width="1200" height="750">
+                      <iframe src={metricUrl} title="ISD" width="1100" height="650">
                       </iframe>
                     </div>                    
                   </div>

@@ -45,7 +45,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.status !== undefined ? (
+      {props.stage.outputs.exception == undefined  && props.stage.outputs.status !== undefined ? (
         <div>
           <div className="detailpagelogo">
             <span className={'approvalStatus ' + getClasses()}>{getStatus()}</span>
