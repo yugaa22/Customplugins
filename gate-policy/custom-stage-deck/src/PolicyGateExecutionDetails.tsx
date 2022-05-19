@@ -87,7 +87,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td>{props.stage.outputs.message}</td>
                 <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
-                <td>Name</td>
+                <td>{props.stage.outputs.policyName}</td>
                 <td><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                   <div className="modal-content">
