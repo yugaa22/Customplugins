@@ -49,7 +49,7 @@ public class VerificationMonitorTask implements RetryableTask {
 		} else if (trigger.equals(OesConstants.SUCCESS)) {
 			logger.info("Verification Monitoring started for application : {}, pipeline : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
 			String approvalUrl = (String) outputs.get(OesConstants.LOCATION);
-			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, (String) stage.getContext().get("serviceId"));
+			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, (Integer) stage.getContext().get("serviceId"));
 		} else {
 			logger.info("Verification Monitoring not starting because trigger task not completed");
 			return TaskResult.builder(ExecutionStatus.RUNNING)
@@ -59,7 +59,7 @@ public class VerificationMonitorTask implements RetryableTask {
 		}
 	}
 
-	private TaskResult getVerificationStatus(String canaryUrl, String user, Map<String, Object> outputs, String serviceId) {
+	private TaskResult getVerificationStatus(String canaryUrl, String user, Map<String, Object> outputs, Integer serviceId) {
 		HttpGet request = new HttpGet(canaryUrl);
 
 		CloseableHttpClient httpClient = null;
@@ -96,7 +96,8 @@ public class VerificationMonitorTask implements RetryableTask {
 			String result = readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.OVERALL_RESULT).asText();
 
 			outputs.put(OesConstants.OVERALL_RESULT, result);
-			outputs.put(OesConstants.CANARY_REPORTURL, readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText());
+			outputs.put(OesConstants.CANARY_REPORTURL,
+					String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 			outputs.put(OesConstants.OVERALL_SCORE, overAllScore);
 
 			if (result.equalsIgnoreCase(OesConstants.FAIL)) {
