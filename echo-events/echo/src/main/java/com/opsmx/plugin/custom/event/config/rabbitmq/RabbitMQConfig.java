@@ -30,7 +30,7 @@ public class RabbitMQConfig implements CamelRouteConfig {
 
         return messageBrokerConfig.getEndpoint().getName()+":"+exchange+"?queue="
                 +spinnakerConfig.getName()+"&autoDelete=false&routingKey="
-                +spinnakerConfig.getName()+"&declare=true&durable=true&exchangeType=direct&hostname="
+                +spinnakerConfig.getName()+"&declare=false&durable=true&exchangeType=direct&hostname="
                 +messageBrokerConfig.getHost() +"&portNumber="+messageBrokerConfig.getPort()
                 +"&username="+messageBrokerConfig.getUsername()+"&password="+messageBrokerConfig.getPassword();
     }
