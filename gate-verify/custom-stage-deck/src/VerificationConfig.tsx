@@ -159,7 +159,16 @@ export function VerificationConfig(props: IStageConfigProps) {
         "id": 0,
         "spinnakerEnvironment": "Add new Environment"
       });
-       setenvironmentsList(results);       
+       setenvironmentsList(results); 
+       if(props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0 ){
+        //Find Id from Environment list
+        const findId = temp.findIndex((val:any) => val.spinnakerEnvironment == props.stage.parameters.customEnvironment);
+        if(findId > 0){
+          props.stage.parameters.environment[0].id = temp[findId].id;
+          props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
+        }
+      }
+      console.log("Environmen API: ", temp);      
      }     
    )
    
