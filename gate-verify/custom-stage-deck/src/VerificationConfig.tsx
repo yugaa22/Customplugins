@@ -670,11 +670,6 @@ const deleteTemplate = (type: any) =>{
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
-  // validator
-  //   .field('parameters.gateurl')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
-
   validator
     .field('parameters.lifetime')
     .required()

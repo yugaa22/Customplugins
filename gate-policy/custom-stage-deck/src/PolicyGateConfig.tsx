@@ -391,10 +391,7 @@ export function validate(stageConfig: IStage) {
     .field('parameters.environment')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
-  // validator
-  //   .field('parameters.policypath')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Policy Path is required` : undefined));
+  
   validator
     .field('parameters.policyName')
     .required()
