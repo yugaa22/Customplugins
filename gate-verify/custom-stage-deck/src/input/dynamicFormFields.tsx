@@ -95,7 +95,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                 
                 <>
                   <FieldLayoutComponent input={null} validation={{ hidden: true } as any} />
-                  {keyParameters[parentIndex].values.map((_: any, index: number) => {
+                  {keyParameters[parentIndex].values ? keyParameters[parentIndex].values.map((_: any, index: number) => {
                     
                     const onDeleteClicked = () => {
                       setDeleteCount((count) => count + 1);
@@ -125,7 +125,10 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                         ) : null}
                       </tr>
                     );
-                  })}
+                  })
+                  :
+                  []
+                  }
                   <tr>
                     {isMultiSupported ? (
                       <td colSpan={headers.length + 1}>

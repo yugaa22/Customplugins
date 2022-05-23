@@ -307,7 +307,7 @@ const setLogModalIsOpenToTrue =(type : any)=>{
   if(type == 'add'){
     setLogUrl(logCreateUrl);
   }else{
-    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/true";
+    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/false/write/true";
     setLogUrl(editUrl);
   }
   setLogModalIsOpen(true);
@@ -370,7 +370,7 @@ const deleteTemplate = (type: any) =>{
                <div className="grid-span-2">                    
                <FormikFormField
                  name="parameters.environment[0]"
-                 label="Environment"
+                 label="Environment *"
                  help={<HelpField id="opsmx.verification.environment" />}
                  required={true}
                  input={() => (
@@ -411,7 +411,7 @@ const deleteTemplate = (type: any) =>{
             <div className="grid-span-2">                    
               <FormikFormField
                 name="parameters.logTemplate"
-                label="Log Template"
+                label="Log Template *"
                 help={<HelpField id="opsmx.verification.logTemplate" />}
                 input={(props) => (
                   <ReactSelectInput
@@ -486,7 +486,7 @@ const deleteTemplate = (type: any) =>{
             <div className="grid-span-2">                    
               <FormikFormField
                 name="parameters.metricTemplate"
-                label="Metric Template"
+                label="Metric Template *"
                 help={<HelpField id="opsmx.verification.metricTemplate" />}
                 input={(props) => (
                   <ReactSelectInput
@@ -567,7 +567,7 @@ const deleteTemplate = (type: any) =>{
               <div>
                 <FormikFormField
                   name="parameters.lifetime"
-                  label="LifeTimeHours"
+                  label="LifeTimeHours *"
                   help={<HelpField id="opsmx.verification.lifeTimeHours" />}
                   required={true}
                   input={(props) => <TextInput {...props} />}
@@ -577,7 +577,7 @@ const deleteTemplate = (type: any) =>{
               <div>
                 <FormikFormField
                   name="parameters.minicanaryresult"
-                  label="Minimum Canary Result"
+                  label="Minimum Canary Result *"
                   help={<HelpField id="opsmx.verification.minimumCanaryResult" />}
                   input={(props) => <TextInput {...props} />}
                   required={true}
@@ -586,7 +586,7 @@ const deleteTemplate = (type: any) =>{
               <div>
                 <FormikFormField
                   name="parameters.canaryresultscore"
-                  label="Canary Result Score"
+                  label="Canary Result Score *"
                   help={<HelpField id="opsmx.verification.canaryResultScore" />}
                   input={(props) => <TextInput {...props} />}
                   required={true}
@@ -595,7 +595,7 @@ const deleteTemplate = (type: any) =>{
               <div style={{ paddingLeft: '4em' }}>
                 <FormikFormField
                   name="parameters.log"
-                  label="Log Analysis"
+                  label="Log Analysis *"
                   help={<HelpField id="opsmx.verification.logAnalysis" />}
                   input={(props) => <RadioButtonInput {...props} inline={true} options={ANALYSIS_TYPE_OPTIONS} />}
                 />
@@ -603,7 +603,7 @@ const deleteTemplate = (type: any) =>{
               <div style={{ paddingLeft: '2em' }}>
                 <FormikFormField
                   name="parameters.metric"
-                  label="Metric Analysis"
+                  label="Metric Analysis *"
                   help={<HelpField id="opsmx.verification.metricAnalysis" />}
                   input={(props) => <RadioButtonInput {...props} inline={true} options={ANALYSIS_TYPE_OPTIONS} />}
                 />
@@ -612,7 +612,7 @@ const deleteTemplate = (type: any) =>{
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.baselinestarttime"
-                  label="Baseline StartTime"
+                  label="Baseline StartTime *"
                   help={<HelpField id="opsmx.verification.baselineStartTime" />}
                   required={true}
                   input={(props) => <DateTimePicker {...props} />}
@@ -621,7 +621,7 @@ const deleteTemplate = (type: any) =>{
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.canarystarttime"
-                  label="Canary StartTime"
+                  label="Canary StartTime *"
                   help={<HelpField id="opsmx.verification.canarystarttime" />}
                   required={true}
                   input={(props) => <DateTimePicker {...props} />}
@@ -639,7 +639,7 @@ const deleteTemplate = (type: any) =>{
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.imageids"
-                  label="Image Ids"
+                  label="Image Ids *"
                   help={<HelpField id="opsmx.verification.imageIds" />}
                   required={true}
                   input={(props) => <TextInput {...props} />}
@@ -700,10 +700,20 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Metric Analysis is required` : undefined));
 
-  // validator
-  //   .field('parameters.gate')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Gate Name is required` : undefined));
+  validator
+    .field('parameters.metricTemplate')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Metric Template is required` : undefined));
+
+  validator
+    .field('parameters.logTemplate')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Log Template is required` : undefined));
+    
+  validator
+    .field('parameters.environment')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 
   validator
     .field('parameters.imageids')

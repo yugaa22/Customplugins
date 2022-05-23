@@ -261,7 +261,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
             <div className="grid-span-2">                    
                <FormikFormField
                  name="parameters.environment[0]"
-                 label="Enviornment"
+                 label="Enviornment *"
                  help={<HelpField id="opsmx.policy.environment" />}
                  input={() => (
                    <ReactSelectInput
@@ -298,7 +298,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
             <div className="grid-span-3">
 
               <FormikFormField
-                label="Select Policy"
+                label="Select Policy *"
                 name="parameters.policyId"
                 help={<HelpField id="opsmx.policy.policyName" />}
                 input={(props) => (
@@ -355,7 +355,7 @@ const handleOnPolicySelect = (e:any, formik:any) => {
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.imageids"
-                  label="Image IDs"
+                  label="Image IDs *"
                   help={<HelpField id="opsmx.policy.imageIds" />}
                   input={(props) => <TextInput {...props} />}
                   required={true}
