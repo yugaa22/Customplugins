@@ -724,7 +724,6 @@ export function validate(stageConfig: IStage) {
 
 
 
-
 // const metricDropdownList = function getMetricList(): PromiseLike<any> {
 //   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
 // };

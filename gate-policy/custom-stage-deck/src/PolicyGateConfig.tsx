@@ -386,7 +386,6 @@ const handleOnPolicySelect = (e:any, formik:any) => {
 
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
-
   validator
     .field('parameters.environment')
     .required()
