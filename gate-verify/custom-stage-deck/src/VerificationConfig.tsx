@@ -77,14 +77,14 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const[logUrl , setLogUrl] = useState('');
 
+  const [deleteMetricModalIsOpen,setDeleteMetricModalIsOpen] = useState(false);
+
+  const [deleteLogModalIsOpen,setDeleteLogModalIsOpen] = useState(false);
+
 
   useEffect(()=> {  
-    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
-    get()
-    .then(
-      (results)=> {
-        setApplicationId(results.applicationId);
-        REST('autopilot/api/v1/applications/'+results.applicationId+'/metricTemplates').
+    if(applicationId != undefined){
+      REST('autopilot/api/v1/applications/'+applicationId+'/metricTemplates').
         get()
         .then(
           function (results) {     
@@ -92,36 +92,47 @@ export function VerificationConfig(props: IStageConfigProps) {
               setMetricDropdownList(response);       
           }
         );
-        REST('platformservice/v4/applications/'+results.applicationId).
-        get()
-        .then(
-          function (results) { 
-            if(results['services'].length > 0 ) {
-              let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
-              props.stage['serviceId'] = results['services'][index].serviceId;
-              //props.stage['pipelineId'] = results['services'][index].serviceId;
-              const pipelines =  results.services[index].pipelines;
-              const pipelineIndex = pipelines.findIndex((pipeline:any) => pipeline.pipelineName == props.pipeline.name);
-              if(pipelineIndex >= 0){
-                props.stage['pipelineId'] = pipelines[pipelineIndex].pipelineId;
-              }
-            }     
-          }
-        );
-        props.stage['applicationId'] = results.applicationId;        
-        let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
-        setMetricCreateUrl(a);
-      }    
-    )      
+    }else{
+      REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+      get()
+      .then(
+        (results)=> {
+          setApplicationId(results.applicationId);
+          REST('autopilot/api/v1/applications/'+results.applicationId+'/metricTemplates').
+          get()
+          .then(
+            function (results) {     
+              const response = results['metricTemplates'];
+                setMetricDropdownList(response);       
+            }
+          );
+          REST('platformservice/v4/applications/'+results.applicationId).
+          get()
+          .then(
+            function (results) { 
+              if(results['services'].length > 0 ) {
+                let index = results['services'].map((i: { serviceName: any; }) => i.serviceName).indexOf(props.pipeline.name);
+                props.stage['serviceId'] = results['services'][index].serviceId;
+                //props.stage['pipelineId'] = results['services'][index].serviceId;
+                const pipelines =  results.services[index].pipelines;
+                const pipelineIndex = pipelines.findIndex((pipeline:any) => pipeline.pipelineName == props.pipeline.name);
+                if(pipelineIndex >= 0){
+                  props.stage['pipelineId'] = pipelines[pipelineIndex].pipelineId;
+                }
+              }     
+            }
+          );
+          props.stage['applicationId'] = results.applicationId;        
+          let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
+          setMetricCreateUrl(a);
+        }    
+      )
+    }          
   }, [metricListUpdated]) 
   
   useEffect(()=> {  
-    REST('platformservice/v2/applications/name/'+props.application['applicationName']).
-    get()
-    .then(
-      (results)=> {
-        setApplicationId(results.applicationId);
-        REST('autopilot/api/v1/applications/'+results.applicationId+'/logTemplates').
+    if(applicationId != undefined){
+      REST('autopilot/api/v1/applications/'+applicationId+'/logTemplates').
         get()
         .then(
           function (results) {     
@@ -129,10 +140,25 @@ export function VerificationConfig(props: IStageConfigProps) {
             setLogDropdownList(response);       
           }
         );
-        let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
-        setLogCreateUrl(logCreateUrl);
-      }    
-    )      
+    }else{
+      REST('platformservice/v2/applications/name/'+props.application['applicationName']).
+      get()
+      .then(
+        (results)=> {
+          setApplicationId(results.applicationId);
+          REST('autopilot/api/v1/applications/'+results.applicationId+'/logTemplates').
+          get()
+          .then(
+            function (results) {     
+              const response = results['logTemplates'];
+              setLogDropdownList(response);       
+            }
+          );
+          let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
+          setLogCreateUrl(logCreateUrl);
+        }    
+      )
+    }          
   }, [logListUpdated]) 
    
   useEffect(()=> {  
@@ -321,28 +347,49 @@ const setLogModalIsOpenToFalse =()=>{
 const deleteTemplate = (type: any) =>{
   if(type == "log"){
     onlogListUpdated(false);
-    REST('autopilot/api/v1/applications/'+applicationId+"/deleteLogTemplate/"+props.stage.parameters.logTemplate).
+    setDeleteLogModalIsOpen(true); 
+  }else if (type == "metric"){
+    onmetricListUpdated(false);
+    setDeleteMetricModalIsOpen(true);  
+   
+  }
+}
+
+const setDeleteMetricPopupFalse =()=>{
+  setDeleteMetricModalIsOpen(false);       
+}
+
+const setDeleteLogPopupFalse =()=>{
+  setDeleteLogModalIsOpen(false);       
+}
+
+const onMetricTemplateDeleteClick =() =>{
+  REST('autopilot/api/v1/applications/'+applicationId+"/deleteMetricTemplate/"+props.stage.parameters.metricTemplate).
+  delete()
+  .then(
+    (results)=> {
+      console.log("metricDelete");
+      console.log(results);     
+      onmetricListUpdated(true); 
+      setDeleteMetricModalIsOpen(false);       
+    }     
+  )
+}
+
+const onLogTemplateDeleteClick =() =>{
+  REST('autopilot/api/v1/applications/'+applicationId+"/deleteLogTemplate/"+props.stage.parameters.logTemplate).
     delete()
     .then(
       (results)=> {
         console.log("logDelete");
         console.log(results);
         onlogListUpdated(true); 
+        setDeleteLogModalIsOpen(false);    
       }     
    )
-  }else if (type == "metric"){
-    onmetricListUpdated(false);
-    REST('autopilot/api/v1/applications/'+applicationId+"/deleteMetricTemplate/"+props.stage.parameters.metricTemplate).
-    delete()
-    .then(
-      (results)=> {
-        console.log("metricDelete");
-        console.log(results);
-        onmetricListUpdated(true);        
-      }     
-    )
-  }
 }
+
+
 
 
 //mat-focus-indicator btn btn-primary btnColor mat-button mat-button-base
@@ -453,6 +500,26 @@ const deleteTemplate = (type: any) =>{
                   </div>                  
                 </Modal>
 
+                <Modal id="logtemplate-modal-delete" isOpen={deleteLogModalIsOpen} className="modal-popup-delete modal-content" overlayClassName="react-modal-custom"> 
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setDeleteLogPopupFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Really Delete Log Template ?</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                      Are you sure you want to delete the Log Template ?
+                    </div>  
+                    <div className="modal-footer">
+                      <button className="btn btn-default" type="button" onClick={setDeleteLogPopupFalse}>Cancel</button>
+                      <button className="btn btn-primary" onClick={() => onLogTemplateDeleteClick()}>
+                        <span><span className="far fa-check-circle"></span> Delete</span>
+                      </button>
+                    </div>                  
+                  </div>
+                </Modal>
+
                 <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() =>setLogModalIsOpenToTrue('add')}>
                   <span className="glyphicon glyphicon-plus-sign visible-xl-inline" />
                   <Tooltip value="Create LogTemplate">
@@ -523,6 +590,26 @@ const deleteTemplate = (type: any) =>{
                       <iframe src={metricUrl} title="ISD" width="1100" height="650">
                       </iframe>
                     </div>                    
+                  </div>
+                </Modal>
+
+                <Modal id="metrictemplate-modal-delete" isOpen={deleteMetricModalIsOpen} className="modal-popup-delete modal-content" overlayClassName="react-modal-custom"> 
+                  <div className="modal-content">
+                    <div className="modal-header">                      
+                      <button onClick={setDeleteMetricPopupFalse} className="close">
+                        <span>x</span>
+                      </button>
+                      <h4 className="modal-title">Really Delete Metric Template ?</h4>
+                    </div>                                      
+                    <div className="grid-span-4 modal-body">
+                      Are you sure you want to delete the Metric Template ?
+                    </div>  
+                    <div className="modal-footer">
+                      <button className="btn btn-default" type="button" onClick={setDeleteMetricPopupFalse}>Cancel</button>
+                      <button className="btn btn-primary" onClick={() => onMetricTemplateDeleteClick()}>
+                        <span><span className="far fa-check-circle"></span> Delete</span>
+                      </button>
+                    </div>                  
                   </div>
                 </Modal>
                 
@@ -721,39 +808,3 @@ export function validate(stageConfig: IStage) {
 
   return validator.validateForm();
 }
-
-
-
-// const metricDropdownList = function getMetricList(): PromiseLike<any> {
-//   return REST('autopilot/api/v1/applications/81/metricTemplates').get();
-// };
-
-
-// const metricDropdownList : any = () => {
-//   return fetch("https://ui.gitops-test.dev.opsmx.net/gate/autopilot/api/v1/applications/7/logTemplates")
-//     .then(res => res.json())
-//     .then(
-//       (result) => {
-//         return result.logTemplates;
-//       },        
-//       (error) => {
-//         console.log(error);
-//         return [
-//                 {
-//                   "templateName": "test1"
-//                 },
-//                 {
-//                   "templateName": "test2"
-//                 }
-//               ];
-//       }
-//     )
-// }
-
-  // const getMetricList(): PromiseLike<any> => {  
-  //   return REST("autopilot/api/v1/applications/81/metricTemplates").path().get();
-  // }
-  
-  // const getLogTemplateList() : PromiseLike<any> => {  
-  //   return REST("autopilot/api/v1/applications/6/logTemplates").path().get();
-  // }
