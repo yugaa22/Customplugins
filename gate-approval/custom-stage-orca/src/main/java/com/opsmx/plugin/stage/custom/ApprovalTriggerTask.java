@@ -246,10 +246,9 @@ public class ApprovalTriggerTask implements Task {
 			securityNode.forEach(secNode -> {
 				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
 				for (JsonNode jsonNode : valuesNode) {
-					if (jsonNode.get("label") != null && !jsonNode.get("label").asText().isBlank() &&
-							jsonNode.get("value") != null && !jsonNode.get("value").asText().isBlank()) {
+					if (jsonNode.get("label") != null && !jsonNode.get("label").isNull() && !jsonNode.get("label").asText().isBlank()) {
 						payloadConstraintNode.add(objectMapper.createObjectNode()
-								.put(jsonNode.get("label").asText(), jsonNode.get("value").asText()));
+								.put(jsonNode.get("label").asText(), jsonNode.get("value").isNull() ? null : jsonNode.get("value").asText()));
 					}
 				}
 			});
