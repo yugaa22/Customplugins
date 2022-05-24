@@ -108,8 +108,6 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>
               {!selectInput ? 
               
               <FormikProvider value={formik}>
@@ -174,10 +172,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
             />
           </FormikProvider>
               
-              
-              
               : 
-              
               
               <FormikProvider value={formik}>
             <FieldArray
@@ -265,13 +260,8 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
             />
           </FormikProvider>
               
-              
-              
               }
 
-          
-            </td>
-          </tr>
         </tbody>
       </table>
     </>

@@ -121,10 +121,10 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     if(!props.stage?.parameters.hasOwnProperty('selectedConnectors')){
       props.stage.parameters.selectedConnectors = [
       {
-        "connectorType": "Connectors",
+        "connectorType": "Connectors *",
         "helpText": "List of Connectors Configured",
         "isMultiSupported": true,
-        "label": "Connectors",
+        "label": "Connectors *",
         "selectInput": true,
         "supportedParams": [
           {
@@ -214,6 +214,17 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         "spinnakerEnvironment": "Add new Environment"
       });
       setEnvironmentList(temp);
+
+    if(props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0 ){
+
+      //Find Id from Environment list
+      const findId = temp.findIndex((val:any) => val.spinnakerEnvironment == props.stage.parameters.customEnvironment);
+      if(findId > 0){
+        props.stage.parameters.environment[0].id = temp[findId].id;
+        props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
+      }
+    }
+
       console.log("Environmen API: ", temp);
       
 
@@ -259,7 +270,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
     const[policyList , setpolicyList] = useState([]);
     useEffect(()=> {  
-    REST('oes/v2/policy/users/user2/runtime?permissionId=read').
+    REST(`oes/v2/policy/users/${props.application.attributes.user}/runtime?permissionId=read`).
     get()
     .then(
       (results)=> {
@@ -327,7 +338,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     if(!selectedConnector){
       return;
     }
-    REST(`platformservice/v6/users/user2/datasources?datasourceType=${selectedConnector}&permissionId=view`).
+    REST(`platformservice/v6/users/${props.application.attributes.user}/datasources?datasourceType=${selectedConnector}&permissionId=view`).
     get()
     .then((response) => {
 
@@ -469,7 +480,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                <FormikFormField
                 // name={props.stage.parameters.environment[0].spinnakerEnvironment}
                 name="parameters.environment[0]"
-                label="Environment"
+                label="Environment *"
                 input={() => (
                   <ReactSelectInput
                   {...props}
@@ -515,13 +526,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
               <div className="automatedDiv">
 
               <input type="checkbox" checked={propsFormik?.parameters?.isAutomatedApproval} onChange={(e) => handleCheckbox(e, props)}  /> 
-              <span>Automated Approval</span>
+              <span className='automatedSpan'>Automated Approval</span>
               </div>
 
                {propsFormik?.parameters?.isAutomatedApproval ? 
               <div className="grid">
                 
-                <div className="grid-span-1">              
+                <div className="grid-span-1 automatedApprovalAlign">              
                   <FormikFormField
                     name="parameters.automatedApproval[0].policyId"
                     label=""
@@ -554,7 +565,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="grid-span-1">
               <div className='sp-formItem'>
 
-                <p className='approvalGroupsHeader'>Approval Groups</p> 
+                <p className='approvalGroupTxt'>Approval Groups *</p> 
                 <MultiSelect
                   options = {approvalGroupsList && approvalGroupsList.map((approvalGroup: any) => ({
                             label: approvalGroup.userGroupName,
@@ -612,11 +623,25 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           </div> */}
 
 
+              {/* Load Image Id's for Execution Details*/}
+
+        <div  className='grid grid-4'>
+            <div className="grid-span-4">
+              <FormikFormField
+                name="parameters.imageids"
+                label="Image Ids *"
+                help={<HelpField id="opsmx.approval.imageIds" />}
+                required={true}
+                input={(props) => <TextInput {...props} />}
+              />
+              </div>
+        </div>
+
         
         <div  className='grid grid-4'>
 
               <div className="grid-span-2">
-                <h4>Gate Security</h4>
+                <h4 className='gateSecurity'>Gate Security</h4>
                 <br />
                 <div className="grid-span-2">
                   {/* {propsFormik.gateUrl} */}
@@ -773,10 +798,10 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
-  validator
-    .field('parameters.gateUrl')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
+  // validator
+  //   .field('parameters.gateUrl')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
   // validator
   //   .field('parameters.gate')
   //   .required()
