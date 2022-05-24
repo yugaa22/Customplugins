@@ -60,12 +60,12 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.status !== undefined ? (
+      {props.stage.outputs.exception == undefined && props.stage.outputs.status !== undefined ? (
         <div>
           <div className="detailpagelogo">
             <span className={'approvalStatus ' + getClasses()}>{getStatus()}</span>
             <span className={'clikable approvalStatus ' + getClasses()} onClick={setModalIsOpenToTrue}>View Details</span>
-            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+            <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
                 <div className="modal-header">                      
                   <button onClick={setModalIsOpenToFalse} className="close">
@@ -74,7 +74,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                   <h4 className="modal-title">Approval Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src="https://oes-poc.dev.opsmx.org/ui/application/deploymentverification/luthanapp/1/68/true" title="ISD" width="1200" height="750">
+                <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="1100" height="650">
                 </iframe>
                 </div>                    
               </div>
@@ -110,9 +110,32 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
       ) : props.stage.outputs.navigationalURL !== undefined? (
         <div>
           <div className="detailpagelogo">
-            <a href={props.stage.outputs.navigationalURL} target="_blank">
+
+
+
+            {/* <a href={props.stage.outputs.navigationalURL} target="_blank"> */}
+            <a className='approvalRequest'  onClick={setModalIsOpenToTrue}>
                       Approval Request
             </a>
+
+            {/* <span className={'clikable approvalStatus ' + getClasses()} onClick={setModalIsOpenToTrue}> Approval Request</span> */}
+
+            <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+              <div className="modal-content">
+                <div className="modal-header">                      
+                  <button onClick={setModalIsOpenToFalse} className="close">
+                    <span>x</span>
+                  </button>
+                  <h4 className="modal-title"> Approval Request</h4>
+                </div>                                      
+                <div className="grid-span-4 modal-body">
+                <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="1100" height="650">
+                </iframe>
+                </div>                    
+              </div>
+            </Modal>    
+
+
           </div>
         </div>
       ) :(
