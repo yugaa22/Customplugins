@@ -53,6 +53,9 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   //Load Initial Values
   const [parametersPresent, setParametersPresent] = useState(false);
 
+  const [accountsApiCall, setAccountsApiCall] = useState(true);
+  const [tempAccountsList, setTempAccountsList] = useState<any>({});
+
   //Load List of Connectors Details
   const [listOfConnectors, setListOfConnectors] = useState([])
 
@@ -148,6 +151,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         ]
       }
     ]
+    }else if(accountsApiCall){
+      setAccountsApiCall(false); //Set to false to call API's only once
+      console.log("Call Accounts API's");
+      props.stage.parameters.selectedConnectors[0].values.forEach((obj: any) => {
+        // return and save in one variable 
+          callingAccountsAPI(obj.connector);
+      });
     }
   }
 
@@ -338,24 +348,63 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     if(!selectedConnector){
       return;
     }
-    REST(`platformservice/v6/users/${props.application.attributes.user}/datasources?datasourceType=${selectedConnector}&permissionId=view`).
-    get()
-    .then((response) => {
 
-      if(listOfConnectors && (selectedConnector.length > 0)){
-      // Find Index of listOfConnectors to see if the selected connector is present
-            const findIndex = accountsOptions.findIndex((specificAccountOption : any) => specificAccountOption[selectedConnector.toLowerCase()] == selectedConnector.toLowerCase());
+        callingAccountsAPI(selectedConnector);
 
-            if(findIndex < 0){
-              let temp: any = {};
-              temp[selectedConnector.toLowerCase()] = response;
-              setAccountsOptions([...accountsOptions, temp]);
-            }
-      }
-    })
+
+
+    // REST(`platformservice/v6/users/${props.application.attributes.user}/datasources?datasourceType=${selectedConnector}&permissionId=view`).
+    // get()
+    // .then((response) => {
+
+    //   if(listOfConnectors && (selectedConnector.length > 0)){
+    //   // Find Index of listOfConnectors to see if the selected connector is present
+    //         const findIndex = accountsOptions.findIndex((specificAccountOption : any) => specificAccountOption[selectedConnector.toLowerCase()] == selectedConnector.toLowerCase());
+
+    //         if(findIndex < 0){
+    //           let temp: any = {};
+    //           temp[selectedConnector.toLowerCase()] = response;
+    //           setAccountsOptions([...accountsOptions, temp]);
+    //         }
+    //   }
+    // })
     
 
   }, [selectedConnector])
+
+
+  const callingAccountsAPI = (connectorName: string, edit: boolean) => {    
+
+    if(!connectorName){
+      return;
+    }
+    // IgorService.getConnectorAccounts(connectorName, application.attributes.user).then(response => {
+    REST(`platformservice/v6/users/${props.application.attributes.user}/datasources?datasourceType=${connectorName}&permissionId=view`).
+    get()
+    .then((response) => {
+    if(listOfConnectors && (connectorName.length > 0)){
+      // Find Index of listOfConnectors to see if the selected connector is present
+      const findIndex = accountsOptions.findIndex((specificAccountOption : any) => specificAccountOption[connectorName.toLowerCase()] == connectorName.toLowerCase());
+        if(findIndex < 0){
+          let temp: any = {};
+          temp[connectorName.toLowerCase()] = response;
+
+          // console.log("Temp set: ", temp);
+          // console.log("Response set: ", accountsOptions);
+          
+          let options = JSON.parse(localStorage.getItem('accountList'))? JSON.parse(localStorage.getItem('accountList')) : [] ;
+          // Options has connector name do not add
+          let keyPresent = options.some((obj:any) => obj.hasOwnProperty(connectorName.toLowerCase()));
+          if(!keyPresent){                      
+          options= [...options, temp];
+          localStorage.setItem('accountList', JSON.stringify(options));
+        }
+          console.log("Final OPTIONS: ", options);
+        setAccountsOptions(options);
+        }
+    }
+    });
+  }
 
 
   React.useEffect(()=> {
@@ -374,6 +423,30 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           if(findConnectorIndex < 0){
             props.stage.parameters.connectors.push(listOfConnectors[indexOfSelectedConnector]);
           }
+
+
+          // Display only the selected connectors
+          const selectedConnectorsObj = props.stage.parameters.selectedConnectors
+
+          if(selectedConnectorsObj.length > 0 && selectedConnectorsObj[0].values ){
+            console.log("Display selectedConnectorsObj Value: ", selectedConnectorsObj[0].values);
+            const selectedArray = [...new Set(selectedConnectorsObj[0].values.map((obj:any) => obj.connector ? obj.connector?.toLowerCase() : null))];
+            selectedArray.forEach((element: any, index:number) => {
+              if(!element)
+              selectedArray.splice(index, 1);
+            });
+
+            const connectorsObj = props.stage.parameters.connectors;
+            if(connectorsObj && connectorsObj.length > 0){
+            connectorsObj.forEach((obj: any, index: number) => {
+              if(!(selectedArray.includes(obj.connectorType.toLowerCase()))){
+                    connectorsObj.splice(index, 1);
+              }
+            })
+            console.log("Connector Array: ", connectorsObj);
+            }
+            console.log("Selected Array : ", selectedArray);
+          }
         }
 
       setLoadConnectors(false);
@@ -383,6 +456,22 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     }
     
   }, [listOfConnectors, selectedConnector]);
+
+
+  // const deleteConnectorDetails = (connectorName: string) => {
+  //     const connectorsObj = props.stage.parameters.connectors;
+  //     connectorsObj.forEach((obj: any, index: number) => {
+  //             if(obj.connectorType.toLowerCase() == connectorName.toLowerCase()){
+  //                   connectorsObj.splice(index, 1);
+  //             }
+  //           })
+  //           console.log("Connector Obj", connectorsObj);
+
+  //           setTimeout(() => {
+  //             props.stage.parameters.connectors = connectorsObj;   //Addedd
+  //           }, 100);
+
+  // }
 
 
     const handleOnSelection = (e:any, label:string, index:number, props:any) => {
@@ -453,6 +542,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                       isMultiSupported={dynamicField.isMultiSupported}
                       fieldMapName = "connectors"
                       parentIndex={index}
+                      // deleteConnectorDetails={deleteConnectorDetails}
                       {...props}
                     />
                   </div>
@@ -518,7 +608,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 }
             </div>
 
+        </div>
 
+
+        <div  className='grid grid-4'>
+          <div className="grid-span-1">
 
             {/* Automated Approval */}
 
@@ -558,6 +652,8 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             : null}
 
             </div>
+
+          </div>
         </div>
 
             {/* Approval Groups */}
