@@ -127,7 +127,7 @@ export function VerificationConfig(props: IStageConfigProps) {
             }
           );
           props.stage['applicationId'] = results.applicationId;        
-          let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
+          let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/fromPlugin";
           setMetricCreateUrl(a);
         }    
       )
@@ -158,7 +158,7 @@ export function VerificationConfig(props: IStageConfigProps) {
               setLogDropdownList(response);       
             }
           );
-          let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
+          let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/fromPlugin";        
           setLogCreateUrl(logCreateUrl);
         }    
       )
@@ -321,7 +321,7 @@ const getGateSecurityParams = () => {
     if(type == 'add'){
       setMetricUrl(metricCreateUrl);
     }else{
-      let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/false/true";
+      let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/false/fromPlugin";
       setMetricUrl(editUrl);
     }
       setModalIsOpen(true);
@@ -337,7 +337,7 @@ const setLogModalIsOpenToTrue =(type : any)=>{
   if(type == 'add'){
     setLogUrl(logCreateUrl);
   }else{
-    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/false/write/true";
+    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/fromPlugin";
     setLogUrl(editUrl);
   }
   setLogModalIsOpen(true);
