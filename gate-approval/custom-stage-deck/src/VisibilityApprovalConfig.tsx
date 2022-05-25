@@ -798,17 +798,17 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
-  // validator
-  //   .field('parameters.gateUrl')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Gate Url is required` : undefined));
-  // validator
-  //   .field('parameters.gate')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
-  // validator
-  //   .field('parameters.imageids')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
+  validator
+    .field('parameters.environment')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
+  validator
+    .field('parameters.automatedApproval')
+    .required()
+    .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
+  validator
+    .field('parameters.imageids')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
   return validator.validateForm();
 }
