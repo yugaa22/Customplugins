@@ -91,6 +91,22 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
   const [deleteCount, setDeleteCount] = React.useState(0);
 
 
+  const deleteConnectorDetails = (connectorName: string) => {
+      const connectorsObj = stage.parameters.connectors;
+      connectorsObj.forEach((obj: any, index: number) => {
+              if(obj.connectorType.toLowerCase() == connectorName.toLowerCase()){
+                    connectorsObj.splice(index, 1);
+              }
+            })
+            console.log("Connector Obj", connectorsObj);
+
+            setTimeout(() => {
+              stage.parameters.connectors = connectorsObj;   //Addedd
+            }, 100);
+
+  }
+
+
   return (
     <>
       <table>
@@ -184,9 +200,17 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                   <FieldLayoutComponent input={null} validation={{ hidden: true } as any} />
                   {keyParameters[parentIndex].values.map((_: any, index: number) => {
                     
-                    const onDeleteClicked = () => {
+                    const onConnectorDeleteClicked = () => {
                       setDeleteCount((count) => count + 1);
+                      console.log("Clicked Selected Connector: ", _); 
                       arrayHelpers.handleRemove(index)();
+
+                      //Find the selected connector Call function and delete the object from connector
+                      if(_.connector){
+                        deleteConnectorDetails(_.connector.toLowerCase());
+                        
+
+                      }
                     };
                     return (
                       <tr key={`${deleteCount}-${index}`}>
@@ -232,7 +256,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                         {isMultiSupported === true ? (
                           <td className="deleteBtn">
                             <Tooltip value="Remove row">
-                              <button className="btn btn-sm btn-default" onClick={onDeleteClicked}>
+                              <button className="btn btn-sm btn-default" onClick={onConnectorDeleteClicked}>
                                 <span className="glyphicon glyphicon-trash" />
                               </button>
                             </Tooltip>
