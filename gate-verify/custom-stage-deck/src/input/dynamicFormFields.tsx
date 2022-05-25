@@ -47,7 +47,8 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
     return obj;
   })();
   React.useEffect(() => {
-    if (keyParameters[parentIndex].values.length === 0) {
+    const values = keyParameters[parentIndex].values;
+    if ( !values || values.length === 0 ) {    
       // This setTimeout is necessary because the interaction between pipelineConfigurer.js and stage.module.js
       // causes this component to get mounted multiple times.  The second time it gets mounted, the initial
       // variable is already added to the array, and then gets auto-touched by SpinFormik.tsx.
