@@ -72,6 +72,8 @@ public class VerificationMonitorTask implements RetryableTask {
 			HttpEntity entity = response.getEntity();
 			ObjectNode readValue = objectMapper.readValue(EntityUtils.toString(entity), ObjectNode.class);
 			String analysisStatus = readValue.get(OesConstants.STATUS).get(OesConstants.STATUS).asText();
+			outputs.put(OesConstants.CANARY_REPORTURL,
+					String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 			if (analysisStatus.equalsIgnoreCase(OesConstants.RUNNING)) {
 				return TaskResult.builder(ExecutionStatus.RUNNING)
 						.outputs(outputs)
@@ -80,8 +82,6 @@ public class VerificationMonitorTask implements RetryableTask {
 
 			if (analysisStatus.equalsIgnoreCase(OesConstants.CANCELLED)) {
 				outputs.put(OesConstants.OVERALL_RESULT, OesConstants.CANCELLED);
-				outputs.put(OesConstants.CANARY_REPORTURL,
-						String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 				outputs.put(OesConstants.EXCEPTION, "Analysis got cancelled");
 
@@ -96,8 +96,6 @@ public class VerificationMonitorTask implements RetryableTask {
 			String result = readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.OVERALL_RESULT).asText();
 
 			outputs.put(OesConstants.OVERALL_RESULT, result);
-			outputs.put(OesConstants.CANARY_REPORTURL,
-					String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 			outputs.put(OesConstants.OVERALL_SCORE, overAllScore);
 
 			if (result.equalsIgnoreCase(OesConstants.FAIL)) {
