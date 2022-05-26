@@ -81,6 +81,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const [deleteLogModalIsOpen,setDeleteLogModalIsOpen] = useState(false);
 
+  const [logTemplate, setLogTemplate] = useState();
+
+  const [metricTemplate, setMetricTemplate] = useState();
+
 
   useEffect(()=> {  
     if(applicationId != undefined){
@@ -123,7 +127,7 @@ export function VerificationConfig(props: IStageConfigProps) {
             }
           );
           props.stage['applicationId'] = results.applicationId;        
-          let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/true";
+          let a  = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/metric/null/{}/"+props.application.attributes.email+"/-1/false/false/fromPlugin";
           setMetricCreateUrl(a);
         }    
       )
@@ -154,7 +158,7 @@ export function VerificationConfig(props: IStageConfigProps) {
               setLogDropdownList(response);       
             }
           );
-          let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/true";        
+          let logCreateUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+results.applicationId+"/log/null/"+props.application.attributes.email+"/false/write/fromPlugin";        
           setLogCreateUrl(logCreateUrl);
         }    
       )
@@ -317,7 +321,7 @@ const getGateSecurityParams = () => {
     if(type == 'add'){
       setMetricUrl(metricCreateUrl);
     }else{
-      let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/false/true";
+      let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/metric/"+props.stage.parameters.metricTemplate+"/{}/"+props.application.attributes.email+"/-1/true/false/fromPlugin";
       setMetricUrl(editUrl);
     }
       setModalIsOpen(true);
@@ -325,7 +329,7 @@ const getGateSecurityParams = () => {
 
   const setModalIsOpenToFalse =()=>{
       setModalIsOpen(false);
-      onmetricListUpdated(true);      
+      onmetricListUpdated(true);          
   }
 
 const setLogModalIsOpenToTrue =(type : any)=>{
@@ -333,7 +337,7 @@ const setLogModalIsOpenToTrue =(type : any)=>{
   if(type == 'add'){
     setLogUrl(logCreateUrl);
   }else{
-    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/false/write/true";
+    let editUrl = window.location.origin + "/ui/application/"+props.application['applicationName']+"/"+applicationId+"/log/"+props.stage.parameters.logTemplate+"/"+props.application.attributes.email+"/true/write/fromPlugin";
     setLogUrl(editUrl);
   }
   setLogModalIsOpen(true);
@@ -350,8 +354,7 @@ const deleteTemplate = (type: any) =>{
     setDeleteLogModalIsOpen(true); 
   }else if (type == "metric"){
     onmetricListUpdated(false);
-    setDeleteMetricModalIsOpen(true);  
-   
+    setDeleteMetricModalIsOpen(true); 
   }
 }
 
@@ -369,7 +372,9 @@ const onMetricTemplateDeleteClick =() =>{
   .then(
     (results)=> {
       console.log("metricDelete");
-      console.log(results);     
+      console.log(results);  
+      setMetricTemplate(null);
+      props.stage.parameters.metricTemplate = null;
       onmetricListUpdated(true); 
       setDeleteMetricModalIsOpen(false);       
     }     
@@ -383,6 +388,8 @@ const onLogTemplateDeleteClick =() =>{
       (results)=> {
         console.log("logDelete");
         console.log(results);
+        setLogTemplate(null);
+        props.stage.parameters.logTemplate = null;
         onlogListUpdated(true); 
         setDeleteLogModalIsOpen(false);    
       }     
@@ -390,7 +397,15 @@ const onLogTemplateDeleteClick =() =>{
 }
 
 
+const onChangeLogTemplate =(e:any) =>{
+  props.stage.parameters.logTemplate = e.target.value;
+  setLogTemplate(e.target.value);
+}
 
+const onChangeMetricTemplate =(e:any) =>{
+  props.stage.parameters.metricTemplate = e.target.value;
+  setMetricTemplate(e.target.value);
+}
 
 //mat-focus-indicator btn btn-primary btnColor mat-button mat-button-base
 //mat-button-wrapper
@@ -471,6 +486,7 @@ const onLogTemplateDeleteClick =() =>{
                   // options={logDropdownList['logTemplates'] && logDropdownList['logTemplates'].map((template : any) => ({
                   //   label : template.templateName,
                   //   value : template.templateName}))} 
+                  onChange={(e) => {onChangeLogTemplate(e)}}  
                   options={logDropdownList && logDropdownList .map((template : any) => ({
                     label : template.templateName,
                     value : template.templateName}))}
@@ -528,8 +544,8 @@ const onLogTemplateDeleteClick =() =>{
                   <span className="visible-xl-inline"> Create</span>        
                 </button>
                 
-                {/* { props.stage.parameters.logTemplate != null ? (
-                  <> */}
+                { props.stage.parameters.logTemplate != null || logTemplate != null ? (
+                  <>
                   <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setLogModalIsOpenToTrue('edit')}>
                     <span className="fa fa-cog visible-xl-inline" />
                     <Tooltip value="Edit LogTemplate">
@@ -544,11 +560,11 @@ const onLogTemplateDeleteClick =() =>{
                       </Tooltip>
                       <span className="visible-xl-inline"> Remove</span>
                     </button>
-                    {/* </>
+                    </>
                 ) :
                 (
                  null
-                )} */}
+                )}
               </div>   
             <div className="grid-span-2">                    
               <FormikFormField
@@ -566,6 +582,7 @@ const onLogTemplateDeleteClick =() =>{
                   // options={metricDropdownList && metricDropdownList.map((template : any) => ({
                   //   label : template.templateName,
                   //   value : template.templateName}))}
+                  onChange={(e) => {onChangeMetricTemplate(e)}}  
                   options={metricDropdownList && metricDropdownList .map((template : any) => ({
                     label : template.templateName,
                     value : template.templateName}))}
@@ -620,8 +637,8 @@ const onLogTemplateDeleteClick =() =>{
                   </Tooltip>
                   <span className="visible-xl-inline"> Create</span>        
                 </button>
-                {/* { props.stage.parameters.logTemplate != null ? (
-                  <> */}
+                { props.stage.parameters.metricTemplate != null || metricTemplate != null? (
+                  <>
                   <button className="btn btn-sm btn-default" style={{ marginRight: '5px' }} onClick={() => setModalIsOpenToTrue('edit')}>
                     <span className="fa fa-cog visible-xl-inline" />
                     <Tooltip value="Edit MetricTemplate">
@@ -637,11 +654,11 @@ const onLogTemplateDeleteClick =() =>{
                     </Tooltip>
                     <span className="visible-xl-inline"> Remove</span>        
                   </button>
-                  {/* </>
+                  </>
                 ) :
                 (
                  null
-                )} */}
+                )}
             </div> 
               {/* <div className="grid-span-3">
                 <FormikFormField

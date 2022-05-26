@@ -187,7 +187,7 @@ public class ApprovalTriggerTask implements Task {
 			outputs.put(LOCATION, response.getLastHeader(LOCATION).getValue());
 			outputs.put(TRIGGER, SUCCESS);
 			if (readValue.get(NAVIGATIONAL_URL) != null  &&  !readValue.get(NAVIGATIONAL_URL).isNull()) {
-				outputs.put(NAVIGATIONAL_URL, String.format("%s/true?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
+				outputs.put(NAVIGATIONAL_URL, String.format("%s/fromPlugin?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
 			}
 
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)
@@ -223,7 +223,7 @@ public class ApprovalTriggerTask implements Task {
 		finalJson.put("rejectionCallbackURL", "http://oes-platform:8095/rejectionbackurl");
 		finalJson.put("executionId", executionId);
 		ArrayNode imageIdsNode = objectMapper.createArrayNode();
-		String imageIds = (String) parameterContext.get("imageIds");
+		String imageIds = (String) parameterContext.get("imageids");
 		if (imageIds != null && ! imageIds.isEmpty()) {
 			Arrays.asList(imageIds.split(",")).forEach(tic ->
 					imageIdsNode.add(tic.trim())

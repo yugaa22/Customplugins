@@ -39,7 +39,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
   const exceptionDiv = props.stage.outputs.exception ? (
     <div className="alert alert-danger">
       <div>
-        <h5>Exception </h5>
+        <h5>Reason </h5>
         <div className="Markdown break-word">
           <p>{props.stage.outputs.exception}</p>
         </div>
@@ -58,11 +58,16 @@ const setModalIsOpenToFalse =()=>{
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
-      {props.stage.outputs.exception == undefined && props.stage.outputs.overallScore >= 0 ? (
+      {props.stage.outputs.overallScore >= 0 ? (
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
-            <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span>            
+            {props.stage.outputs.canaryReportURL != undefined ? (
+              <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
+            ) : (
+              null
+            )
+            }          
             <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
                 <div className="modal-header">                      
@@ -72,7 +77,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.canaryReportURL+"/true"} title="ISD" width="1100" height="650">
+                <iframe src={props.stage.outputs.canaryReportURL+"/fromPlugin"} title="ISD" width="1100" height="650">
                 </iframe>
                 </div>                    
               </div>
