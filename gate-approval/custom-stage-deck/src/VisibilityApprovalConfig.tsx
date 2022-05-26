@@ -631,7 +631,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                   <FormikFormField
                     name="parameters.automatedApproval[0].policyId"
                     label=""
-                    required={propsFormik?.parameters?.isAutomatedApproval ? true : false}
                     input={(automatedApproval) => (
                       <ReactSelectInput
                       {...automatedApproval}
