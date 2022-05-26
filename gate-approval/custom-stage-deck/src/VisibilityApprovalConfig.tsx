@@ -571,6 +571,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 // name={props.stage.parameters.environment[0].spinnakerEnvironment}
                 name="parameters.environment[0]"
                 label="Environment *"
+                required={true}
                 input={() => (
                   <ReactSelectInput
                   {...props}
@@ -630,6 +631,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                   <FormikFormField
                     name="parameters.automatedApproval[0].policyId"
                     label=""
+                    required={propsFormik?.parameters?.isAutomatedApproval ? true : false}
                     input={(automatedApproval) => (
                       <ReactSelectInput
                       {...automatedApproval}
@@ -674,6 +676,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                   onChange={(e:any) => handleApprovalGroups(e,props)}
                   labelledBy="Select"
                   value={propsFormik?.parameters?.approvalGroups}
+
                 /> 
               </div>
             </div>
@@ -895,13 +898,10 @@ export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
   validator
-    .field('parameters.environment')
+    .field('parameters.environment[0].id')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
-  validator
-    .field('parameters.automatedApproval')
-    .required()
-    .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
+    
   validator
     .field('parameters.imageids')
     .required()
