@@ -1,4 +1,5 @@
-import React, { Fragment, useCallback, useMemo } from 'react';
+import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import Modal from 'react-modal';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
 import './VisibilityApproval.less';
@@ -13,6 +14,11 @@ import './VisibilityApproval.less';
  */
 
 export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSectionProps) {
+  console.log("Approval Gate Execution");
+  console.log(props);
+
+  const [modalIsOpen,setModalIsOpen] = useState(false);
+
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.status == 'approved') {
@@ -42,6 +48,14 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
       </div>
     </div>
   ) : null;
+
+  const setModalIsOpenToTrue =()=>{
+      setModalIsOpen(true)
+  }
+
+  const setModalIsOpenToFalse =()=>{
+      setModalIsOpen(false);      
+  }
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
