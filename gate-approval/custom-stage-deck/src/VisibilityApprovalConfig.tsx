@@ -898,7 +898,7 @@ export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
   validator
-    .field('parameters.environment[0].id')
+    .field('parameters.environment[0]')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
     
