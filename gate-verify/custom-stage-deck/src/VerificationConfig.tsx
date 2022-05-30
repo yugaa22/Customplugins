@@ -34,6 +34,19 @@ const HorizontalRule = () => (
   </div>
 );
 
+
+const onCheckBaselineRealTimeCheckbox = (e:any, props: any) => { 
+  console.log("oncheck baseline");
+  console.log(props);
+  props.stage.setFieldValue('parameters.baselineRealTime', e.target.checked);
+  props.stage.parameters.baselineStartTime = null;
+}; 
+
+const onCheckCanaryRealTimeCheckbox = (e:any, props: any) => { 
+  props.stage.setFieldValue('parameters.canaryRealTime', e.target.checked);
+  props.stage.parameters.canarystarttime = null;
+};
+
 export function VerificationConfig(props: IStageConfigProps) {
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
@@ -99,6 +112,10 @@ export function VerificationConfig(props: IStageConfigProps) {
               </div>
               <HorizontalRule />
               <div className="grid-span-2">
+                <div>
+                <input type="checkbox" checked={...props.stage.parameters.baselineRealTime} onChange={(e) => onCheckBaselineRealTimeCheckbox(e, props)}  /> 
+                <span className='automatedSpan'>Real Time</span>
+                </div>
                 <FormikFormField
                   name="parameters.baselinestarttime"
                   label="Baseline StartTime"
@@ -107,6 +124,10 @@ export function VerificationConfig(props: IStageConfigProps) {
                 />
               </div>
               <div className="grid-span-2">
+              <div>
+                <input type="checkbox" checked={...props.stage.parameters.canaryRealTime} onChange={(e) => onCheckCanaryRealTimeCheckbox(e, props)}  /> 
+                <span className='automatedSpan'>Real Time</span>
+                </div>
                 <FormikFormField
                   name="parameters.canarystarttime"
                   label="Canary StartTime"
