@@ -373,7 +373,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   }, [selectedConnector])
 
 
-  const callingAccountsAPI = (connectorName: string, edit: boolean) => {    
+  const callingAccountsAPI = (connectorName: string) => {    
 
     if(!connectorName){
       return;
@@ -398,6 +398,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           if(!keyPresent){                      
           options= [...options, temp];
           localStorage.setItem('accountList', JSON.stringify(options));
+        }else{
+          // Find the key and update the localStorage and options for Accounts 
+          const index = options.findIndex((obj:any) =>obj.hasOwnProperty(connectorName.toLowerCase()));
+          if(index >= 0){
+            options[index][connectorName.toLowerCase()] = response;
+            localStorage.setItem('accountList', JSON.stringify(options));
+          }
         }
           console.log("Final OPTIONS: ", options);
         setAccountsOptions(options);
