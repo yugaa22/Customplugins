@@ -106,6 +106,26 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
 
   }
 
+    const connectorDropdownOptions = () => {
+    // Disable Options based on the selection
+    let temp:any = [];
+
+    temp = 
+    (stage.parameters.selectedConnectors ? 
+      (stage.parameters.selectedConnectors.length > 0 ? 
+        (stage.parameters.selectedConnectors[0].values ? 
+          stage.parameters.selectedConnectors[0].values 
+        : []) 
+      : []) 
+    : []).map((obj:any) => obj.connector);
+
+   return connectorsList.map(e => ({
+      value: e,
+      label: e,
+      disabled: temp.includes(e)
+    }))
+  }
+
 
   return (
     <>
@@ -225,10 +245,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
                                 <ReactSelectInput
                                   {...inputProps}
                                   clearable={false}
-                                  options={ connectorsList.map(e => ({
-                                    value: e,
-                                    label: e
-                                  })) }
+                                  options={ connectorDropdownOptions() }
                                   value={header.label === 'Connector' ? props.formik.values.parameters.selectedConnectors[0].values[index].connector : props.formik.values.parameters.selectedConnectors[0].values[index].account}
                                   onChange={(e)=> handleOnSelection(e, header.label, index, props)}
                                   //stringOptions={...props}
