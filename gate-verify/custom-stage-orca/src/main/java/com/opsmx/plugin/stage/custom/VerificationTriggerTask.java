@@ -1,5 +1,6 @@
 package com.opsmx.plugin.stage.custom;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -206,8 +207,17 @@ public class VerificationTriggerTask implements Task {
 
 		ArrayNode payloadTriggerNode = objectMapper.createArrayNode();
 		payloadTriggerNode.add(triggerPayload);
-		triggerPayload.put("baselineStartTimeMs", context.getBaselinestarttime());
-		triggerPayload.put("canaryStartTimeMs", context.getCanarystarttime());
+		if(context.getBaselineRealTime() != null && context.getBaselineRealTime().equals(Boolean.TRUE)) {
+			triggerPayload.put("baselineStartTimeMs", Instant.now().toEpochMilli());
+		} else {
+			triggerPayload.put("baselineStartTimeMs", context.getBaselinestarttime());
+		}
+
+		if(context.getCanaryRealTime() != null && context.getCanaryRealTime().equals(Boolean.TRUE)) {
+			triggerPayload.put("canaryStartTimeMs", Instant.now().toEpochMilli());
+		} else {
+			triggerPayload.put("canaryStartTimeMs", context.getCanarystarttime());
+		}
 
 		finalJson.set(CANARY_CONFIG, canaryConfig);
 		finalJson.set("canaryDeployments", payloadTriggerNode);

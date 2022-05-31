@@ -12,11 +12,13 @@ public class VerificationContext {
     private Boolean metric;
     private Long baselinestarttime;
     private Long canarystarttime;
+    private Boolean baselineRealTime;
+    private Boolean canaryRealTime;
     
     public VerificationContext(){}
 
 	public VerificationContext(String gateurl, String lifetime, Integer minicanaryresult, Integer canaryresultscore,
-			String gate, String imageids, Boolean log, Boolean metric, Long baselinestarttime, Long canarystarttime) {
+			String gate, String imageids, Boolean log, Boolean metric, Long baselinestarttime, Long canarystarttime, Boolean baselineRealTime, Boolean canaryRealTime) {
 		super();
 		this.gateurl = gateurl;
 		this.lifetime = lifetime;
@@ -28,6 +30,8 @@ public class VerificationContext {
 		this.metric = metric;
 		this.baselinestarttime = baselinestarttime;
 		this.canarystarttime = canarystarttime;
+		this.baselineRealTime = baselineRealTime;
+		this.canaryRealTime = canaryRealTime;
 	}
 
 	public String getGateurl() {
@@ -109,4 +113,12 @@ public class VerificationContext {
 	public void setCanarystarttime(Long canarystarttime) {
 		this.canarystarttime = canarystarttime;
 	}
+
+	public void setBaselineRealTime(Boolean baselineRealTime) { this.baselineRealTime = baselineRealTime; }
+
+	public Boolean getBaselineRealTime() { return baselineRealTime;	}
+
+	public Boolean getCanaryRealTime() { return canaryRealTime;	}
+
+	public void setCanaryRealTime(Boolean canaryRealTime) {	this.canaryRealTime = canaryRealTime; }
 }
