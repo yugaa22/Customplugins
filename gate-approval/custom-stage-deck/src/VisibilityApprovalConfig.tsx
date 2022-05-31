@@ -111,16 +111,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     )
     setParametersPresent(true);
 
-
-    console.log("Props: ", props);
-
   }, []);
 
 
 
   const addSelectedConnectorParameters = () => {
-    console.log("Adding selectedConnectors");
-    // If selected connectors are empty push the default template
     if(!props.stage?.parameters.hasOwnProperty('selectedConnectors')){
       props.stage.parameters.selectedConnectors = [
       {
@@ -153,9 +148,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     ]
     }else if(accountsApiCall){
       setAccountsApiCall(false); //Set to false to call API's only once
-      console.log("Call Accounts API's");
       props.stage.parameters.selectedConnectors[0].values.forEach((obj: any) => {
-        // return and save in one variable 
           callingAccountsAPI(obj.connector);
       });
     }
@@ -235,43 +228,25 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       }
     }
 
-      console.log("Environmen API: ", temp);
-      
-
       }     
     )
   }, []) 
 
 
   const handleOnEnvironmentSelect = (e:any, formik:any) => {
-
-
-
-
-
-    console.log("Handle Environment: ", props);
-    
-
     if(e.target.value === 0){
       setshowEnvironment(true);
     props.stage.parameters.environment[0].id = 0;
     props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment'
-
-    // props.formik.setFieldValue("parameters.environment]", [{
-    //   "id": 0,
-    //   "spinnakerEnvironment": 'Add new Environment'
-    // }]); 
 
     }else{
       setshowEnvironment(false);
       props.stage.parameters.customEnvironment = "";
     const index = e.target.value;
     const spinnValue = environmentsList.filter((e:any) => e.id == index)[0].spinnakerEnvironment;
-    console.log("spinnValue", props.stage.parameters);
       formik.setFieldValue("parameters.environment[0]['id']", index);
       formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
     }
-
 
     console.log("After update handleOnEnvironmentSelect", props);
   }
@@ -290,7 +265,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   }, []) 
 
   const handleAutomatedApproval = (e:any, props: any) => {
-    console.log("Automated Approval: ", props);
     const index = e.target.value;
     const policyName = policyList.filter((e:any) => e.policyId == index)[0].policyName;
     props.formik.setFieldValue("parameters.automatedApproval]", [{
@@ -313,16 +287,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   }, []) 
 
   const handleApprovalGroups = (e:any, props:any) => {
-    console.log("handle Approval Groups: ", props);
     props.formik.setFieldValue(`parameters.approvalGroups`, e)
   }
   
   // const [checked, setChecked] = useState(false);
 
   const handleCheckbox = (e:any, props: any) => { 
-    // setChecked(e.target.checked);    
     props.formik.setFieldValue('parameters.isAutomatedApproval', e.target.checked)
-    console.log('FormikValues: ', props.formik.values);     
   }; 
 
 
@@ -389,9 +360,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           let temp: any = {};
           temp[connectorName.toLowerCase()] = response;
 
-          // console.log("Temp set: ", temp);
-          // console.log("Response set: ", accountsOptions);
-          
           let options = JSON.parse(localStorage.getItem('accountList'))? JSON.parse(localStorage.getItem('accountList')) : [] ;
           // Options has connector name do not add
           let keyPresent = options.some((obj:any) => obj.hasOwnProperty(connectorName.toLowerCase()));
@@ -420,8 +388,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
    
     // Check if connectors are present in the Parameters
     if(listOfConnectors.length > 0){
-      console.log(" list of connectors Present", listOfConnectors);
-
         // Find the object of selected Connectors in listOfConnectors and push it to connectors
         const indexOfSelectedConnector = listOfConnectors.findIndex((connector: any) => connector.connectorType.toLowerCase() == selectedConnector.toLowerCase());
         if(indexOfSelectedConnector >= 0){
@@ -450,9 +416,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                     connectorsObj.splice(index, 1);
               }
             })
-            console.log("Connector Array: ", connectorsObj);
             }
-            console.log("Selected Array : ", selectedArray);
           }
         }
 
@@ -464,29 +428,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     
   }, [listOfConnectors, selectedConnector]);
 
-
-  // const deleteConnectorDetails = (connectorName: string) => {
-  //     const connectorsObj = props.stage.parameters.connectors;
-  //     connectorsObj.forEach((obj: any, index: number) => {
-  //             if(obj.connectorType.toLowerCase() == connectorName.toLowerCase()){
-  //                   connectorsObj.splice(index, 1);
-  //             }
-  //           })
-  //           console.log("Connector Obj", connectorsObj);
-
-  //           setTimeout(() => {
-  //             props.stage.parameters.connectors = connectorsObj;   //Addedd
-  //           }, 100);
-
-  // }
-
-
     const handleOnSelection = (e:any, label:string, index:number, props:any) => {
           
           if(label == "Connector"){
             setSelectedConnector(e.target.value);
             props.formik.setFieldValue(`parameters.selectedConnectors[0].values[${index}].connector`, e.target.value); 
-            console.log("selectedConnectors Value: ", selectedConnector);
           }
       }
 
@@ -779,8 +725,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
         dynamicField.supportedParams.length > 1
       ) {
-        console.log("props Gate Security: ", props);
-        
         HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
         return (
           <div className="grid-span-4 fullWidthContainer">
