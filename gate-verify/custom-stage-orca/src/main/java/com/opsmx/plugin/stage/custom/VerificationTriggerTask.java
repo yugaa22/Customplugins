@@ -279,14 +279,14 @@ public class VerificationTriggerTask implements Task {
 
 		ArrayNode payloadTriggerNode = objectMapper.createArrayNode();
 		payloadTriggerNode.add(triggerPayload);
-		if (parameterContext.get("baselineRealTime") != null && ((String) parameterContext.get("baselineRealTime")).equalsIgnoreCase("true")) {
+		if (parameterContext.get("baselineRealTime") != null && parameterContext.get("baselineRealTime").equals(Boolean.TRUE)) {
 			triggerPayload.put("baselineStartTimeMs", startTime);
 		} else {
 			triggerPayload.put("baselineStartTimeMs",
 					parameterContext.get("baselinestarttime") != null ? (Long) parameterContext.get("baselinestarttime") : startTime);
 		}
 
-		if (parameterContext.get("canaryRealTime") != null && ((String) parameterContext.get("canaryRealTime")).equalsIgnoreCase("true")) {
+		if (parameterContext.get("canaryRealTime") != null && parameterContext.get("canaryRealTime").equals(Boolean.TRUE)) {
 			triggerPayload.put("baselineStartTimeMs", startTime);
 		} else {
 			triggerPayload.put("canaryStartTimeMs",
