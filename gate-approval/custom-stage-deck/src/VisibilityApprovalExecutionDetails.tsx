@@ -18,6 +18,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
   console.log(props);
 
   const [modalIsOpen,setModalIsOpen] = useState(false);
+  const [approvalStatusPopup,setApprovalStatusPopup] = useState(false);
 
   const getClasses = () => {
     let classes = '';
@@ -57,39 +58,27 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
       setModalIsOpen(false);      
   }
 
+    const openApprovalDetails =()=>{
+      setApprovalStatusPopup(true)
+  }
+
+  const closeApprovalDetails =()=>{
+      setApprovalStatusPopup(false);      
+  }
+
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.exception == undefined && props.stage.outputs.status !== undefined ? (
         <div>
           <div className="detailpagelogo">
-            <span className={'approvalStatus ' + getClasses()}>{getStatus()}</span>
-            <span className={'clikable approvalStatus ' + getClasses()} onClick={setModalIsOpenToTrue}>View Details</span>
-            <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
-              <div className="modal-content">
-                <div className="modal-header">                      
-                  <button onClick={setModalIsOpenToFalse} className="close">
-                    <span>x</span>
-                  </button>
-                  <h4 className="modal-title">Approval Details</h4>
-                </div>                                      
-                <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="1100" height="650">
-                </iframe>
-                </div>                    
-              </div>
-            </Modal>    
-            <img
-              src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
-              alt="logo"
-              width="70px"
-            ></img>
-          </div>
+
           <table className="table">
             <thead>
               <tr>
                 <th>Status</th>
                 <th>Comment</th>
                 <th>Last Updated</th>
+                <th>Details</th>
               </tr>
             </thead>
             <tbody>
@@ -101,23 +90,44 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                   <pre className={'approvalCommentSection'}>{props.stage.outputs.comments}</pre>
                 </td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
+                <td>
+                   {/* <span className={'clikable approvalStatus ' + getClasses()} onClick={set ModalIsOpenToTrue}>View Details</span> */}
+                   <a className="clikable" onClick={openApprovalDetails}>
+                     <span>View</span>
+                   </a>
+                    <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+                      <div className="modal-content">
+                        <div className="modal-header">                      
+                          <button onClick={closeApprovalDetails} className="close">
+                            <span>x</span>
+                          </button>
+                          <h4 className="modal-title">Approval Details</h4>
+                        </div>                                      
+                        <div className="grid-span-4 modal-body">
+                        <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="1100" height="650">
+                        </iframe>
+                        </div>                    
+                      </div>
+                    </Modal>    
+                  </td>
               </tr>
             </tbody>
           </table>
+            <img
+              src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+              alt="logo"
+              width="70px"
+            ></img>
+          </div>
           {exceptionDiv}
         </div>
       ) : props.stage.outputs.navigationalURL !== undefined? (
         <div>
           <div className="detailpagelogo">
 
-
-
-            {/* <a href={props.stage.outputs.navigationalURL} target="_blank"> */}
             <a className='approvalRequest'  onClick={setModalIsOpenToTrue}>
                       Approval Request
             </a>
-
-            {/* <span className={'clikable approvalStatus ' + getClasses()} onClick={setModalIsOpenToTrue}> Approval Request</span> */}
 
             <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
