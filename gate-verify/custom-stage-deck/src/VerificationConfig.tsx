@@ -16,6 +16,7 @@ import {
   IStageTypeConfig,
   NumberInput,
   Validators,
+  IFormikStageConfigInjectedProps,
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
@@ -35,29 +36,40 @@ const HorizontalRule = () => (
 );
 
 
-const onCheckBaselineRealTimeCheckbox = (e:any, props: any) => { 
-  console.log("oncheck baseline");
-  console.log(props);
-  props.stage.setFieldValue('parameters.baselineRealTime', e.target.checked);
-  props.stage.parameters.baselineStartTime = null;
-}; 
-
-const onCheckCanaryRealTimeCheckbox = (e:any, props: any) => { 
-  props.stage.setFieldValue('parameters.canaryRealTime', e.target.checked);
-  props.stage.parameters.canarystarttime = null;
-};
 
 export function VerificationConfig(props: IStageConfigProps) {
+
+  if(!props.stage.parameters.hasOwnProperty('canaryRealTime')){
+    props.stage.parameters.canaryRealTime = false;
+  }
+  if(!props.stage.parameters.hasOwnProperty('baselineRealTime')){
+    props.stage.parameters.baselineRealTime = false;
+  }
   const ANALYSIS_TYPE_OPTIONS: any = [
     { label: 'True', value: 'true' },
     { label: 'False', value: 'false' },
   ];
+
+  const onCheckBaselineRealTimeCheckbox = (e:any, formik: any) => { 
+    console.log("oncheck baseline");
+    console.log(formik);
+    props.stage.parameters.baselineRealTime = e.target.checked;
+    formik.setFieldValue('parameters.baselineRealTime', e.target.checked);
+    props.stage.parameters.baselineStartTime = null;
+  }; 
+  
+  const onCheckCanaryRealTimeCheckbox = (e:any, formik: any) => { 
+    props.stage.parameters.canaryRealTime = e.target.checked;
+    formik.setFieldValue('parameters.canaryRealTime', e.target.checked);
+    props.stage.parameters.canarystarttime = null;
+  };
+
   return (
     <div className="VerificationGateConfig">
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
-        render={() => (
+        render={({ formik }: IFormikStageConfigInjectedProps) => (
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
@@ -113,7 +125,7 @@ export function VerificationConfig(props: IStageConfigProps) {
               <HorizontalRule />
               <div className="grid-span-2">
                 <div>
-                <input type="checkbox" checked={...props.stage.parameters.baselineRealTime} onChange={(e) => onCheckBaselineRealTimeCheckbox(e, props)}  /> 
+                <input type="checkbox" checked={props.stage.parameters.baselineRealTime} onChange={(e) => onCheckBaselineRealTimeCheckbox(e, formik)}  /> 
                 <span className='automatedSpan'>Real Time</span>
                 </div>
                 <FormikFormField
@@ -125,7 +137,7 @@ export function VerificationConfig(props: IStageConfigProps) {
               </div>
               <div className="grid-span-2">
               <div>
-                <input type="checkbox" checked={...props.stage.parameters.canaryRealTime} onChange={(e) => onCheckCanaryRealTimeCheckbox(e, props)}  /> 
+                <input type="checkbox" checked={props.stage.parameters.canaryRealTime} onChange={(e) => onCheckCanaryRealTimeCheckbox(e, formik)}  /> 
                 <span className='automatedSpan'>Real Time</span>
                 </div>
                 <FormikFormField
