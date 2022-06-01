@@ -26,4 +26,6 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.verification.metricTemplate', 'Information needed to run the metric analysis');
   HelpContentsRegistry.register('opsmx.verification.environment', 'Specify Environment for this Gate');  
   HelpContentsRegistry.register('opsmx.verification.customEnvironment', 'Add new environment');
+  HelpContentsRegistry.register('opsmx.verification.canaryRealTime', 'Canary RealTime');
+  HelpContentsRegistry.register('opsmx.verification.baselineRealTime', 'Baseline RealTime');  
 };

@@ -1,5 +1,6 @@
 import React, { ChangeEvent } from 'react';
 import { createFakeReactSyntheticEvent, IFormInputProps } from '@spinnaker/core';
+import type { IValidationCategory, IValidator } from '@spinnaker/core';
 
 const epochToDate = (epoch: number) => {
   const d = new Date(0); // The 0 there is the key, which sets the date to the epoch
@@ -28,9 +29,26 @@ const epochToLocalTime = (epochString: any) => {
 };
 
 const localTimeToEpoch = (selectedDate: string) => new Date(selectedDate).getTime();
-export class DateTimePicker extends React.Component<IFormInputProps> {
+
+export interface IFormInputValidation {
+  touched: boolean;
+  hidden: boolean;
+  category: IValidationCategory | undefined;
+  messageNode: React.ReactNode | undefined;
+  revalidate: () => void;
+  addValidator: (validator: IValidator) => void;
+  removeValidator: (validator: IValidator) => void;
+}
+
+export interface IFormInputPropsPlugin extends IFormInputProps {
+  validation?: IFormInputValidation;
+  inputClassName?: string;
+  disabled ? : boolean;
+}
+
+export class DateTimePicker extends React.Component<IFormInputPropsPlugin> {
   public render() {
-    const { onChange, name, value } = this.props;
+    const { onChange, name, value, disabled } = this.props;
 
     const formattedDate = epochToLocalTime(value);
 
@@ -40,6 +58,7 @@ export class DateTimePicker extends React.Component<IFormInputProps> {
         type="datetime-local"
         {...this.props}
         value={formattedDate}
+        disabled = {disabled}
         onChange={(e: ChangeEvent<HTMLInputElement>) => {
           const date = e.target.value;
           const newValue = localTimeToEpoch(date);

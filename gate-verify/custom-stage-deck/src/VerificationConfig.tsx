@@ -85,6 +85,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const [metricTemplate, setMetricTemplate] = useState();
 
+  const [canaryRealTime,setcanaryRealTime] = useState(false);
+
+  const [baselineRealTime,setbaselineRealTime] = useState(false);
+
 
   useEffect(() => {
     if (applicationId != undefined) {
@@ -174,6 +178,13 @@ export function VerificationConfig(props: IStageConfigProps) {
         "id": null,
         "spinnakerEnvironment": ""
       }]
+    }
+
+    if(!props.stage.parameters.hasOwnProperty('canaryRealTime')){
+      props.stage.parameters.canaryRealTime = false;
+    }
+    if(!props.stage.parameters.hasOwnProperty('baselineRealTime')){
+      props.stage.parameters.baselineRealTime = false;
     }
     // if(!props.stage.parameters.hasOwnProperty('customEnvironment')){
     //   props.stage.parameters.customEnvironment = "";
@@ -406,6 +417,22 @@ export function VerificationConfig(props: IStageConfigProps) {
     props.stage.parameters.metricTemplate = e.target.value;
     setMetricTemplate(e.target.value);
   }
+
+  const onCheckBaselineRealTimeCheckbox = (e:any, formik: any) => { 
+    console.log("oncheck baseline");
+    console.log(formik);
+    props.stage.parameters.baselineRealTime = e.target.checked;
+    formik.setFieldValue('parameters.baselineRealTime', e.target.checked);
+    setbaselineRealTime(e.target.checked);
+    props.stage.parameters.baselineStartTime = null;
+  }; 
+  
+  const onCheckCanaryRealTimeCheckbox = (e:any, formik: any) => { 
+    props.stage.parameters.canaryRealTime = e.target.checked;
+    formik.setFieldValue('parameters.canaryRealTime', e.target.checked);
+    setcanaryRealTime(e.target.checked);
+    props.stage.parameters.canarystarttime = null;
+  };
 
   //mat-focus-indicator btn btn-primary btnColor mat-button mat-button-base
   //mat-button-wrapper
@@ -827,6 +854,19 @@ export function VerificationConfig(props: IStageConfigProps) {
               <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
+                    Baseline RealTime<HelpField id="opsmx.verification.baselineRealTime" />
+                  </div>
+                  <div className="col-md-7">
+                    <div className="grid-span-2 checkox-class">
+                    <input type="checkbox" checked={props.stage.parameters.baselineRealTime} onChange={(e) => onCheckBaselineRealTimeCheckbox(e, formik)}  /> 
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-horizontal">
+                <div className="form-group">
+                  <div className="col-md-3 sm-label-right">
                     Baseline StartTime *<HelpField id="opsmx.verification.baselineStartTime" />
                   </div>
                   <div className="col-md-7">
@@ -836,8 +876,21 @@ export function VerificationConfig(props: IStageConfigProps) {
                         // label="Baseline StartTime *"
                         // help={<HelpField id="opsmx.verification.baselineStartTime" />}
                         required={true}
-                        input={(props) => <DateTimePicker {...props} />}
+                        input={(props) => <DateTimePicker {...props} disabled = {baselineRealTime}/>}
                       />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-horizontal">
+                <div className="form-group">
+                  <div className="col-md-3 sm-label-right">
+                    Canary RealTime<HelpField id="opsmx.verification.canaryRealTime" />
+                  </div>
+                  <div className="col-md-7">
+                    <div className="grid-span-2 checkox-class">
+                    <input type="checkbox" checked={props.stage.parameters.canaryRealTime} onChange={(e) => onCheckCanaryRealTimeCheckbox(e, formik)}  /> 
                     </div>
                   </div>
                 </div>
@@ -855,7 +908,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                         // label="Canary StartTime *"
                         // help={<HelpField id="opsmx.verification.canarystarttime" />}
                         required={true}
-                        input={(props) => <DateTimePicker {...props} />}
+                        input={(props) => <DateTimePicker {...props} disabled = {canaryRealTime} />}
                       />
                     </div>
                   </div>
