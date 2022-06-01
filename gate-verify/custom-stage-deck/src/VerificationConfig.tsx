@@ -35,13 +35,12 @@ const HorizontalRule = () => (
   </div>
 );
 
-const [canaryRealTime,setcanaryRealTime] = useState(false);
-
-const [baselineRealTime,setbaselineRealTime] = useState(false);
-
-
 
 export function VerificationConfig(props: IStageConfigProps) {
+
+  const [canaryRealTime,setcanaryRealTime] = useState(false);
+
+  const [baselineRealTime,setbaselineRealTime] = useState(false);
 
   if(!props.stage.parameters.hasOwnProperty('canaryRealTime')){
     props.stage.parameters.canaryRealTime = false;
