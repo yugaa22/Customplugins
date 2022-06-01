@@ -86,6 +86,33 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       }]
     }
 
+    if(!props.stage?.parameters.hasOwnProperty('gateSecurity')){
+      props.stage.parameters.gateSecurity = [
+      {
+        "connectorType": "PayloadConstraints",
+        "helpText": "Payload Constraints",
+        "isMultiSupported": true,
+        "label": "Payload Constraints",
+        "selectInput": false,
+        "supportedParams": [
+          {
+            "helpText": "Key",
+            "label": "Key",
+            "name": "label",
+            "type": "string"
+          },
+          {
+            "helpText": "Value",
+            "label": "Value",
+            "name": "value",
+            "type": "string"
+          }
+        ],
+        "values": []
+      }
+    ]
+    }
+
     REST(`visibilityservice/v6/getAllConnectorFields`).
     get()
     .then(
@@ -154,39 +181,9 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     }
   }
 
-  const getGateSecurityParams = () => {
-    if(!props.stage?.parameters.hasOwnProperty('gateSecurity')){
-      props.stage.parameters.gateSecurity = [
-      {
-        "connectorType": "PayloadConstraints",
-        "helpText": "Payload Constraints",
-        "isMultiSupported": true,
-        "label": "Payload Constraints",
-        "selectInput": false,
-        "supportedParams": [
-          {
-            "helpText": "Key",
-            "label": "Key",
-            "name": "label",
-            "type": "string"
-          },
-          {
-            "helpText": "Value",
-            "label": "Value",
-            "name": "value",
-            "type": "string"
-          }
-        ],
-        "values": [
-          {
-            "label": "",
-            "value": ""
-          }
-        ]
-      }
-    ]
-    }
-  }
+  // const getGateSecurityParams = () => {
+
+  // }
 
       //Add Serivce and Pipeline Details to the JSON
   const getServicePipelineDetails = (data: any) =>{
@@ -689,17 +686,16 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         </div>
 
         
-        <div  className='grid grid-4'>
+        {/* <div  className='grid grid-4'>
 
               <div className="grid-span-2">
                 <h4 className='gateSecurity'>Gate Security</h4>
                 <br />
                 <div className="grid-span-2">
-                  {/* {propsFormik.gateUrl} */}
                 </div>
                 {multiFieldGateSecurityComp({ ...props })}
               </div>
-          </div>
+          </div> */}
 
         </>
       // );
@@ -712,49 +708,49 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 // Gate Security
   
-  const multiFieldGateSecurityComp = (props: any) => {
-    getGateSecurityParams();
+  // const multiFieldGateSecurityComp = (props: any) => {
+  //   // getGateSecurityParams();
 
-    const fieldParams = props.formik.values?.parameters ?? null
-    if(!(fieldParams && fieldParams.gateSecurity)){
-      return;
-    }
-    // const fieldParams = props.stage.parameters ?? null
-    return fieldParams.gateSecurity.map((dynamicField: any, index: number) => {
-      if (
-        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-        dynamicField.supportedParams.length > 1
-      ) {
-        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
-        return (
-          <div className="grid-span-4 fullWidthContainer">
-            <FormikFormField
-              name={dynamicField.connectorType}
-              label={dynamicField.connectorType}
-              help={<HelpField id={dynamicField.connectorType} />}
-              input={() => (
-                <LayoutProvider value={StandardFieldLayout}>
-                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
-                    <EvaluateVariablesStageForm
-                      blockLabel={dynamicField.connectorType}
-                      chosenStage={chosenStage}
-                      headers={dynamicField.supportedParams}
-                      isMultiSupported={dynamicField.isMultiSupported}
-                      fieldMapName = "gateSecurity"
-                      parentIndex={index}
-                      {...props}
-                    />
-                  </div>
-                </LayoutProvider>
-              )}
-            />
-          </div>
-        );
-      } else {
-        return null;
-      }
-    });
-  };
+  //   const fieldParams = props.formik.values?.parameters ?? null
+  //   if(!(fieldParams && fieldParams.gateSecurity)){
+  //     return;
+  //   }
+  //   // const fieldParams = props.stage.parameters ?? null
+  //   return fieldParams.gateSecurity.map((dynamicField: any, index: number) => {
+  //     if (
+  //       (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+  //       dynamicField.supportedParams.length > 1
+  //     ) {
+  //       HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+  //       return (
+  //         <div className="grid-span-4 fullWidthContainer">
+  //           <FormikFormField
+  //             name={dynamicField.connectorType}
+  //             label={dynamicField.connectorType}
+  //             help={<HelpField id={dynamicField.connectorType} />}
+  //             input={() => (
+  //               <LayoutProvider value={StandardFieldLayout}>
+  //                 <div className="flex-container-v margin-between-lg dynamicFieldSection">
+  //                   <EvaluateVariablesStageForm
+  //                     blockLabel={dynamicField.connectorType}
+  //                     chosenStage={chosenStage}
+  //                     headers={dynamicField.supportedParams}
+  //                     isMultiSupported={dynamicField.isMultiSupported}
+  //                     fieldMapName = "gateSecurity"
+  //                     parentIndex={index}
+  //                     {...props}
+  //                   />
+  //                 </div>
+  //               </LayoutProvider>
+  //             )}
+  //           />
+  //         </div>
+  //       );
+  //     } else {
+  //       return null;
+  //     }
+  //   });
+  // };
 
 
   //MultiField Selected Connectors dropdown
