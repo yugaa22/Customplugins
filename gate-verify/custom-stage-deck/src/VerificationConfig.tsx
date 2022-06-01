@@ -89,6 +89,39 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const [baselineRealTime,setbaselineRealTime] = useState(false);
 
+  const getGateSecurityParams = () => {
+    if (!props.stage.parameters.hasOwnProperty('gateSecurity')) {
+      props.stage.parameters.gateSecurity = [
+        {
+          "connectorType": "PayloadConstraints",
+          "helpText": "Payload Constraints for Gate Security",
+          "isMultiSupported": true,
+          "label": "Payload Constraints",
+          "selectInput": false,
+          "supportedParams": [
+            {
+              "helpText": "Key",
+              "label": "Key",
+              "name": "label",
+              "type": "string"
+            },
+            {
+              "helpText": "Value",
+              "label": "Value",
+              "name": "value",
+              "type": "string"
+            }
+          ],
+          "values": [
+            // {
+            //   "label": "",
+            //   "value": ""
+            // }
+          ]
+        }
+      ]
+    }
+  }
 
   useEffect(() => {
     if (applicationId != undefined) {
@@ -212,6 +245,8 @@ export function VerificationConfig(props: IStageConfigProps) {
           console.log("Environmen API: ", temp);
         }
       )
+      
+      getGateSecurityParams();
 
   }, [])
 
@@ -220,39 +255,7 @@ export function VerificationConfig(props: IStageConfigProps) {
   //     props.stage.parameters.customEnvironment = data;
   // }
 
-  const getGateSecurityParams = () => {
-    if (!props.stage.parameters.hasOwnProperty('gateSecurity')) {
-      props.stage.parameters.gateSecurity = [
-        {
-          "connectorType": "PayloadConstraints",
-          "helpText": "Payload Constraints for Gate Security",
-          "isMultiSupported": true,
-          "label": "Payload Constraints",
-          "selectInput": false,
-          "supportedParams": [
-            {
-              "helpText": "Key",
-              "label": "Key",
-              "name": "label",
-              "type": "string"
-            },
-            {
-              "helpText": "Value",
-              "label": "Value",
-              "name": "value",
-              "type": "string"
-            }
-          ],
-          "values": [
-            {
-              "label": "",
-              "value": ""
-            }
-          ]
-        }
-      ]
-    }
-  }
+  
 
   // Environments 
   const handleOnEnvironmentSelect = (e: any, formik: any) => {
@@ -283,48 +286,48 @@ export function VerificationConfig(props: IStageConfigProps) {
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
 
 
-  const multiFieldGateSecurityComp = (props: any, formik: any) => {
+  // const multiFieldGateSecurityComp = (props: any, formik: any) => {
 
-    getGateSecurityParams();
-    const fieldParams = props.stage.parameters ?? null;
-    //console.log("fieldParams");
-    //console.log(fieldParams);
-    return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
-      if (
-        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-        dynamicField.supportedParams.length > 1
-      ) {
-        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
-        return (
-          <div className="grid-span-4 fullWidthContainer">
-            <FormikFormField
-              name={dynamicField.connectorType}
-              label={dynamicField.connectorType}
-              help={<HelpField id={dynamicField.connectorType} />}
-              input={() => (
-                <LayoutProvider value={StandardFieldLayout}>
-                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
-                    <EvaluateVariablesStageForm
-                      blockLabel={dynamicField.connectorType}
-                      chosenStage={chosenStage}
-                      headers={dynamicField.supportedParams}
-                      isMultiSupported={dynamicField.isMultiSupported}
-                      fieldMapName="gateSecurity"
-                      parentIndex={index}
-                      formik={formik}
-                      {...props}
-                    />
-                  </div>
-                </LayoutProvider>
-              )}
-            />
-          </div>
-        );
-      } else {
-        return null;
-      }
-    });
-  };
+  //   getGateSecurityParams();
+  //   const fieldParams = props.stage.parameters ?? null;
+  //   //console.log("fieldParams");
+  //   //console.log(fieldParams);
+  //   return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
+  //     if (
+  //       (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+  //       dynamicField.supportedParams.length > 1
+  //     ) {
+  //       HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+  //       return (
+  //         <div className="grid-span-4 fullWidthContainer">
+  //           <FormikFormField
+  //             name={dynamicField.connectorType}
+  //             label={dynamicField.connectorType}
+  //             help={<HelpField id={dynamicField.connectorType} />}
+  //             input={() => (
+  //               <LayoutProvider value={StandardFieldLayout}>
+  //                 <div className="flex-container-v margin-between-lg dynamicFieldSection">
+  //                   <EvaluateVariablesStageForm
+  //                     blockLabel={dynamicField.connectorType}
+  //                     chosenStage={chosenStage}
+  //                     headers={dynamicField.supportedParams}
+  //                     isMultiSupported={dynamicField.isMultiSupported}
+  //                     fieldMapName="gateSecurity"
+  //                     parentIndex={index}
+  //                     formik={formik}
+  //                     {...props}
+  //                   />
+  //                 </div>
+  //               </LayoutProvider>
+  //             )}
+  //           />
+  //         </div>
+  //       );
+  //     } else {
+  //       return null;
+  //     }
+  //   });
+  // };
 
 
   const setModalIsOpenToTrue = (type: any) => {
@@ -983,15 +986,15 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Canary Result Score is required` : undefined));
 
-  validator
-    .field('parameters.log')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Log Analysis is required` : undefined));
+  // validator
+  //   .field('parameters.log')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Log Analysis is required` : undefined));
 
-  validator
-    .field('parameters.metric')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Metric Analysis is required` : undefined));
+  // validator
+  //   .field('parameters.metric')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Metric Analysis is required` : undefined));
 
   validator
     .field('parameters.metricTemplate')
