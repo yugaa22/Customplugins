@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -35,6 +35,10 @@ const HorizontalRule = () => (
   </div>
 );
 
+const [canaryRealTime,setcanaryRealTime] = useState(false);
+
+const [baselineRealTime,setbaselineRealTime] = useState(false);
+
 
 
 export function VerificationConfig(props: IStageConfigProps) {
@@ -55,12 +59,14 @@ export function VerificationConfig(props: IStageConfigProps) {
     console.log(formik);
     props.stage.parameters.baselineRealTime = e.target.checked;
     formik.setFieldValue('parameters.baselineRealTime', e.target.checked);
+    setbaselineRealTime(e.target.checked);
     props.stage.parameters.baselineStartTime = null;
   }; 
   
   const onCheckCanaryRealTimeCheckbox = (e:any, formik: any) => { 
     props.stage.parameters.canaryRealTime = e.target.checked;
     formik.setFieldValue('parameters.canaryRealTime', e.target.checked);
+    setcanaryRealTime(e.target.checked);
     props.stage.parameters.canarystarttime = null;
   };
 
@@ -132,7 +138,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   name="parameters.baselinestarttime"
                   label="Baseline StartTime"
                   help={<HelpField id="opsmx.verification.baselineStartTime" />}
-                  input={(props) => <DateTimePicker {...props} />}
+                  input={(props) => <DateTimePicker {...props} disabled = {baselineRealTime}/>}
                 />
               </div>
               <div className="grid-span-2">
@@ -144,7 +150,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   name="parameters.canarystarttime"
                   label="Canary StartTime"
                   help={<HelpField id="opsmx.verification.canarystarttime" />}
-                  input={(props) => <DateTimePicker {...props} />}
+                  input={(props) => <DateTimePicker  {...props} disabled = {canaryRealTime}/>}
                 />
               </div>
               <HorizontalRule />
