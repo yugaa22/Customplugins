@@ -50,6 +50,40 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
   const [policyList, setPolicyList] = useState([]);
 
+  const getGateSecurityParams = () => {
+    if (!props.stage.parameters.hasOwnProperty('gateSecurity')) {
+      props.stage.parameters.gateSecurity = [
+        {
+          "connectorType": "PayloadConstraints",
+          "helpText": "Payload Constraints",
+          "isMultiSupported": true,
+          "label": "Payload Constraints",
+          "selectInput": false,
+          "supportedParams": [
+            {
+              "helpText": "Key",
+              "label": "Key",
+              "name": "label",
+              "type": "string"
+            },
+            {
+              "helpText": "Value",
+              "label": "Value",
+              "name": "value",
+              "type": "string"
+            }
+          ],
+          "values": [
+            // {
+            //   "label": "",
+            //   "value": ""
+            // }
+          ]
+        }
+      ]
+    }
+  }
+
   useEffect(() => {
     REST('platformservice/v2/applications/name/' + props.application['applicationName']).
       get()
@@ -130,42 +164,11 @@ export function PolicyGateConfig(props: IStageConfigProps) {
         }
       )
 
-
+      getGateSecurityParams();
+      
   }, [])
 
-  const getGateSecurityParams = () => {
-    if (!props.stage.parameters.hasOwnProperty('gateSecurity')) {
-      props.stage.parameters.gateSecurity = [
-        {
-          "connectorType": "PayloadConstraints",
-          "helpText": "Payload Constraints",
-          "isMultiSupported": true,
-          "label": "Payload Constraints",
-          "selectInput": false,
-          "supportedParams": [
-            {
-              "helpText": "Key",
-              "label": "Key",
-              "name": "label",
-              "type": "string"
-            },
-            {
-              "helpText": "Value",
-              "label": "Value",
-              "name": "value",
-              "type": "string"
-            }
-          ],
-          "values": [
-            {
-              "label": "",
-              "value": ""
-            }
-          ]
-        }
-      ]
-    }
-  }
+ 
 
   // Environments 
   const handleOnEnvironmentSelect = (e: any, formik: any) => {
@@ -202,47 +205,47 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
 
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
-  const multiFieldComp = (props: any, formik: any) => {
-    getGateSecurityParams();
-    const fieldParams = props.stage.parameters ?? null;
-    console.log("fieldParams");
-    console.log(fieldParams);
-    return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
-      if (
-        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-        dynamicField.supportedParams.length > 1
-      ) {
-        HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
-        return (
-          <div className="grid-span-4 fullWidthContainer">
-            <FormikFormField
-              name={dynamicField.connectorType}
-              label={dynamicField.connectorType}
-              help={<HelpField id={dynamicField.connectorType} />}
-              input={() => (
-                <LayoutProvider value={StandardFieldLayout}>
-                  <div className="flex-container-v margin-between-lg dynamicFieldSection">
-                    <EvaluateVariablesStageForm
-                      blockLabel={dynamicField.connectorType}
-                      chosenStage={chosenStage}
-                      headers={dynamicField.supportedParams}
-                      isMultiSupported={dynamicField.isMultiSupported}
-                      fieldMapName="gateSecurity"
-                      parentIndex={index}
-                      formik={formik}
-                      {...props}
-                    />
-                  </div>
-                </LayoutProvider>
-              )}
-            />
-          </div>
-        );
-      } else {
-        return null;
-      }
-    });
-  };
+  // const multiFieldComp = (props: any, formik: any) => {
+  //   getGateSecurityParams();
+  //   const fieldParams = props.stage.parameters ?? null;
+  //   console.log("fieldParams");
+  //   console.log(fieldParams);
+  //   return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
+  //     if (
+  //       (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+  //       dynamicField.supportedParams.length > 1
+  //     ) {
+  //       HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
+  //       return (
+  //         <div className="grid-span-4 fullWidthContainer">
+  //           <FormikFormField
+  //             name={dynamicField.connectorType}
+  //             label={dynamicField.connectorType}
+  //             help={<HelpField id={dynamicField.connectorType} />}
+  //             input={() => (
+  //               <LayoutProvider value={StandardFieldLayout}>
+  //                 <div className="flex-container-v margin-between-lg dynamicFieldSection">
+  //                   <EvaluateVariablesStageForm
+  //                     blockLabel={dynamicField.connectorType}
+  //                     chosenStage={chosenStage}
+  //                     headers={dynamicField.supportedParams}
+  //                     isMultiSupported={dynamicField.isMultiSupported}
+  //                     fieldMapName="gateSecurity"
+  //                     parentIndex={index}
+  //                     formik={formik}
+  //                     {...props}
+  //                   />
+  //                 </div>
+  //               </LayoutProvider>
+  //             )}
+  //           />
+  //         </div>
+  //       );
+  //     } else {
+  //       return null;
+  //     }
+  //   });
+  // };
 
   const HorizontalRule = () => (
     <div className="grid-span-4">
@@ -414,15 +417,15 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
 
 
-              <HorizontalRule />
+              {/* <HorizontalRule />
               <div className="grid-span-4">
                 <h4 className="sticky-header ng-binding">Gate Security</h4>
                 <br />
                 <div className="grid-span-2">
-                  {/* {fieldParams.gateUrl} */}
+                 
                 </div>
                 {multiFieldComp({ ...props }, formik)}
-              </div>
+              </div> */}
             </div>
             <div className="opsmxLogo">
               <img
