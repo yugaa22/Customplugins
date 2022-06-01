@@ -45,7 +45,7 @@ export interface IFormInputPropsPlugin extends IFormInputProps {
   inputClassName?: string;
   disabled ? : boolean;
 }
-export class DateTimePicker extends React.Component<IFormInputProps> {
+export class DateTimePicker extends React.Component<IFormInputPropsPlugin> {
   public render() {
     const { onChange, name, value ,disabled} = this.props;
 
