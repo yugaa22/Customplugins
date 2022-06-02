@@ -55,8 +55,6 @@ public class VerificationTriggerTask implements Task {
 	
 	private static final String PAYLOAD_CONSTRAINT = "payloadConstraint";
 
-	private final String LIFETIME_HOUR = "0.152";
-
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -73,8 +71,8 @@ public class VerificationTriggerTask implements Task {
 	private TaskResult triggerAnalysis(StageExecution stage) {
 		Map<String, Object> contextMap = new HashMap<>();
 		Map<String, Object> outputs = new HashMap<>();
+		long startTime = Instant.now().toEpochMilli();
 		String triggerUrl = getTriggerURL(stage, outputs);
-		logger.info("Gate trigger url: {}", triggerUrl);
 		if (triggerUrl == null) {
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
 					.context(contextMap)
@@ -82,15 +80,15 @@ public class VerificationTriggerTask implements Task {
 					.build();
 		}
 
-		return triggerAnalysis(stage, outputs, contextMap, triggerUrl);
+		return triggerAnalysis(stage, outputs, contextMap, triggerUrl, startTime);
 	}
 
-	private TaskResult triggerAnalysis(StageExecution stage, Map<String, Object> outputs,Map<String, Object> contextMap, String triggerUrl) {
+	private TaskResult triggerAnalysis(StageExecution stage, Map<String, Object> outputs,Map<String, Object> contextMap, String triggerUrl, Long startTime) {
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
-			String triggerPayload = getPayloadString(stage);
-			HttpPost requestPost = new HttpPost(triggerUrl);
+			String triggerPayload = getPayloadString(stage, startTime);
 			outputs.put("trigger_json", String.format("Payload Json - %s", triggerPayload));
+			HttpPost requestPost = new HttpPost(triggerUrl);
 			requestPost.setEntity(new StringEntity(triggerPayload));
 			requestPost.setHeader("Content-type", "application/json");
 			requestPost.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
@@ -223,7 +221,7 @@ public class VerificationTriggerTask implements Task {
 				stage.getName());
 	}
 
-	private String getPayloadString(StageExecution stage) throws JsonProcessingException {
+	private String getPayloadString(StageExecution stage, Long startTime) throws JsonProcessingException {
 
 		ObjectNode finalJson = objectMapper.createObjectNode();
 		finalJson.put("application", stage.getExecution().getApplication());
@@ -233,9 +231,7 @@ public class VerificationTriggerTask implements Task {
 		String imageIds = parameterContext.get("imageids") != null ? (String) parameterContext.get("imageids"): null;
 		ArrayNode imageIdsNode = objectMapper.createArrayNode();
 		if (imageIds != null && ! imageIds.isEmpty()) {
-			Arrays.asList(imageIds.split(",")).forEach(tic -> {
-				imageIdsNode.add(tic.trim());
-			});
+			Arrays.asList(imageIds.split(",")).forEach(tic -> imageIdsNode.add(tic.trim()));
 		}
 		finalJson.set("imageIds", imageIdsNode);
 		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
@@ -255,7 +251,7 @@ public class VerificationTriggerTask implements Task {
 		finalJson.set(PAYLOAD_CONSTRAINT, payloadConstraintNode);
 
 		ObjectNode canaryConfig = objectMapper.createObjectNode();
-		canaryConfig.put("lifetimeHours", parameterContext.get("lifetime") != null ? (String) parameterContext.get("lifetime") : LIFETIME_HOUR);
+		canaryConfig.put("lifetimeHours", parameterContext.get("lifetime") != null ? (String) parameterContext.get("lifetime") : "0.152");
 		canaryConfig.set("canaryHealthCheckHandler", objectMapper.createObjectNode()
 				.put(MINIMUM_CANARY_RESULT_SCORE, parameterContext.get("minicanaryresult") != null ? (String) parameterContext.get("minicanaryresult") : "70" ));
 		canaryConfig.set("canarySuccessCriteria", objectMapper.createObjectNode()
@@ -264,14 +260,13 @@ public class VerificationTriggerTask implements Task {
 
 		ObjectNode baselinePayload = objectMapper.createObjectNode();
 		ObjectNode canaryPayload = objectMapper.createObjectNode();
-		if (parameterContext.get("log") != null && ((String) parameterContext.get("log")).equalsIgnoreCase("true")) {
+		if (parameterContext.get("logTemplate") != null && ! ((String) parameterContext.get("logTemplate")).isBlank()) {
 			baselinePayload.set(LOG,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 			canaryPayload.set(LOG,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 		}
-
-		if (parameterContext.get("metric") != null && ((String) parameterContext.get("metric")).equalsIgnoreCase("true")) {
+		if (parameterContext.get("metricTemplate") != null && !((String) parameterContext.get("metricTemplate")).isBlank()) {
 			baselinePayload.set(METRIC,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 			canaryPayload.set(METRIC,
@@ -284,16 +279,23 @@ public class VerificationTriggerTask implements Task {
 
 		ArrayNode payloadTriggerNode = objectMapper.createArrayNode();
 		payloadTriggerNode.add(triggerPayload);
-		triggerPayload.put("baselineStartTimeMs",
-				parameterContext.get("baselinestarttime") != null ? (Long) parameterContext.get("baselinestarttime") : Instant.now().toEpochMilli());
-		triggerPayload.put("canaryStartTimeMs",
-				parameterContext.get("canarystarttime") != null ? (Long) parameterContext.get("canarystarttime") : Instant.now().toEpochMilli());
+		if (parameterContext.get("baselineRealTime") != null && parameterContext.get("baselineRealTime").equals(Boolean.TRUE)) {
+			triggerPayload.put("baselineStartTimeMs", startTime);
+		} else {
+			triggerPayload.put("baselineStartTimeMs",
+					parameterContext.get("baselinestarttime") != null ? (Long) parameterContext.get("baselinestarttime") : startTime);
+		}
+
+		if (parameterContext.get("canaryRealTime") != null && parameterContext.get("canaryRealTime").equals(Boolean.TRUE)) {
+			triggerPayload.put("baselineStartTimeMs", startTime);
+		} else {
+			triggerPayload.put("canaryStartTimeMs",
+					parameterContext.get("canarystarttime") != null ? (Long) parameterContext.get("canarystarttime") : startTime);
+		}
 
 		finalJson.set(CANARY_CONFIG, canaryConfig);
 		finalJson.set("canaryDeployments", payloadTriggerNode);
-		String finalPayloadString = objectMapper.writeValueAsString(finalJson);
-		logger.debug("Payload string to trigger analysis : {}", finalPayloadString);
-		return finalPayloadString;
+		return objectMapper.writeValueAsString(finalJson);
 	}
 
 	private JsonNode prepareJson(String stageName, String pipelineName) {
