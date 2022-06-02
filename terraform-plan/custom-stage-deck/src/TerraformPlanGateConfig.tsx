@@ -44,7 +44,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
 
   useEffect(() => {
     loadAccounts();
-    props.stage.alias = 'runJob';
+    props.stage.alias = 'preconfiguredJob';
   }, [])
 
   const HorizontalRule = () => (

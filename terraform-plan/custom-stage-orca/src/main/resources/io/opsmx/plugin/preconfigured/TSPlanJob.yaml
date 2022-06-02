@@ -1,8 +1,9 @@
-label: Terraform Plan
+label: TerraformPlan
 cloudProvider: kubernetes
 application: opsmx
 description: Stage for terraspin plan operation
 account: default
+uiType: CUSTOM
 type: customTSPlanJobStage
 waitForCompletion: true
 parameters:
