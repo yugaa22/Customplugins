@@ -169,9 +169,9 @@ export function validate(stageConfig: IStage) {
   //   .field('parameters.gate')
   //   .required()
   //   .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
-  // validator
-  //   .field('parameters.imageids')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
+  validator
+    .field('parameters.imageIds')
+    .required()
+    .withValidators((value, label) => (value = '' ? `${label} is required` : undefined));
   return validator.validateForm();
 }
