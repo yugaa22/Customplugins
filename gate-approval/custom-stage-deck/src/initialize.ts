@@ -15,4 +15,10 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.approval.gateUrl', 'Please enter the Gate URL');
   HelpContentsRegistry.register('opsmx.approval.gateName', 'Please enter Gate Name that is created in OES');
   HelpContentsRegistry.register('opsmx.approval.imageIds', 'Please enter the Image IDs');
+  HelpContentsRegistry.register('opsmx.approval.environment', 'Specify Environment for this Gate');  
+  HelpContentsRegistry.register('opsmx.approval.customEnvironment', 'Add new environment');
+  HelpContentsRegistry.register('opsmx.approval.automatedApproval', 'Automated approval');
+  HelpContentsRegistry.register('opsmx.approval.approvalCondition', 'Specify the approval condition');
+  HelpContentsRegistry.register('opsmx.approval.approverGroup', 'Approver group');
+ 
 };
