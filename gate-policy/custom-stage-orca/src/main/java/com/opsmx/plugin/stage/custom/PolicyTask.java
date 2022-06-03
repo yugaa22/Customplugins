@@ -231,32 +231,20 @@ public class PolicyTask implements Task {
 
 		if (payload != null && ! payload.trim().isEmpty()) {
 			finalJson = (ObjectNode) objectMapper.readTree(payload);
-			finalJson.put("executionId", executionId);
-			finalJson.put(START_TIME, System.currentTimeMillis());
-			finalJson.put(APPLICATION2, application);
-			finalJson.put(NAME2, name);
-			finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, user));
-			if (context.getImageids() != null && !context.getImageids().isEmpty()) {
-				ArrayNode images = objectMapper.createArrayNode();
-				Arrays.asList(context.getImageids().split(",")).forEach(a -> {
-					images.add(a.trim());
-				});
-				finalJson.set("imageIds", images);
-			}
-		} else {
-			finalJson.put(START_TIME, System.currentTimeMillis());
-			finalJson.put(APPLICATION2, application);
-			finalJson.put(NAME2, name);
-			finalJson.put("stage", context.getGate());
-			finalJson.put("executionId", executionId);
-			finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, user));
-			if (context.getImageids() != null && !context.getImageids().isEmpty()) {
-				ArrayNode images = objectMapper.createArrayNode();
-				Arrays.asList(context.getImageids().split(",")).forEach(a -> {
-					images.add(a.trim());
-				});
-				finalJson.set("imageIds", images);
-			}
+		}
+
+		finalJson.put(START_TIME, System.currentTimeMillis());
+		finalJson.put(APPLICATION2, application);
+		finalJson.put(NAME2, name);
+		finalJson.put("stage", context.getGate());
+		finalJson.put("executionId", executionId);
+		finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, user));
+		if (context.getImageids() != null && !context.getImageids().isEmpty()) {
+			ArrayNode images = objectMapper.createArrayNode();
+			Arrays.asList(context.getImageids().split(",")).forEach(a -> {
+				images.add(a.trim());
+			});
+			finalJson.set("imageIds", images);
 		}
 
 		if (gateSecurity != null) {
