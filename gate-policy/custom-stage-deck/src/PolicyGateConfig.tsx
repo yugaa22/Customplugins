@@ -398,7 +398,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
               <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
-                    Ref Ids *<HelpField id="opsmx.policy.imageIds" />
+                  Instance Id *<HelpField id="opsmx.policy.imageIds" />
                   </div>
                   <div className="col-md-7">
                     <div className="grid-span-2">

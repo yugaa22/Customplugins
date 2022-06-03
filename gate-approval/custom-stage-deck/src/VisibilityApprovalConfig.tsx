@@ -153,13 +153,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           "selectInput": true,
           "supportedParams": [
             {
-              "helpText": "Connector",
+              "helpText": "Select Data Sources relevant to this pipeline",
               "label": "Connector",
               "name": "connector",
               "type": "string"
             },
             {
-              "helpText": "Account",
+              "helpText": "Select the account of interest in the configured data source ",
               "label": "Account",
               "name": "account",
               "type": "string"
@@ -832,7 +832,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       <div className="form-horizontal">
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
-            Ref Id *<HelpField id="opsmx.approval.imageIds" />
+          Instance Id *<HelpField id="opsmx.approval.imageIds" />
           </div>
           <div className="col-md-7">
             <div className='grid grid-4'>

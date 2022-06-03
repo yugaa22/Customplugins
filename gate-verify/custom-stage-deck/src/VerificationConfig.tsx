@@ -779,7 +779,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <div className="form-group">
 
                   <div className="col-md-3 sm-label-right">
-                    Marginal Score *<HelpField id="opsmx.verification.minimumCanaryResult" />
+                    Marginal Score *<HelpField id="opsmx.verification.marginalScore" />
                   </div>
                   <div className="col-md-7">
                     <div>
@@ -798,7 +798,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <div className="form-group">
 
                   <div className="col-md-3 sm-label-right">
-                    Pass Score  *<HelpField id="opsmx.verification.canaryResultScore" />
+                    Pass Score  *<HelpField id="opsmx.verification.passScore" />
                   </div>
                   <div className="col-md-7">
                     <div>
@@ -930,7 +930,7 @@ export function VerificationConfig(props: IStageConfigProps) {
               <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
-                    Ref Id *<HelpField id="opsmx.verification.imageIds" />
+                  Instance Id *<HelpField id="opsmx.verification.imageIds" />
                   </div>
                   <div className="col-md-7">
                     <div className="grid-span-2">
