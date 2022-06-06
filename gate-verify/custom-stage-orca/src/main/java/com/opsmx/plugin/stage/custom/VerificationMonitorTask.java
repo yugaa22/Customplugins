@@ -74,6 +74,10 @@ public class VerificationMonitorTask implements RetryableTask {
 			String analysisStatus = readValue.get(OesConstants.STATUS).get(OesConstants.STATUS).asText();
 			outputs.put(OesConstants.CANARY_REPORTURL,
 					String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
+			if (readValue.get(OesConstants.CANARY_RESULT).get("verificationUrl") != null ) {
+				outputs.put("verificationUrl",
+						String.format("%s/fromPlugin/%s", readValue.get(OesConstants.CANARY_RESULT).get("verificationUrl").asText(), serviceId));
+			}
 			if (analysisStatus.equalsIgnoreCase(OesConstants.RUNNING)) {
 				return TaskResult.builder(ExecutionStatus.RUNNING)
 						.outputs(outputs)
