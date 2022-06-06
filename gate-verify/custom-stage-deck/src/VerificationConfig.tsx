@@ -195,7 +195,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   setLogDropdownList(response);
                 }
               );
-            let logCreateUrl = window.location.origin + "/ui/plugin-isd/log-template" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
+            let logCreateUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
             setLogCreateUrl(logCreateUrl);
           }
         )
@@ -335,7 +335,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setMetricUrl(metricCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
+      let editUrl = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -351,7 +351,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setLogUrl(logCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
+      let editUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
