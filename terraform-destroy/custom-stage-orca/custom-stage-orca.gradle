@@ -1,5 +1,3 @@
-import org.yaml.snakeyaml.Yaml
-
 buildscript {
   repositories {
     mavenCentral()
@@ -35,36 +33,32 @@ spinnakerPlugin {
 }
 
 dependencies {
-  compileOnly "org.pf4j:pf4j:${pf4jVersion}"
-  compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion"
-  compileOnly "com.netflix.spinnaker.kork:kork-plugins-api:${korkVersion}"
-  compileOnly "com.netflix.spinnaker.orca:orca-api:${orcaVersion}"
-  compileOnly "com.netflix.spinnaker.orca:orca-clouddriver:${orcaVersion}"
-  kapt "org.pf4j:pf4j:${pf4jVersion}"
+    compileOnly(group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}") {
+        exclude group: "org.slf4j"
+    }
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}"
+    compileOnly (group: 'com.netflix.spinnaker.kork', name: 'kork-plugins-api', version: "${korkVersion}")
+    compileOnly (group: 'com.netflix.spinnaker.orca', name: 'orca-api', version: "${orcaVersion}")
+    compileOnly (group: 'com.netflix.spinnaker.orca', name: 'orca-clouddriver', version: "${orcaVersion}")
+    compileOnly (group: 'io.kubernetes', name: 'client-java', version: "${k8sClientVersion}")
 
-  compileOnly group: 'com.squareup.retrofit', name: 'retrofit', version: '1.9.0'
-  compileOnly group: 'com.squareup.retrofit', name: 'converter-jackson', version: '1.9.0'
-  compileOnly group: 'com.jakewharton.retrofit', name: 'retrofit1-okhttp3-client', version: '1.1.0'
-  implementation group: 'com.jcraft', name: 'jsch', version: '0.1.55'
+    kapt(group: 'org.pf4j', name: 'pf4j', version: "${pf4jVersion}")
 
-  testImplementation(platform("com.netflix.spinnaker.orca:orca-bom:${orcaVersion}"))
-  testImplementation "com.netflix.spinnaker.orca:orca-api"
-  testImplementation "com.netflix.spinnaker.orca:orca-api-tck"
-  testImplementation "com.netflix.spinnaker.orca:orca-queue"
-  testImplementation "com.netflix.spinnaker.kork:kork-plugins-tck"
+    testImplementation (group: 'com.netflix.spinnaker.orca', name: 'orca-api', version: "${orcaVersion}")
+    testImplementation (group: 'com.netflix.spinnaker.orca', name: 'orca-clouddriver', version: "${orcaVersion}")
+    testImplementation (group: 'io.kubernetes', name: 'client-java', version: "${k8sClientVersion}")
 
-  testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.2"
-  testImplementation "io.strikt:strikt-core:0.22.1"
-  testImplementation "dev.minutest:minutest:1.10.0"
-  testImplementation "io.mockk:mockk:1.9.3"
-  testImplementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.1"
-  testImplementation "javax.servlet:javax.servlet-api:4.0.1"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.2"
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+    testImplementation group: 'io.strikt', name: 'strikt-core', version: '0.22.1'
+    testImplementation group: 'dev.minutest', name: 'minutest', version: '1.10.0'
+    testImplementation group: 'io.mockk', name: 'mockk', version: '1.9.3'
+    testImplementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.10.4'
 
-  testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
-  testRuntime "org.junit.platform:junit-platform-launcher:1.4.0"
-  testRuntime "org.junit.platform:junit-platform-commons:1.5.2"
-
-  compile "org.apache.httpcomponents:httpclient:4.5.13"
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.0"
+    testRuntime "org.junit.platform:junit-platform-launcher:1.4.0"
+    testRuntime "org.junit.platform:junit-platform-commons:1.5.2"
 }
 
 configurations.all {

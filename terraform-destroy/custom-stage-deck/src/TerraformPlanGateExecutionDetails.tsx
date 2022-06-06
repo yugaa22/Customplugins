@@ -10,7 +10,7 @@ import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMes
  * - `props.stage.outputs` maps to your SimpleStage's `Output` class.
  * - `props.stage.context` maps to your SimpleStage's `Context` class.
  */
-export function TerraformDestroyGateExecutionDetails(props: IExecutionDetailsSectionProps) {
+export function TerraformPlanGateExecutionDetails(props: IExecutionDetailsSectionProps) {
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.status == 'allow') {
@@ -95,6 +95,6 @@ export function TerraformDestroyGateExecutionDetails(props: IExecutionDetailsSec
 // The title here will be used as the tab name inside the
 // pipeline stage execution view. Camel case will be mapped
 // to space-delimited text: randomWait -> Random Wait.
-export namespace TerraformDestroyGateExecutionDetails {
-  export const title = 'Terraform Destroy';
+export namespace TerraformPlanGateExecutionDetails {
+  export const title = 'Terraform Plan';
 }

@@ -12,13 +12,13 @@ import { HelpContentsRegistry } from '@spinnaker/core';
   These registries and their methods may change without warning.
 */
 export const initialize = () => {  
-  HelpContentsRegistry.register('opsmx.terraformdestroy.AWSAccountName', 'Please enter the AWS Account Name.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.spinnakerNamespace', 'Please enter Spinnaker Namespace.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.tfScriptAccount', 'Please enter the Terraform Script Account.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.tfScriptRepo', 'Please enter Terraform Script Repository.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.tfLocation', 'Please enter the Terraform Location.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.overrideFile', 'Please enter Override file.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.tfStateAccount', 'Please enter Teraform State Account.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.artifactRepo', 'Please enter Artifact Repository.');
-  HelpContentsRegistry.register('opsmx.terraformdestroy.artifactUUID', 'Please enter Artifact UUID.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.AWSAccountName', 'Please enter the AWS Assure role configured account name.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.spinnakerNamespace', 'Please enter the namespace of spinnaker in HA mode.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.tfScriptAccount', 'Please enter the artifact account name from artifactsaccounts.json,Account where you have tf script present.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.tfPlanScriptRepo', 'Please enter the Git Repo Account of TF script.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.tfLocation', 'Please enter Location of terraform script in the repo.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.overrideFile', 'Please enter overrideVariableFile path if you want to override variables.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.tfStateAccount', 'Please enter the artifact account where you want to save tf state.');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.artifactRepo', 'Please enter the location  where you want to save terraform intermediate state like gitrepo, s3bucket');
+  HelpContentsRegistry.register('opsmx.customTSPlanJobStage.artifactUUID', 'Please enter a unique artifactid to identify the terraform state.');
 };

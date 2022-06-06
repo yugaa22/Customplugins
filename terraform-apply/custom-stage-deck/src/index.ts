@@ -1,8 +1,8 @@
 import { IDeckPlugin } from '@spinnaker/core';
-import { terraformapply } from './TerraformApplyGate';
+import { customTSPlanJobStage } from './TerraformPlanGate';
 import { initialize } from './initialize';
 
 export const plugin: IDeckPlugin = {
   initialize,
-  stages: [terraformapply],
+  stages: [customTSPlanJobStage],
 };

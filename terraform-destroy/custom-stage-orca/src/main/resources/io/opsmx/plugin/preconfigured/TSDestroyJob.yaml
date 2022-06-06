@@ -1,0 +1,103 @@
+label: TerraformDestroy
+cloudProvider: kubernetes
+application: opsmx
+description: Stage for terraspin plan operation
+account: default
+uiType: CUSTOM
+type: customTSDestroyJobStage
+waitForCompletion: true
+parameters:
+  - defaultValue: ''
+    description: Please enter the AWS Assure role configured account name.
+    label: AWS account name
+    mapping: 'manifest.spec.template.spec.containers[0].env[0].value'
+    name: awsrole
+  - defaultValue: ''
+    description: Please enter the namespace of spinnaker in HA mode.
+    label: Spinnaker Namespace
+    mapping: 'manifest.spec.template.spec.containers[0].env[1].value'
+    name: namespace
+  - defaultValue: ''
+    description: >-
+      Please enter the artifact account name from artifactsaccounts.json,
+      Account where you have tf script present.
+    label: Tf script account
+    mapping: 'manifest.spec.template.spec.containers[0].env[2].value'
+    name: scriptaccount
+  - defaultValue: ''
+    description: Please enter the Git Repo Account of TF script.
+    label: Tf Plan script Repo
+    mapping: 'manifest.spec.template.spec.containers[0].env[3].value'
+    name: repo
+  - defaultValue: ''
+    description: Please enter Location of terraform script in the repo.
+    label: Tf Location
+    mapping: 'manifest.spec.template.spec.containers[0].env[4].value'
+    name: location
+  - defaultValue: ''
+    description: Please enter overrideVariableFile path if you want to override variables.
+    label: Override file
+    mapping: 'manifest.spec.template.spec.containers[0].env[5].value'
+    name: overridefile
+  - defaultValue: ''
+    description: Please enter the artifact account where you want to save tf state.
+    label: Tf State Account
+    mapping: 'manifest.spec.template.spec.containers[0].env[6].value'
+    name: stateaccount
+  - defaultValue: ''
+    description: >-
+      Please enter the location  where you want to save terraform intermediate
+      state like gitrepo, s3bucket.
+    label: Artifact Repo
+    mapping: 'manifest.spec.template.spec.containers[0].env[7].value'
+    name: staterepo
+  - defaultValue: ''
+    description: Please enter a unique artifactid to identify the terraform state.
+    label: Artifact UUId
+    mapping: 'manifest.spec.template.spec.containers[0].env[8].value'
+    name: artifactid
+manifest:
+  apiVersion: batch/v1
+  kind: Job
+  metadata:
+    generateName: terraspinplanjob-
+    namespace: spinterra
+  spec:
+    backoffLimit: 0
+    template:
+      spec:
+        containers:
+          - command:
+              - role.sh
+            env:
+              - name: awsrole
+                value: null
+              - name: namespace
+                value: null
+              - name: scriptaccount
+                value: null
+              - name: repo
+                value: null
+              - name: location
+                value: null
+              - name: overridefile
+                value: null
+              - name: stateaccount
+                value: null
+              - name: staterepo
+                value: null
+              - name: artifactid
+                value: null
+              - name: command
+                value: plan
+            image: 'quay.io/opsmxpublic/customterraformstage:v2-awsrole'
+            imagePullPolicy: Always
+            name: terraspinplan
+            volumeMounts:
+              - mountPath: /home/terraspin/opsmx/app/config/
+                name: opsmx-terraspin-backend-config
+        restartPolicy: Never
+        volumes:
+          - secret:
+              secretName: terraspinbackendconfig
+            name: opsmx-terraspin-backend-config
