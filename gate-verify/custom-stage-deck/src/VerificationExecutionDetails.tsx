@@ -62,7 +62,7 @@ const setModalIsOpenToFalse =()=>{
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
-            {props.stage.outputs.canaryReportURL != undefined ? (
+            {props.stage.outputs.verificationUrl != undefined ? (
               <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
             ) : (
               null
@@ -77,7 +77,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.canaryReportURL} title="ISD" width="1100" height="650">
+                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="1100" height="650">
                 </iframe>
                 </div>                    
               </div>
@@ -112,7 +112,7 @@ const setModalIsOpenToFalse =()=>{
           </table>
           {exceptionDiv}
         </div>
-      ) : props.stage.status!= undefined && props.stage.status == 'RUNNING' &&  props.stage.outputs.canaryReportURL != undefined ? (
+      ) : props.stage.status!= undefined && props.stage.status == 'RUNNING' &&  props.stage.outputs.verificationUrl != undefined ? (
         <div>
           <div className="detailpagelogo">
             <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
@@ -125,7 +125,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.canaryReportURL} title="ISD" width="1100" height="650">
+                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="1100" height="650">
                 </iframe>
                 </div>                    
               </div>
