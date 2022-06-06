@@ -2,7 +2,7 @@ import React from 'react';
 import { ExecutionDetailsTasks, IStageTypeConfig } from '@spinnaker/core';
 
 import { TerraformPlanGateExecutionDetails } from './TerraformPlanGateExecutionDetails';
-import { TerraformPlanGateConfig } from './TerraformPlanGateConfig';
+import { TerraformPlanGateConfig, validate } from './TerraformPlanGateConfig';
 
 /*
   Define Spinnaker Stages with IStageTypeConfig.
@@ -20,5 +20,5 @@ export const customTSPlanJobStage: IStageTypeConfig = {
   component: TerraformPlanGateConfig, // stage config
   executionDetailsSections: [TerraformPlanGateExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
-  //validateFn: validate,
+  validateFn: validate,
 };

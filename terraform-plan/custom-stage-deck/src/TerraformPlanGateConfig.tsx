@@ -92,7 +92,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
               </div>
               <div className="grid-span-2">
                 <FormikFormField
-                  name="parameters.tfScriptAccpint"
+                  name="parameters.tfScriptAccount"
                   label="Tf Script Account"
                   help={<HelpField id="opsmx.customTSPlanJobStage.tfScriptAccount" />}
                   input={(props) => <TextInput {...props} />}
@@ -161,5 +161,48 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
   );
 }
 
+
+export function validate(stageConfig: IStage) {
+  const validator = new FormValidator(stageConfig);
+
+  validator
+    .field('parameters.AWSAccountName')
+    .required()
+    .withValidators((value, label) => (value = '' ? `AWS Account Name is required` : undefined));
+  validator
+    .field('parameters.spinnakerNamespace')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Spinnaker Namespace is required` : undefined));
+  validator
+    .field('parameters.tfScriptAccount')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Script Account is required` : undefined));
+  validator
+    .field('parameters.tfScriptRepo')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Script Repository is required` : undefined));
+  validator
+    .field('parameters.tfLocation')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Location is required` : undefined));
+  validator
+    .field('parameters.overrideFile')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Override File is required` : undefined));
+  validator
+    .field('parameters.tfStateAccount')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform State Account is required` : undefined));
+  validator
+    .field('parameters.artifactRepo')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Artifact Repository is required` : undefined));
+  validator
+    .field('parameters.artifactUUID')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Artifact UUID is required` : undefined));
+
+  return validator.validateForm();
+}
 
 

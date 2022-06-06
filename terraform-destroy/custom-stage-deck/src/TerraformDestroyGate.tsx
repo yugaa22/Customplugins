@@ -1,8 +1,8 @@
 import React from 'react';
 import { ExecutionDetailsTasks, IStageTypeConfig } from '@spinnaker/core';
 
-import { TerraformPlanGateExecutionDetails } from './TerraformPlanGateExecutionDetails';
-import { TerraformPlanGateConfig } from './TerraformPlanGateConfig';
+import { TerraformDestroyGateExecutionDetails } from './TerraformDestroyGateExecutionDetails';
+import { TerraformDestroyGateConfig, validate } from './TerraformDestroyGateConfig';
 
 /*
   Define Spinnaker Stages with IStageTypeConfig.
@@ -13,12 +13,12 @@ import { TerraformPlanGateConfig } from './TerraformPlanGateConfig';
   - component -> The rendered React component
   - validateFn -> A validation function for the stage config form.
  */
-export const customTSPlanJobStage: IStageTypeConfig = {
-  key: 'customTSPlanJobStage',
-  label: `Terraform Plan`,
-  description: 'Stage for terraspin plan operation',
-  component: TerraformPlanGateConfig, // stage config
-  executionDetailsSections: [TerraformPlanGateExecutionDetails, ExecutionDetailsTasks],
+export const terraformdestroy: IStageTypeConfig = {
+  key: 'customTSDestroyJobStage',
+  label: `Terraform Destroy`,
+  description: 'Stage for terraspin destroy operation',
+  component: TerraformDestroyGateConfig, // stage config
+  executionDetailsSections: [TerraformDestroyGateExecutionDetails, ExecutionDetailsTasks],
   supportsCustomTimeout: true,
-  //validateFn: validate,
+  validateFn: validate,
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import {
   ExecutionDetailsSection,
@@ -6,13 +6,11 @@ import {
   FormikFormField,
   FormikStageConfig,
   FormValidator,
-  AccountService,
   HelpContentsRegistry,
   HelpField,
   IExecutionDetailsSectionProps,
   IStage,
   IStageConfigProps,
-  IFormikStageConfigInjectedProps,
   IStageTypeConfig,
   NumberInput,
   ReactSelectInput,
@@ -21,7 +19,7 @@ import {
   Validators,
 } from '@spinnaker/core';
 
-import './TerraformPlanGate.less';
+import './TerraformApplyGate.less';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -30,87 +28,49 @@ import './TerraformPlanGate.less';
 
   This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
  */
-export function TerraformPlanGateConfig(props: IStageConfigProps) {
-
-  const [awsAccounts, setAwsAccounts] = useState([]);
-
-  const loadAccounts = () => {
-    return AccountService
-      .getAllAccountDetailsForProvider('kubernetes')
-      .then((accounts) => {
-        setAwsAccounts(accounts);
-      });
-  }
+export function TerraformApplyGateConfig(props: IStageConfigProps) {
 
   useEffect(() => {
-    loadAccounts();
     props.stage.alias = 'preconfiguredJob';
   }, [])
+
 
   const HorizontalRule = () => (
     <div className="grid-span-4">
       <hr />
     </div>
   );
-
-
   return (
-    <div className="TeraformPlanGateConfig">
+    <div className="TeraformApplyGateConfig">
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
-        render={({ formik }: IFormikStageConfigInjectedProps) => (
+        render={() => (
           <div className="flex">
             <div className="grid"></div>
             <div className="grid grid-4 form mainform">
               <div className="grid-span-2">
                 <FormikFormField
-                  name="parameters.AWSAccountName"
-                  label="AWS Account Name"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.AWSAccountName" />}
-                  input={(props) => (
-                    <ReactSelectInput
-                      clearable={false}
-                      onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
-                        formik.setFieldValue('parameters.AWSAccountName', o.target.value);
-                      }}
-                      //value={...props}
-                      //stringOptions={...props}
-                      value={formik.values?.parameters?.AWSAccountName}
-                      stringOptions={awsAccounts.map((acc) => acc.name)}
-                    />
-                  )}
-                />
-              </div>
-              <div className="grid-span-2">
-                <FormikFormField
-                  name="parameters.spinnakerNamespace"
-                  label="Spinnaker Namespace"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.spinnakerNamespace" />}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div>
-              <div className="grid-span-2">
-                <FormikFormField
-                  name="parameters.tfScriptAccpint"
+                  name="parameters.tfScriptAccount"
                   label="Tf Script Account"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfScriptAccount" />}
+                  help={<HelpField id="opsmx.customTSApplyJobStage.tfScriptAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfScriptRepo"
-                  label="Tf Plan Script Repo"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfPlanScriptRepo" />}
+                  label="Tf Apply Script Repo"
+                  help={<HelpField id="opsmx.customTSApplyJobStage.tfApplyScriptRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
+
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.tfLocation"
                   label="Tf Location"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfLocation" />}
+                  help={<HelpField id="opsmx.customTSApplyJobStage.tfLocation" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -118,7 +78,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.overrideFile"
                   label="Override File"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.overrideFile" />}
+                  help={<HelpField id="opsmx.customTSApplyJobStage.overrideFile" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -126,15 +86,15 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfStateAccount"
                   label="Tf State Account"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfStateAccount" />}
+                  help={<HelpField id="opsmx.customTSApplyJobStage.tfStateAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
               <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.artifactRepo"
-                  label="Artifact Repository"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.artifactRepo" />}
+                  label="Artifact Repo"
+                  help={<HelpField id="opsmx.customTSApplyJobStage.artifactRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -142,7 +102,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.artifactUUID"
                   label="Artifact UUID"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.artifactUUID" />}
+                  help={<HelpField id="opsmx.customTSApplyJobStage.artifactUUID" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -161,5 +121,36 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
   );
 }
 
+export function validate(stageConfig: IStage) {
+  const validator = new FormValidator(stageConfig);
+  validator
+    .field('parameters.tfScriptAccount')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Script Account is required` : undefined));
+  validator
+    .field('parameters.tfApplyScriptRepo')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Script Repository is required` : undefined));
+  validator
+    .field('parameters.tfLocation')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Location is required` : undefined));
+  validator
+    .field('parameters.overrideFile')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Override File is required` : undefined));
+  validator
+    .field('parameters.tfStateAccount')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform State Account is required` : undefined));
+  validator
+    .field('parameters.artifactRepo')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Artifact Repository is required` : undefined));
+  validator
+    .field('parameters.artifactUUID')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Artifact UUID is required` : undefined));
 
-
+  return validator.validateForm();
+} 

@@ -3,17 +3,17 @@ import React, { useEffect, useState } from 'react';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
+  AccountService,
   FormikFormField,
   FormikStageConfig,
   FormValidator,
-  AccountService,
   HelpContentsRegistry,
   HelpField,
   IExecutionDetailsSectionProps,
   IStage,
   IStageConfigProps,
-  IFormikStageConfigInjectedProps,
   IStageTypeConfig,
+  IFormikStageConfigInjectedProps,
   NumberInput,
   ReactSelectInput,
   TextAreaInput,
@@ -21,7 +21,7 @@ import {
   Validators,
 } from '@spinnaker/core';
 
-import './TerraformPlanGate.less';
+import './TerraformDestroyGate.less';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -30,7 +30,7 @@ import './TerraformPlanGate.less';
 
   This method returns JSX (https://reactjs.org/docs/introducing-jsx.html) that gets displayed in the Spinnaker UI.
  */
-export function TerraformPlanGateConfig(props: IStageConfigProps) {
+export function TerraformDestroyGateConfig(props: IStageConfigProps) {
 
   const [awsAccounts, setAwsAccounts] = useState([]);
 
@@ -52,10 +52,8 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
       <hr />
     </div>
   );
-
-
   return (
-    <div className="TeraformPlanGateConfig">
+    <div className="TeraformDestroyGateConfig">
       <FormikStageConfig
         {...props}
         onChange={props.updateStage}
@@ -67,7 +65,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.AWSAccountName"
                   label="AWS Account Name"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.AWSAccountName" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.AWSAccountName" />}
                   input={(props) => (
                     <ReactSelectInput
                       clearable={false}
@@ -86,7 +84,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.spinnakerNamespace"
                   label="Spinnaker Namespace"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.spinnakerNamespace" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.spinnakerNamespace" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -94,7 +92,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfScriptAccpint"
                   label="Tf Script Account"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfScriptAccount" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.tfScriptAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -102,7 +100,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfScriptRepo"
                   label="Tf Plan Script Repo"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfPlanScriptRepo" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.tfScriptRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -110,7 +108,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfLocation"
                   label="Tf Location"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfLocation" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.tfLocation" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -118,7 +116,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.overrideFile"
                   label="Override File"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.overrideFile" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.overrideFile" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -126,7 +124,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.tfStateAccount"
                   label="Tf State Account"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.tfStateAccount" />}
+                  help={<HelpField id="opsmx.customTSDestroyJobStage.tfStateAccount" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -134,7 +132,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.artifactRepo"
                   label="Artifact Repository"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.artifactRepo" />}
+                  help={<HelpField id="opsmx.terraformdestroy.artifactRepo" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -142,7 +140,7 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
                 <FormikFormField
                   name="parameters.artifactUUID"
                   label="Artifact UUID"
-                  help={<HelpField id="opsmx.customTSPlanJobStage.artifactUUID" />}
+                  help={<HelpField id="opsmx.terraformdestroy.artifactUUID" />}
                   input={(props) => <TextInput {...props} />}
                 />
               </div>
@@ -161,5 +159,45 @@ export function TerraformPlanGateConfig(props: IStageConfigProps) {
   );
 }
 
+export function validate(stageConfig: IStage) {
+  const validator = new FormValidator(stageConfig);
 
+  validator
+    .field('parameters.AWSAccountName')
+    .required()
+    .withValidators((value, label) => (value = '' ? `AWS Account Name is required` : undefined));
+  validator
+    .field('parameters.spinnakerNamespace')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Spinnaker Namespace is required` : undefined));
+  validator
+    .field('parameters.tfScriptAccount')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Script Account is required` : undefined));
+  validator
+    .field('parameters.tfScriptRepo')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Script Repository is required` : undefined));
+  validator
+    .field('parameters.tfLocation')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform Location is required` : undefined));
+  validator
+    .field('parameters.overrideFile')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Override File is required` : undefined));
+  validator
+    .field('parameters.tfStateAccount')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Terraform State Account is required` : undefined));
+  validator
+    .field('parameters.artifactRepo')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Artifact Repository is required` : undefined));
+  validator
+    .field('parameters.artifactUUID')
+    .required()
+    .withValidators((value, label) => (value = '' ? `Artifact UUID is required` : undefined));
 
+  return validator.validateForm();
+}
