@@ -443,16 +443,16 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
   validator
-    .field('parameters.environment')
+    .field('parameters.environment','Environment')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 
   validator
-    .field('parameters.policyName')
+    .field('parameters.policyName','Policy')
     .required()
     .withValidators((value, label) => (value = '' ? `policy Name is required` : undefined));
   validator
-    .field('parameters.imageids')
+    .field('parameters.imageids','Instance Id')
     .required()
     .withValidators((value, label) => (value = '' ? `Image IDs is required` : undefined));
 

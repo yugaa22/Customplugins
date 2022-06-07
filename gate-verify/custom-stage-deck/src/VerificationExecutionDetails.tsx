@@ -68,7 +68,7 @@ const setModalIsOpenToFalse =()=>{
               null
             )
             }          
-            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
                 <div className="modal-header">                      
                   <button onClick={setModalIsOpenToFalse} className="close">
@@ -77,7 +77,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="1100" height="650">
+                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="100%" height="650">
                 </iframe>
                 </div>                    
               </div>
@@ -116,7 +116,7 @@ const setModalIsOpenToFalse =()=>{
         <div>
           <div className="detailpagelogo">
             <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
-            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
                 <div className="modal-header">                      
                   <button onClick={setModalIsOpenToFalse} className="close">
@@ -125,7 +125,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="1100" height="650">
+                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="100%" height="650">
                 </iframe>
                 </div>                    
               </div>
