@@ -147,7 +147,6 @@ public class ApprovalTriggerTask implements Task {
 		CloseableHttpClient httpClient = null;
 		try {
 			String triggerUrl = getTriggerURL(stage, outputs);
-			logger.info("Gate trigger url: {}", triggerUrl);
 			if (triggerUrl == null) {
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
@@ -478,7 +477,6 @@ public class ApprovalTriggerTask implements Task {
 	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
-		logger.info("Gate endpoint to get trigger endpoint : {}", triggerEndpoint);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
 			HttpGet request = new HttpGet(triggerEndpoint);
@@ -492,10 +490,9 @@ public class ApprovalTriggerTask implements Task {
 				registerResponse = EntityUtils.toString(entity);
 			}
 
-			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			logger.debug("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
 			if (response.getStatusLine().getStatusCode() != 200) {
-				outputs.put(EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
-						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(EXCEPTION, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
 				outputs.put(TRIGGER, FAILED);
 				outputs.put(STATUS, REJECTED);
 				return null;
@@ -504,15 +501,14 @@ public class ApprovalTriggerTask implements Task {
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
 			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
-				outputs.put(EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
-						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(EXCEPTION, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
 				outputs.put(TRIGGER, FAILED);
 				outputs.put(STATUS, REJECTED);
 				return null;
 			}
 			return triggerUrl;
 		} catch (Exception e) {
-			logger.error("Failed to execute verification gate", e);
+			logger.error("Failed to execute approval gate", e);
 			outputs.put(EXCEPTION, String.format("Error occurred while getting trigger endpoint, %s", e));
 			outputs.put(TRIGGER, FAILED);
 			outputs.put(STATUS, REJECTED);

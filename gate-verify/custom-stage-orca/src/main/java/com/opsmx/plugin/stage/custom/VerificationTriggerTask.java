@@ -63,7 +63,8 @@ public class VerificationTriggerTask implements Task {
 	@NotNull
 	@Override
 	public TaskResult execute(@NotNull StageExecution stage) {
-		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}", stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
+		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}",
+				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
 		return triggerAnalysis(stage);
 	}
 
@@ -127,7 +128,7 @@ public class VerificationTriggerTask implements Task {
 			}
 
 			String canaryUrl = response.getLastHeader(OesConstants.LOCATION).getValue();
-			logger.info("Analysis autopilot link : {}", canaryUrl);
+			logger.debug("Analysis autopilot link : {}", canaryUrl);
 			outputs.put(OesConstants.LOCATION, canaryUrl);
 			outputs.put(OesConstants.TRIGGER, OesConstants.SUCCESS);
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)
@@ -159,7 +160,6 @@ public class VerificationTriggerTask implements Task {
 	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
-		logger.info("Gate endpoint to get trigger endpoint : {}", triggerEndpoint);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
 			HttpGet request = new HttpGet(triggerEndpoint);
@@ -173,10 +173,9 @@ public class VerificationTriggerTask implements Task {
 				registerResponse = EntityUtils.toString(entity);
 			}
 
-			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			logger.debug("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
 			if (response.getStatusLine().getStatusCode() != 200) {
-				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
-						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(OesConstants.EXCEPTION, String.format("Failed to get trigger endpoint with response : %s", registerResponse));
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 				outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 				outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
@@ -186,8 +185,7 @@ public class VerificationTriggerTask implements Task {
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
 			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
-				outputs.put(OesConstants.EXCEPTION, String.format("Failed to trigger request with Status code : %s and Response : %s",
-						response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(OesConstants.EXCEPTION, String.format("Failed to get trigger endpoint with response : %s", registerResponse));
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 				outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 				outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);

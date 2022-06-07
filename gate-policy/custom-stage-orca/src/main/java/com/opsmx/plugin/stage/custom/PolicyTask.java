@@ -88,7 +88,6 @@ public class PolicyTask implements Task {
 		logger.info("Policy gate execution start ");
 
 		String triggerUrl = getTriggerURL(stage, outputs);
-		logger.info("Gate trigger url: {}", triggerUrl);
 		if (triggerUrl == null) {
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
 					.context(contextMap)
@@ -146,8 +145,8 @@ public class PolicyTask implements Task {
 
 			} else {
 				outputs.put(STATUS, DENY);
-				outputs.put("REASON", String.format("Policy verification status code :: %s, %s", response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Policy verification failed :: %s", registerResponse));
+				outputs.put("REASON", String.format("Policy validation status code :: %s, %s", response.getStatusLine().getStatusCode(), registerResponse));
+				outputs.put(MESSAGE, String.format("Policy validation failed :: %s", registerResponse));
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.context(contextMap)
@@ -157,7 +156,7 @@ public class PolicyTask implements Task {
 		} catch (Exception e) {
 			logger.error("Error occurred while triggering policy ", e);
 			outputs.put(STATUS, DENY);
-			outputs.put(MESSAGE, String.format("Policy trigger failed with exception :: %s", e.getMessage()));
+			outputs.put(MESSAGE, String.format("Policy validation trigger failed with exception :: %s", e.getMessage()));
 			outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 			return TaskResult.builder(ExecutionStatus.TERMINAL)
 					.context(contextMap)
@@ -258,7 +257,6 @@ public class PolicyTask implements Task {
 	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
-		logger.info("Gate endpoint to get trigger endpoint : {}", triggerEndpoint);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
 			HttpGet request = new HttpGet(triggerEndpoint);
@@ -272,12 +270,12 @@ public class PolicyTask implements Task {
 				registerResponse = EntityUtils.toString(entity);
 			}
 
-			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			logger.debug("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
 			if (response.getStatusLine().getStatusCode() != 200) {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Failed to get the trigger url with status code :: %s, %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Failed to get the trigger url with status code :: %s", response.getStatusLine().getStatusCode()));
+				outputs.put(MESSAGE, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return null;
 			}
@@ -286,9 +284,9 @@ public class PolicyTask implements Task {
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
 			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put(STATUS, DENY);
-				outputs.put("REASON", String.format("Failed to get the trigger url with status code :: %s, %s",
+				outputs.put("REASON", String.format("Failed to get the trigger endpoint with status code :: %s, %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Failed to get the trigger url with status code :: %s", response.getStatusLine().getStatusCode()));
+				outputs.put(MESSAGE, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return null;
 			}
@@ -299,7 +297,7 @@ public class PolicyTask implements Task {
 		} catch (Exception e) {
 			logger.error("Failed to execute policy stage", e);
 			outputs.put(STATUS, DENY);
-			outputs.put(MESSAGE, String.format("Policy trigger failed with exception :: %s", e.getMessage()));
+			outputs.put(MESSAGE, String.format("Failed to get the trigger endpoint with exception :: %s", e.getMessage()));
 			outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 			return null;
 		} finally {
