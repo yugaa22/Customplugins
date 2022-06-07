@@ -566,7 +566,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                               <h4 className="modal-title">Log Template</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
-                              <iframe src={logUrl} title="ISD" width="1100" height="650">
+                              <iframe src={logUrl} title="ISD" width="100%" height="650">
                               </iframe>
                             </div>
                           </div>
@@ -666,7 +666,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                       </div>
                       <div className="grid-span-2">
 
-                        <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup modal-content" overlayClassName="react-modal-custom">
+                        <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
                             <div className="modal-header">
                               <button onClick={setModalIsOpenToFalse} className="close">
@@ -675,7 +675,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                               <h4 className="modal-title">Metric Template</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
-                              <iframe src={metricUrl} title="ISD" width="1100" height="650">
+                              <iframe src={metricUrl} title="ISD" width="100%" height="650">
                               </iframe>
                             </div>
                           </div>
