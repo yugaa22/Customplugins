@@ -1021,12 +1021,12 @@ export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
   validator
-    .field('parameters.environment[0]')
+    .field('parameters.environment[0]','Environment')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 
   validator
-    .field('parameters.imageids')
+    .field('parameters.imageids','Instance Id')
     .required()
     .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
   return validator.validateForm();
