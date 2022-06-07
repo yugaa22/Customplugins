@@ -18,6 +18,6 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.policy.gateName', 'Please enter Gate.');
   HelpContentsRegistry.register('opsmx.policy.imageIds', 'Please enter the Instance Id');
   HelpContentsRegistry.register('opsmx.policy.policyName', 'Select the policy you want to evaluate. You can manage policies from Setup-> Policies');
-  HelpContentsRegistry.register('opsmx.policy.customEnvironment', 'Add new environment');
+  HelpContentsRegistry.register('opsmx.policy.customEnvironment', 'Add New Environment');
   HelpContentsRegistry.register('opsmx.policy.environment', 'Select the environment relevant to this stage');  
 };
