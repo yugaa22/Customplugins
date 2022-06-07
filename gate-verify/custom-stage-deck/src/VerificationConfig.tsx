@@ -231,7 +231,7 @@ export function VerificationConfig(props: IStageConfigProps) {
           let temp = results;
           temp.push({
             "id": 0,
-            "spinnakerEnvironment": "Add new Environment"
+            "spinnakerEnvironment": "+ Add New Environment"
           });
           setenvironmentsList(results);
           if (props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0) {
@@ -262,7 +262,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (e.target.value === 0) {
       setshowEnvironment(true);
       props.stage.parameters.environment[0].id = 0;
-      props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment';
+      props.stage.parameters.environment[0].spinnakerEnvironment = '+ Add New Environment';
     } else {
       setshowEnvironment(false);
       props.stage.parameters.customEnvironment = "";
@@ -493,7 +493,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   {showEnvironment ? (
                     <>
                       <div className="col-md-3 sm-label-right">
-                        Add new Environment<HelpField id="opsmx.verification.customEnvironment" />
+                        Add New Environment<HelpField id="opsmx.verification.customEnvironment" />
                       </div>
                       <div className="col-md-7">
                         <div className="grid-span-2">
