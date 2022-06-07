@@ -211,7 +211,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           let temp = response;
           temp.push({
             "id": 0,
-            "spinnakerEnvironment": "Add new Environment"
+            "spinnakerEnvironment": "+ Add New Environment"
           });
           setEnvironmentList(temp);
 
@@ -234,7 +234,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     if (e.target.value === 0) {
       setshowEnvironment(true);
       props.stage.parameters.environment[0].id = 0;
-      props.stage.parameters.environment[0].spinnakerEnvironment = 'Add new Environment'
+      props.stage.parameters.environment[0].spinnakerEnvironment = '+ Add New Environment'
 
     } else {
       setshowEnvironment(false);
@@ -578,7 +578,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             {showEnvironment ? (
               <>
                 <div className="col-md-3 sm-label-right">
-                  Add new Environment<HelpField id="opsmx.approval.customEnvironment" />
+                  Add New Environment<HelpField id="opsmx.approval.customEnvironment" />
                 </div>
                 <div className="col-md-7">
                   <div className='grid-span-2'>
