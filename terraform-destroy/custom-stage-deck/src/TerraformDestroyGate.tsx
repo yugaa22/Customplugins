@@ -13,7 +13,7 @@ import { TerraformDestroyGateConfig, validate } from './TerraformDestroyGateConf
   - component -> The rendered React component
   - validateFn -> A validation function for the stage config form.
  */
-export const terraformdestroy: IStageTypeConfig = {
+export const customTSDestroyJobStage: IStageTypeConfig = {
   key: 'customTSDestroyJobStage',
   label: `Terraform Destroy`,
   description: 'Stage for terraspin destroy operation',

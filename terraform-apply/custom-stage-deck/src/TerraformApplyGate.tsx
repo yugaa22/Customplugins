@@ -13,7 +13,7 @@ import { TerraformApplyGateConfig, validate } from './TerraformApplyGateConfig';
   - component -> The rendered React component
   - validateFn -> A validation function for the stage config form.
  */
-export const terraformapply: IStageTypeConfig = {
+export const customTSApplyJobStage: IStageTypeConfig = {
   key: 'customTSApplyJobStage',
   label: `Terraform Apply`,
   description: 'Stage for terraspin apply operation',
