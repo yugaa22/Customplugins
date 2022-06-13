@@ -84,7 +84,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td>
                   <span className={'PolicyStatusSmall ' + getClasses()}>{getStatus()}</span>
                 </td>
-                <td>{props.stage.outputs.message}</td>
+                <td className='wrapMessage'>{props.stage.outputs.message}</td>
                 <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
                 <td>{props.stage.outputs.policyName}</td>
