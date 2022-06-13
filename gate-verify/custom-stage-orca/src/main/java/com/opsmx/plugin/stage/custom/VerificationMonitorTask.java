@@ -103,7 +103,7 @@ public class VerificationMonitorTask implements RetryableTask {
 			outputs.put(OesConstants.OVERALL_SCORE, overAllScore);
 
 			if (result.equalsIgnoreCase(OesConstants.FAIL)) {
-				outputs.put(OesConstants.EXCEPTION, "Analysis score is below the minimum canary score");
+				outputs.put(OesConstants.EXCEPTION, "Analysis score is below the 'Marginal Score'");
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
@@ -113,12 +113,13 @@ public class VerificationMonitorTask implements RetryableTask {
 						.build();
 			}
 
-			else if (result.equalsIgnoreCase(OesConstants.REVIEW) || Float.compare(minimumScore, overAllScore) == 0 || ( Float.compare(minimumScore, overAllScore) < 0 &&  Float.compare(overAllScore, maximumScore) < 0 )) {
-				outputs.put(OesConstants.REASON, "Analysis score is between 'minimum canary result score' and 'maximum canary result score'.");
-				return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+			else if (result.equalsIgnoreCase(OesConstants.REVIEW) || ( Float.compare(minimumScore, overAllScore) >= 0 &&  Float.compare(overAllScore, maximumScore) < 0 )) {
+				outputs.put(OesConstants.REASON, "Analysis score is between 'Marginal Score' and 'Pass score'");
+				outputs.put(OesConstants.EXCEPTION, "Analysis score is between 'Marginal Score' and 'Pass score'");
+				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
-			} 
+			}
 			
 			return TaskResult.builder(ExecutionStatus.RUNNING)
 					.outputs(outputs)
