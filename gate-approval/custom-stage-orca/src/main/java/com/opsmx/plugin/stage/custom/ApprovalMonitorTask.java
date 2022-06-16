@@ -180,4 +180,22 @@ public class ApprovalMonitorTask implements RetryableTask {
 	public long getTimeout() {
 		return TimeUnit.DAYS.toMillis(1);
 	}
+
+	@Override
+	public TaskResult onTimeout(@NotNull StageExecution stage) {
+
+		Map<String, Object> outputs = stage.getOutputs();
+		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");
+		if (trigger.equals(ApprovalTriggerTask.SUCCESS) && outputs.get(ApprovalMonitorTask.STATUS) == null) {
+			logger.info("Cancelling triggered approval gate as stage getting terminated");
+			String approvalUrl = (String) outputs.get(ApprovalMonitorTask.LOCATION);
+			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "spinnakerReview");
+			approvalUrl = approvalUrl.replaceFirst("/v2/", "/v1/");
+			cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(),outputs, "exceeded its progress deadline");
+			if (outputs.containsKey(ApprovalTriggerTask.NAVIGATIONAL_URL)) {
+				stage.getOutputs().remove(ApprovalTriggerTask.NAVIGATIONAL_URL);
+			}
+		}
+		return null;
+	}
 }
