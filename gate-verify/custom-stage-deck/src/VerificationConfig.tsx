@@ -533,7 +533,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                           input={(props) => (
                             <ReactSelectInput
                               {...props}
-                              clearable={false}
+                              clearable={true}
                               // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
                               //   ...props.formik.setFieldValue('parameters.logTemplate', o.target.value);
                               // }}
@@ -644,7 +644,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                           input={(props) => (
                             <ReactSelectInput
                               {...props}
-                              clearable={false}
+                              clearable={true}
                               // onChange={(e) => setMetricTemplate(e.target.value)}
                               // onChange={(o: React.ChangeEvent<HTMLSelectElement>) => {
                               //   this.props.formik.setFieldValue('parameters.metricTemplate', o.target.value);
