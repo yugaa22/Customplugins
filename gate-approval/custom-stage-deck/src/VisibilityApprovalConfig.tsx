@@ -453,7 +453,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="form-horizontal">
               <div className="form-group">
                 <div className="col-md-3 sm-label-right">
-                  {dynamicField.connectorType + ' ' + dynamicField.supportedParams[0].label}<HelpField id={'approval' + dynamicField.connectorType + dynamicField.supportedParams[0].name} />
+                  {(dynamicField.connectorType + ' ' + dynamicField.supportedParams[0].label).toUpperCase()}<HelpField id={'approval' + dynamicField.connectorType + dynamicField.supportedParams[0].name} />
                 </div>
                 <div className="col-md-7">
                   <FormikFormField
@@ -494,7 +494,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="form-horizontal">
               <div className="form-group">
                 <div className="col-md-3 sm-label-right">
-                  {dynamicField.connectorType}<HelpField id={'approval'+ dynamicField.connectorType} />
+                  {dynamicField.connectorType.toUpperCase()}<HelpField id={'approval'+ dynamicField.connectorType} />
                 </div>
                 <div className="col-md-7">
                   <FormikFormField
