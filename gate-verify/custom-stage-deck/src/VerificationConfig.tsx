@@ -756,7 +756,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <div className="form-group">
 
                   <div className="col-md-3 sm-label-right">
-                    LifeTime Hours  *<HelpField id="opsmx.verification.lifeTimeHours" />
+                    LifeTime *<HelpField id="opsmx.verification.lifeTimeHours" />
                   </div>
                   <div className="col-md-7">
                     <div>
@@ -770,7 +770,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                     </div>
                   </div>
-
+                  <div className="label-left">Hours</div>
                 </div>
               </div>
               {/* 
