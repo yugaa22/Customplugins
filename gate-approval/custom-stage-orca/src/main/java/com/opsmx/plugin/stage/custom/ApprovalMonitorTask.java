@@ -27,6 +27,8 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 
+import javax.annotation.Nonnull;
+
 @Extension
 @PluginComponent
 public class ApprovalMonitorTask implements RetryableTask {
@@ -70,7 +72,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 			logger.info("Approval Monitoring started, Application : {}, Pipeline : {}",
 					stage.getExecution().getApplication(), stage.getExecution().getName());
 			String approvalUrl = (String) outputs.get(LOCATION);
-			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs);
+			return getApprovalStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs);
 		} else {
 			logger.info("Approval Monitoring not starting because trigger task not completed");
 		  return TaskResult.builder(ExecutionStatus.RUNNING)
@@ -112,7 +114,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 				.build();
 	}
 
-	private TaskResult getVerificationStatus(String approvalUrl, String user, Map<String, Object> outputs) {
+	private TaskResult getApprovalStatus(String approvalUrl, String user, Map<String, Object> outputs) {
 		HttpGet request = new HttpGet(approvalUrl);
 
 		CloseableHttpClient httpClient = null;
@@ -179,5 +181,23 @@ public class ApprovalMonitorTask implements RetryableTask {
 	@Override
 	public long getTimeout() {
 		return TimeUnit.DAYS.toMillis(1);
+	}
+
+	@Override
+	public TaskResult onTimeout(@Nonnull StageExecution stage) {
+
+		Map<String, Object> outputs = stage.getOutputs();
+		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");
+		if (trigger.equals(ApprovalTriggerTask.SUCCESS) && outputs.get(ApprovalMonitorTask.STATUS) == null) {
+			logger.info("Cancelling triggered approval gate as stage getting terminated");
+			String approvalUrl = (String) outputs.get(ApprovalMonitorTask.LOCATION);
+			approvalUrl = approvalUrl.replaceFirst("[^/]*$", "spinnakerReview");
+			approvalUrl = approvalUrl.replaceFirst("/v2/", "/v1/");
+			cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(),outputs, "exceeded its progress deadline");
+			if (outputs.containsKey(ApprovalTriggerTask.NAVIGATIONAL_URL)) {
+				stage.getOutputs().remove(ApprovalTriggerTask.NAVIGATIONAL_URL);
+			}
+		}
+		return null;
 	}
 }
