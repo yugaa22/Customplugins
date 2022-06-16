@@ -95,7 +95,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                    <a className="clikable" onClick={openApprovalDetails}>
                      <span>View</span>
                    </a>
-                    <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+                    <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
                       <div className="modal-content">
                         <div className="modal-header">                      
                           <button onClick={closeApprovalDetails} className="close">
@@ -104,7 +104,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                           <h4 className="modal-title">Approval Details</h4>
                         </div>                                      
                         <div className="grid-span-4 modal-body">
-                        <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="1100" height="650">
+                        <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="100%" height="650">
                         </iframe>
                         </div>                    
                       </div>
@@ -129,7 +129,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                       Approval Request
             </a>
 
-            <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+            <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
                 <div className="modal-header">                      
                   <button onClick={setModalIsOpenToFalse} className="close">
@@ -138,7 +138,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                   <h4 className="modal-title"> Approval Request</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="1100" height="650">
+                <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="100%" height="650">
                 </iframe>
                 </div>                    
               </div>
