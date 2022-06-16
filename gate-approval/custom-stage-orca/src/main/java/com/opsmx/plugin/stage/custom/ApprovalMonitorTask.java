@@ -181,8 +181,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 	@Override
 	public long getTimeout() {
-		return TimeUnit.MINUTES.toMillis(30);
-//		return TimeUnit.DAYS.toMillis(1);
+		return TimeUnit.DAYS.toMillis(1);
 	}
 
 	@Override
