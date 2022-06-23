@@ -113,7 +113,7 @@ public class RBACValidationTask implements Task {
 			}
 			
 
-			logger.info("Verifying {} with OPA", finalInput);
+			logger.debug("Verifying {} with OPA", finalInput);
 
 			/* build our request to OPA */
 			RequestBody requestBody = RequestBody.create(JSON, finalInput);
@@ -125,7 +125,7 @@ public class RBACValidationTask implements Task {
 			/* fetch the response from the spawned call execution */
 			httpResponse = doPost(opaFinalUrl, requestBody);
 			opaStringResponse = httpResponse.body().string();
-			logger.info("OPA response: {}", opaStringResponse);
+			logger.debug("OPA response: {}", opaStringResponse);
 			logger.debug("proxy enabled : {}, statuscode : {}, opaResultKey : {}", isOpaProxy, httpResponse.code(), opaResultKey);
 			if (isOpaProxy) {
 				if (httpResponse.code() == 401 ) {

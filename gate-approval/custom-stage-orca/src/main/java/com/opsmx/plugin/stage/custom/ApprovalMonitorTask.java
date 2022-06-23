@@ -184,7 +184,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 	}
 
 	@Override
-	public TaskResult onTimeout(@Nonnull StageExecution stage) {
+	public TaskResult onTimeout(@NotNull StageExecution stage) {
 
 		Map<String, Object> outputs = stage.getOutputs();
 		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");

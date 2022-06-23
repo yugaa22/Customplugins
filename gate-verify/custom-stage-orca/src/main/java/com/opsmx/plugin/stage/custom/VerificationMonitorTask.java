@@ -73,7 +73,7 @@ public class VerificationMonitorTask implements RetryableTask {
 			ObjectNode readValue = objectMapper.readValue(EntityUtils.toString(entity), ObjectNode.class);
 			String analysisStatus = readValue.get(OesConstants.STATUS).get(OesConstants.STATUS).asText();
 			outputs.put(OesConstants.CANARY_REPORTURL,
-					String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
+			String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 			if (readValue.get(OesConstants.CANARY_RESULT).get("verificationUrl") != null ) {
 				outputs.put("verificationUrl",
 						String.format("%s/fromPlugin/%s", readValue.get(OesConstants.CANARY_RESULT).get("verificationUrl").asText(), serviceId));
@@ -103,8 +103,8 @@ public class VerificationMonitorTask implements RetryableTask {
 			outputs.put(OesConstants.OVERALL_SCORE, overAllScore);
 
 			if (result.equalsIgnoreCase(OesConstants.FAIL)) {
-				outputs.put(OesConstants.EXCEPTION, "Analysis score is below the 'Marginal Score'");
-				return TaskResult.builder(ExecutionStatus.TERMINAL)
+			outputs.put(OesConstants.EXCEPTION, "Analysis score is below the 'Pass score'");
+			return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
 			} else if (result.equalsIgnoreCase(OesConstants.SUCCESS)){
@@ -120,14 +120,13 @@ public class VerificationMonitorTask implements RetryableTask {
 						.outputs(outputs)
 						.build();
 			}
-			
+
 			return TaskResult.builder(ExecutionStatus.RUNNING)
 					.outputs(outputs)
 					.build();
-
 		} catch (Exception e) {
-			logger.error("Error occured while getting anaysis result ", e);
-			outputs.put(OesConstants.EXCEPTION, String.format("Error occured while processing %s", e.getMessage()));
+			logger.error("Error occurred while getting anaysis result ", e);
+			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while processing %s", e.getMessage()));
 			outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 			outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 			outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
