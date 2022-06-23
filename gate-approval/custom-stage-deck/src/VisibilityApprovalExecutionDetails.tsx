@@ -125,7 +125,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
         <div>
           <div className="detailpagelogo">
 
-            <a className='approvalRequest'  onClick={setModalIsOpenToTrue}>
+            <a className='activeBtn'  onClick={setModalIsOpenToTrue}>
                       Approval Request
             </a>
 
