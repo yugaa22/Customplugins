@@ -27,6 +27,7 @@ import {
 } from '@spinnaker/core';
 import './VisibilityApproval.less';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
+import { Multiselect } from 'multiselect-react-dropdown';
 import { MultiSelect } from 'react-multi-select-component';
 
 const HorizontalRule = () => (
@@ -76,7 +77,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     }
 
     if (!props.stage.parameters.hasOwnProperty('approvalGroups')) {
-      props.stage.parameters.approvalGroups = []
+      props.stage.parameters.approvalGroups = null;
     }
 
     if (!props.stage.parameters.hasOwnProperty('automatedApproval')) {
@@ -287,6 +288,12 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     props.formik.setFieldValue(`parameters.approvalGroups`, e)
   }
 
+  const handleOnremoveOption =(e:any,props:any)=>{
+    if(e?.length === 0) props.formik.setFieldValue(`parameters.approvalGroups`, null)
+    else props.formik.setFieldValue(`parameters.approvalGroups`, e)
+  }
+  
+
   // const [checked, setChecked] = useState(false);
 
   const handleCheckbox = (e: any, props: any) => {
@@ -465,8 +472,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 </div>
               </div>
             </div>
-
-
           </div>
         );
       } else {
@@ -545,7 +550,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="col-md-7">
               <FormikFormField
                 // name={props.stage.parameters.environment[0].spinnakerEnvironment}
-                name="parameters.environment[0]"
+                name="parameters.environment[0].id"
                 label=""
                 required={true}
                 input={() => (
@@ -714,8 +719,10 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="col-md-7">
               <div className="padding-8">
 
-                <MultiSelect
-                  options={approvalGroupsList && approvalGroupsList.map((approvalGroup: any) => ({
+                <Multiselect
+                  id="parameters.approvalGroups"
+                  name="parameters.approvalGroups"
+                  options={approvalGroupsList && approvalGroupsList?.map((approvalGroup: any) => ({
                     label: approvalGroup.userGroupName,
                     value: approvalGroup.userGroupId,
                     userGroupName: approvalGroup.userGroupName,
@@ -723,13 +730,56 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                     isAdmin: approvalGroup.isAdmin,
                     isSuperAdmin: approvalGroup.isSuperAdmin
                   }))}
-                  onChange={(e: any) => handleApprovalGroups(e, props)}
-                  labelledBy="Select"
-                  value={propsFormik?.parameters?.approvalGroups}
+                  selectedValues={propsFormik?.parameters.approvalGroups}
+                  onSelect={(e: any) => handleApprovalGroups(e, props)}
+                  onRemove={(e: any) => handleOnremoveOption(e, props)}
+                  displayValue="label"
+                  showCheckbox={true}
+                  showArrow
+                  style={{
+                    multiSelectContainer: {
+                      height: '200px !important',
+                      width: '50%'
+                    },
+                    searchBox: { // To change search box element look
 
+                    },
+                    option: { // To change css for dropdown options
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '6px'
+                    },
+                    optionContainer: {
+                      maxHeight: '200px !important'
+                    }
+                  }}
                 />
+            
+                            
+           
+                 {/* <FormikFormField
+                  name="parameters.approvalGroups"
+                  label=""
+                  input={(approvrGroupProps) => (
+                    <MultiSelect
+                    {...approvrGroupProps}
+                      options={approvalGroupsList && approvalGroupsList.map((approvalGroMultiSelectup: any) => ({
+                        label: approvalGroup.userGroupName,
+                        value: approvalGroup.userGroupId,
+                        userGroupName: approvalGroup.userGroupName,
+                        userGroupId: approvalGroup.userGroupId,
+                        isAdmin: approvalGroup.isAdmin,
+                        isSuperAdmin: approvalGroup.isSuperAdmin
+                      }))}
+                      onChange={(e: any) => handleApprovalGroups(e, props)}
+                      labelledBy="parameters.approvalGroups"
+                      value={propsFormik?.parameters.approvalGroups}
+                    />
+                  )}
+                
+                />  */}
+             
               </div>
-
             </div>
           </div>
         </div>
@@ -807,7 +857,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 
       {/* <div className="grid-span-4 fullWidthContainer">
-            <FormikFormField
+                  <FormikFormField
               name="parameters.gateUrl"
               label="Gate Url"
               help={<HelpField id="opsmx.approval.gateUrl" />}
@@ -1021,13 +1071,19 @@ export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
   validator
-    .field('parameters.environment[0]','Environment')
-    .required()
+    .field('parameters.environment[0].id','Environment')
+    .required("Environment is required")
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
+    
+    validator
+    .field('parameters.approvalGroups','Approver Group')
+    .required("Approver Group is required")
+    .withValidators((value, label) => (value = '' ? `Approver Group is required` : undefined));
 
   validator
     .field('parameters.imageids','Instance Id')
-    .required()
+    .required("Instance Id is required")
     .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
-  return validator.validateForm();
+    
+ return validator.validateForm();
 }
