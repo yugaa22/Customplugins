@@ -21,7 +21,7 @@ export const initialize = () => {
   HelpContentsRegistry.register('opsmx.verification.baselineStartTime', 'Baseline Start Time for the analysis');
   HelpContentsRegistry.register('opsmx.verification.canaryStartTime', 'Canary Start Time for the analysis');
   HelpContentsRegistry.register('opsmx.verification.gateName', 'Please enter Gate Name that is created in OES');
-  HelpContentsRegistry.register('opsmx.verification.imageIds', 'Unique Id which represents a pipeline execution; For example, in a k8s deployment pipeline, it is the Image Id');
+  //HelpContentsRegistry.register('opsmx.verification.imageIds', 'Unique Id which represents a pipeline execution; For example, in a k8s deployment pipeline, it is the Image Id');
   HelpContentsRegistry.register('opsmx.verification.logTemplate', 'A collection of all the information needed to run the log analysis');
   HelpContentsRegistry.register('opsmx.verification.metricTemplate', 'Information needed to run the metric analysis');
   HelpContentsRegistry.register('opsmx.verification.environment', 'Environment in which the Analysis will run');  

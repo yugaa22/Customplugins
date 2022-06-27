@@ -850,7 +850,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         {loadConnectors ? singleFieldComponent(props) : null}
       </div>
 
-      <HorizontalRule />
+      {/* <HorizontalRule /> */}
 
 
 
@@ -879,7 +879,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
       {/* Load Image Id's for Execution Details*/}
 
-      <div className="form-horizontal">
+      {/* <div className="form-horizontal">
         <div className="form-group">
           <div className="col-md-3 sm-label-right">
           Instance Id *<HelpField id="opsmx.approval.imageIds" />
@@ -900,7 +900,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         </div>
       </div>
 
-      <HorizontalRule />
+      <HorizontalRule /> */}
 
 
 
@@ -1080,10 +1080,10 @@ export function validate(stageConfig: IStage) {
     .required("Approver Group is required")
     .withValidators((value, label) => (value = '' ? `Approver Group is required` : undefined));
 
-  validator
-    .field('parameters.imageids','Instance Id')
-    .required("Instance Id is required")
-    .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
+  // validator
+  //   .field('parameters.imageids','Instance Id')
+  //   .required("Instance Id is required")
+  //   .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
     
  return validator.validateForm();
 }
