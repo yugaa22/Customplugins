@@ -386,7 +386,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
               </div>
 
 
-              <HorizontalRule />
+              {/* <HorizontalRule /> */}
               {/* <div className="grid-span-2">
                 <FormikFormField
                   name="parameters.gate"
@@ -395,7 +395,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                   input={(props) => <TextInput {...props} />}
                 />
               </div> */}
-              <div className="form-horizontal">
+              {/* <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
                   Instance Id *<HelpField id="opsmx.policy.imageIds" />
@@ -412,7 +412,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
 
 
@@ -451,10 +451,10 @@ export function validate(stageConfig: IStage) {
     .field('parameters.policyName','Policy')
     .required()
     .withValidators((value, label) => (value = '' ? `policy Name is required` : undefined));
-  validator
-    .field('parameters.imageids','Instance Id')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Image IDs is required` : undefined));
+  // validator
+  //   .field('parameters.imageids','Instance Id')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Image IDs is required` : undefined));
 
   return validator.validateForm();
 }
