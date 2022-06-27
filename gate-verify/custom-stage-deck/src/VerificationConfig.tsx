@@ -469,7 +469,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                         name="parameters.environment[0].id"
                         // label="Environment *"
                         //  help={<HelpField id="opsmx.verification.environment" />}
-                        required={true}
+                        // required={true}
                         input={() => (
                           <ReactSelectInput
                             {...props}
