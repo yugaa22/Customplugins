@@ -192,15 +192,6 @@ public class PolicyTask implements Task {
 		if (payload != null && ! payload.trim().isEmpty()) {
 			finalJson = (ObjectNode) objectMapper.readTree(payload);
 		}
-
-		String imageIds = parameterContext.get("imageids") != null ? (String) parameterContext.get("imageids"): null;
-		ArrayNode imageIdsNode = objectMapper.createArrayNode();
-		if (imageIds != null && ! imageIds.isEmpty()) {
-			Arrays.asList(imageIds.split(",")).forEach(tic -> {
-				imageIdsNode.add(tic.trim());
-			});
-		}
-		finalJson.set("imageIds", imageIdsNode);
 		finalJson.put(START_TIME, System.currentTimeMillis());
 		finalJson.put(APPLICATION2, stage.getExecution().getApplication());
 		finalJson.put(NAME2, stage.getExecution().getName());

@@ -173,7 +173,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 	@Override
 	public long getBackoffPeriod() {
-		return TimeUnit.SECONDS.toMillis(30);
+		return TimeUnit.SECONDS.toMillis(3);
 	}
 
 	@Override

@@ -226,12 +226,6 @@ public class VerificationTriggerTask implements Task {
 		finalJson.put("isJsonResponse", true);
 		finalJson.put("executionId", stage.getExecution().getId());
 		Map<String, Object> parameterContext = (Map<String, Object>) stage.getContext().get("parameters");
-		String imageIds = parameterContext.get("imageids") != null ? (String) parameterContext.get("imageids"): null;
-		ArrayNode imageIdsNode = objectMapper.createArrayNode();
-		if (imageIds != null && ! imageIds.isEmpty()) {
-			Arrays.asList(imageIds.split(",")).forEach(tic -> imageIdsNode.add(tic.trim()));
-		}
-		finalJson.set("imageIds", imageIdsNode);
 		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
 		if (parameterContext.get("gateSecurity") != null) {
 			String gateSecurityPayload = objectMapper.writeValueAsString(parameterContext.get("gateSecurity"));

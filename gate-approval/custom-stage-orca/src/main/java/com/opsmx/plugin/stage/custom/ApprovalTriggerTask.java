@@ -221,15 +221,6 @@ public class ApprovalTriggerTask implements Task {
 		finalJson.put("approvalCallbackURL", "http://oes-platform:8095/callbackurl");
 		finalJson.put("rejectionCallbackURL", "http://oes-platform:8095/rejectionbackurl");
 		finalJson.put("executionId", executionId);
-		ArrayNode imageIdsNode = objectMapper.createArrayNode();
-		String imageIds = (String) parameterContext.get("imageids");
-		if (imageIds != null && ! imageIds.isEmpty()) {
-			Arrays.asList(imageIds.split(",")).forEach(tic ->
-					imageIdsNode.add(tic.trim())
-			);
-		}
-
-		finalJson.set("imageIds", imageIdsNode);
 		String connectorJson = objectMapper.writeValueAsString(parameterContext.get(CONNECTORS));
 		ArrayNode connectorNode = (ArrayNode) objectMapper.readTree(connectorJson);
 		ArrayNode toolConnectorPayloads = objectMapper.createArrayNode();
