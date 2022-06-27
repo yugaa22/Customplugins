@@ -145,7 +145,7 @@ public class VerificationMonitorTask implements RetryableTask {
 
 	@Override
 	public long getBackoffPeriod() {
-		return TimeUnit.SECONDS.toMillis(30);
+		return TimeUnit.SECONDS.toMillis(5);
 	}
 
 	@Override
