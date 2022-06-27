@@ -466,7 +466,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   <div className="col-md-7">
                     <div className="grid-span-2">
                       <FormikFormField
-                        name="parameters.environment[0]"
+                        name="parameters.environment[0].id"
                         // label="Environment *"
                         //  help={<HelpField id="opsmx.verification.environment" />}
                         required={true}
@@ -1007,7 +1007,7 @@ export function validate(stageConfig: IStage) {
     .withValidators((value, label) => (value = '' ? `Log Template is required` : undefined));
 
   validator
-    .field('parameters.environment','Environment')
+    .field('parameters.environment[0].id','Environment')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 

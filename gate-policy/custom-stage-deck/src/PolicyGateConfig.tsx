@@ -269,7 +269,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                   <div className="col-md-7">
                     <div className="grid-span-2">
                       <FormikFormField
-                        name="parameters.environment[0]"
+                        name="parameters.environment[0].id"
                         // label="Enviornment *"
                         //  help={<HelpField id="opsmx.policy.environment" />}
                         input={() => (
@@ -443,7 +443,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
   validator
-    .field('parameters.environment','Environment')
+    .field('parameters.environment[0].id','Environment')
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 
