@@ -552,7 +552,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 // name={props.stage.parameters.environment[0].spinnakerEnvironment}
                 name="parameters.environment[0].id"
                 label=""
-                required={true}
+                // required={true}
                 input={() => (
                   <ReactSelectInput
                     {...props}
