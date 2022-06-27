@@ -14,7 +14,7 @@ import { HelpContentsRegistry } from '@spinnaker/core';
 export const initialize = () => {
   HelpContentsRegistry.register('opsmx.approval.gateUrl', 'Please enter the Gate URL');
   HelpContentsRegistry.register('opsmx.approval.gateName', 'Please enter Gate Name that is created in OES');
-  HelpContentsRegistry.register('opsmx.approval.imageIds', 'Unique Id which represents a pipeline execution; For example, in a k8s deployment pipeline, it is the Image Id');
+  //HelpContentsRegistry.register('opsmx.approval.imageIds', 'Unique Id which represents a pipeline execution; For example, in a k8s deployment pipeline, it is the Image Id');
   HelpContentsRegistry.register('opsmx.approval.environment', 'Select the environment relevant to this stage');  
   HelpContentsRegistry.register('opsmx.approval.customEnvironment', 'Add New Environment');
   HelpContentsRegistry.register('opsmx.approval.automatedApproval', 'Automatically approve the deployment based on preconfigured conditions');

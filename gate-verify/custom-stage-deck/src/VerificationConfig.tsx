@@ -927,7 +927,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 />
               </div> */}
 
-              <div className="form-horizontal">
+              {/* <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
                   Instance Id *<HelpField id="opsmx.verification.imageIds" />
@@ -944,7 +944,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* <div className="grid-span-4">
                 <h4 className="sticky-header ng-binding">Gate Security</h4>
@@ -1011,10 +1011,10 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 
-  validator
-    .field('parameters.imageids','Instance Id')
-    .required()
-    .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
+  // validator
+  //   .field('parameters.imageids','Instance Id')
+  //   .required()
+  //   .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
 
   validator.field('parameters.baselinestarttime','Baseline Start time').required();
 
