@@ -566,7 +566,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                               <h4 className="modal-title">Log Template</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
-                              <iframe src={logUrl} title="ISD" width="100%" height="650">
+                            <iframe id="templateFrame" src={logUrl} title="ISD">  
                               </iframe>
                             </div>
                           </div>
@@ -675,7 +675,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                               <h4 className="modal-title">Metric Template</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
-                              <iframe src={metricUrl} title="ISD" width="100%" height="650">
+                              <iframe id="templateFrame" src={metricUrl} title="ISD">
                               </iframe>
                             </div>
                           </div>
