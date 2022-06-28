@@ -98,7 +98,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                       <h4 className="modal-title">Policy Details</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                    <iframe src={ window.location.origin + "/ui/plugin-isd" + props.stage.outputs.policyLink} title="ISD" width="1100" height="650">
+                    <iframe id="PolicyTemplateFrame" src={ window.location.origin + "/ui/plugin-isd" + props.stage.outputs.policyLink} title="ISD">
                     </iframe>
                     </div>                    
                   </div>

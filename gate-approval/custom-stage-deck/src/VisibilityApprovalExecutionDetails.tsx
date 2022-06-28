@@ -104,7 +104,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                           <h4 className="modal-title">Approval Details</h4>
                         </div>                                      
                         <div className="grid-span-4 modal-body">
-                        <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="100%" height="650">
+                        <iframe id="templateFrame" src={props.stage.outputs.navigationalURL} title="ISD">
                         </iframe>
                         </div>                    
                       </div>
@@ -138,7 +138,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                   <h4 className="modal-title"> Approval Request</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.navigationalURL} title="ISD" width="100%" height="650">
+                <iframe id="templateFrame" src={props.stage.outputs.navigationalURL} title="ISD">
                 </iframe>
                 </div>                    
               </div>
