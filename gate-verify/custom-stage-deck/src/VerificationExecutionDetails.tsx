@@ -77,7 +77,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="100%" height="650">
+                <iframe id="templateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
                 </iframe>
                 </div>                    
               </div>
@@ -125,7 +125,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe src={props.stage.outputs.verificationUrl} title="ISD" width="100%" height="650">
+                <iframe id="templateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
                 </iframe>
                 </div>                    
               </div>
