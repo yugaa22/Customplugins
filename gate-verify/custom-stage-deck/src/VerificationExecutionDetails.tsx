@@ -31,8 +31,10 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
       props.stage.outputs.overallScore > props.stage.context.parameters.minicanaryresult - 1
     ) {
       classes = 'verificationScoreAlert';
+    } else if(props.stage.status == 'RUNNING') {
+      classes = 'verificationReportActive';
     } else {
-      classes = '';
+      classes = ''
     }
     return classes;
   };
