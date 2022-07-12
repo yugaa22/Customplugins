@@ -85,7 +85,7 @@ const setModalIsOpenToFalse =()=>{
               </div>
             </Modal>          
             <img
-              src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+              src="../images/OpsMx_Logo_Black.png"
               alt="logo"
               width="70px"
             ></img>
@@ -133,7 +133,7 @@ const setModalIsOpenToFalse =()=>{
               </div>
             </Modal>          
             <img
-              src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+              src="../images/OpsMx_Logo_Black.png"
               alt="logo"
               width="70px"
             ></img>
@@ -143,7 +143,7 @@ const setModalIsOpenToFalse =()=>{
         <>
           {' '}
           <img
-            src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+            src="../images/OpsMx_Logo_Black.png"
             alt="logo"
             width="80px"
             style={{ float: 'right', marginBottom: '10px' }}
