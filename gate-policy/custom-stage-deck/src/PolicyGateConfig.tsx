@@ -429,7 +429,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
             </div>
             <div className="opsmxLogo">
               <img
-                src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+                src="../images/OpsMx_Logo_Black.png"
                 alt="logo"
               ></img>
             </div>

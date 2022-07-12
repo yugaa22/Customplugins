@@ -62,7 +62,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
         <div>
           <div className="detailpagelogo">
             <img
-              src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+              src="../images/OpsMx_Logo_Black.png"
               alt="logo"
               width="70px"
               style={{ marginLeft: 'auto' }}
@@ -113,7 +113,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
         <>
           {' '}
           <img
-            src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+            src="../images/OpsMx_Logo_Black.png"
             alt="logo"
             width="80px"
             style={{ float: 'right', marginBottom: '10px' }}
