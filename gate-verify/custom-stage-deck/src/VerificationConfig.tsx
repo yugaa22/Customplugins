@@ -29,6 +29,7 @@ import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
 import { REST } from '@spinnaker/core';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
+import opsMxLogo from './images/OpsMx_logo_Black.svg'
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -977,7 +978,7 @@ export function VerificationConfig(props: IStageConfigProps) {
             </div>
             <div className="opsmxLogo">
               <img
-                src="../images/OpsMx_Logo_Black.png"
+                 src={opsMxLogo}
                 alt="logo"
               ></img>
             </div>
