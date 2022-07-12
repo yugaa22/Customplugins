@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
 import { useState } from 'react';
+import opsMxLogo from './images/OpsMx_logo_Black.svg'
 
 /*
  * You can use this component to provide information to users about
@@ -85,7 +86,7 @@ const setModalIsOpenToFalse =()=>{
               </div>
             </Modal>          
             <img
-              src="../images/OpsMx_Logo_Black.png"
+               src={opsMxLogo}
               alt="logo"
               width="70px"
             ></img>
@@ -133,7 +134,7 @@ const setModalIsOpenToFalse =()=>{
               </div>
             </Modal>          
             <img
-              src="../images/OpsMx_Logo_Black.png"
+               src={opsMxLogo}
               alt="logo"
               width="70px"
             ></img>
@@ -143,7 +144,7 @@ const setModalIsOpenToFalse =()=>{
         <>
           {' '}
           <img
-            src="../images/OpsMx_Logo_Black.png"
+            src={opsMxLogo}
             alt="logo"
             width="80px"
             style={{ float: 'right', marginBottom: '10px' }}

@@ -28,6 +28,7 @@ import {
 
 import './PolicyGate.less';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFieldsGrid';
+import opsMxLogo from './images/OpsMx_logo_Black.svg'
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
   See IStageConfigProps.ts (https://github.com/spinnaker/deck/blob/master/app/scripts/modules/core/src/pipeline/config/stages/common/IStageConfigProps.ts) for a complete list of properties.
@@ -429,7 +430,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
             </div>
             <div className="opsmxLogo">
               <img
-                src="../images/OpsMx_Logo_Black.png"
+                 src={opsMxLogo}
                 alt="logo"
               ></img>
             </div>
