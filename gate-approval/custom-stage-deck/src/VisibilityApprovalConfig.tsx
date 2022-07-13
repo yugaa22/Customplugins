@@ -29,6 +29,7 @@ import './VisibilityApproval.less';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
 import { Multiselect } from 'multiselect-react-dropdown';
 import { MultiSelect } from 'react-multi-select-component';
+import opsMxLogo from './images/OpsMx_logo_Black.svg'
 
 const HorizontalRule = () => (
   <div className="grid-span-4">
@@ -1051,7 +1052,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
               <div className="opsmxLogo">
                 <img
-                  src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+                  src={opsMxLogo}
                   alt="logo"
                 ></img>
               </div>
