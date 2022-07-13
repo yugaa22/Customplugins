@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
+import opsMxLogo from './images/OpsMx_logo_Black.svg'
 
 /*
  * You can use this component to provide information to users about
@@ -62,7 +63,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
         <div>
           <div className="detailpagelogo">
             <img
-              src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+              src={opsMxLogo}
               alt="logo"
               width="70px"
               style={{ marginLeft: 'auto' }}
@@ -113,7 +114,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
         <>
           {' '}
           <img
-            src="https://cd.foundation/wp-content/uploads/sites/78/2020/05/opsmx-logo-march2019.png"
+            src={opsMxLogo}
             alt="logo"
             width="80px"
             style={{ float: 'right', marginBottom: '10px' }}
