@@ -51,6 +51,7 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 			cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), stage.getExecution().getCancellationReason());
 			if (outputs.containsKey(ApprovalTriggerTask.NAVIGATIONAL_URL)) {
 				stage.getOutputs().remove(ApprovalTriggerTask.NAVIGATIONAL_URL);
+				stage.getOutputs().remove(ApprovalTriggerTask.APPROVAL_URL);
 			}
 		}
 		return null;

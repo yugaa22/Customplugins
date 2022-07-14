@@ -131,6 +131,8 @@ public class ApprovalTriggerTask implements Task {
 
 	public static final String NAVIGATIONAL_URL = "navigationalURL";
 
+	public static final String APPROVAL_URL = "approvalUrl";
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -187,6 +189,7 @@ public class ApprovalTriggerTask implements Task {
 			outputs.put(TRIGGER, SUCCESS);
 			if (readValue.get(NAVIGATIONAL_URL) != null  &&  !readValue.get(NAVIGATIONAL_URL).isNull()) {
 				outputs.put(NAVIGATIONAL_URL, String.format("%s/fromPlugin?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
+				outputs.put(APPROVAL_URL, String.format("%s/fromPlugin?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
 			}
 
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)

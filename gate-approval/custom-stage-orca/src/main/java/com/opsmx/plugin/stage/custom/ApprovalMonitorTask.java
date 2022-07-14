@@ -173,7 +173,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 	@Override
 	public long getBackoffPeriod() {
-		return TimeUnit.SECONDS.toMillis(3);
+		return TimeUnit.SECONDS.toMillis(5);
 	}
 
 	@Override
@@ -194,6 +194,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 			cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(),outputs, "exceeded its progress deadline");
 			if (outputs.containsKey(ApprovalTriggerTask.NAVIGATIONAL_URL)) {
 				stage.getOutputs().remove(ApprovalTriggerTask.NAVIGATIONAL_URL);
+				stage.getOutputs().remove(ApprovalTriggerTask.APPROVAL_URL);
 			}
 		}
 		return null;
