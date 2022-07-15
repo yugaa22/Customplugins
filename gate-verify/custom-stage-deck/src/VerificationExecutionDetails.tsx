@@ -20,6 +20,23 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
   console.log(props);
 
   const [modalIsOpen,setModalIsOpen] = useState(false);
+
+  const canaryUrl = useMemo(() => {
+    if (props.stage.outputs?.canaryReportURL) {
+      let urlPath = props.stage.outputs?.canaryReportURL.split("/");
+      let path: any[];
+      for (var i = urlPath.length - 1; i >= 6; i--)
+        path = [urlPath[i], ...path]
+
+      var constructedPath = path.join("/")
+      return `https://poc.isd-dev.opsmx.net/ui/plugin-isd/verification/${constructedPath}`
+    }
+    return null;
+  }, [])
+
+  console.log("canary url",canaryUrl)
+
+
   
   const getClasses = () => {
     let classes = '';
@@ -65,7 +82,7 @@ const setModalIsOpenToFalse =()=>{
         <div>
           <div className="detailpagelogo">
             <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
-            {props.stage.outputs.verificationUrl != undefined ? (
+            {props.stage.outputs.verificationUrl != undefined || props.stage.outputs.canaryReportURL != undefined  ? (
               <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
             ) : (
               null
@@ -80,7 +97,7 @@ const setModalIsOpenToFalse =()=>{
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe id="templateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
+                <iframe id="templateFrame" src={props.stage.outputs.verificationUrl ? props.stage.outputs.verificationUrl : canaryUrl} title="ISD">
                 </iframe>
                 </div>                    
               </div>
