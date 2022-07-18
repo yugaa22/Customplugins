@@ -29,12 +29,10 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
         path = [urlPath[i], ...path]
 
       var constructedPath = path.join("/")
-      return `https://poc.isd-dev.opsmx.net/ui/plugin-isd/verification/${constructedPath}`
+      return `${window.location.origin}/ui/plugin-isd/verification/${constructedPath}`
     }
     return null;
   }, [])
-
-  console.log("canary url",canaryUrl)
 
 
   
