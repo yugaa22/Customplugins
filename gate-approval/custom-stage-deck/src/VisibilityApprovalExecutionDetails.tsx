@@ -127,7 +127,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
           <div className="detailpagelogo">
 
             <a className='activeBtn'  onClick={setModalIsOpenToTrue}>
-                      Approval Request
+            View Approval Request
             </a>
 
             <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
