@@ -277,7 +277,7 @@ public class PolicyTask implements Task {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Failed to get the trigger endpoint with status code :: %s, %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
+				outputs.put(MESSAGE, "Failed to get trigger endpoint. Stage is not in sync, Please re-save the stage again and try");
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return null;
 			}

@@ -495,7 +495,8 @@ public class ApprovalTriggerTask implements Task {
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
 			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
-				outputs.put(EXCEPTION, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
+				outputs.put("Reason", String.format("Failed to get trigger endpoint with response :: %s", registerResponse));
+				outputs.put(EXCEPTION, "Failed to get trigger endpoint. Stage is not in sync, Please re-save the stage again and try");
 				outputs.put(TRIGGER, FAILED);
 				outputs.put(STATUS, REJECTED);
 				return null;
