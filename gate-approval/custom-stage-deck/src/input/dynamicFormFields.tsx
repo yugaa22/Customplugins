@@ -121,7 +121,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
 
    return connectorsList.map(e => ({
       value: e,
-      label: e,
+      label: e == "AUTOPILOT" ? "VERIFICATION" : e,
       disabled: temp.includes(e)
     }))
   }
