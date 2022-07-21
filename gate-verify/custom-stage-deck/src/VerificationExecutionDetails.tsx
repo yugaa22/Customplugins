@@ -1,9 +1,8 @@
-import React, { Fragment, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
-import { useState } from 'react';
 import opsMxLogo from './images/OpsMx_logo_Black.svg';
 
 /*
@@ -20,20 +19,19 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
   console.log(props);
 
   const [modalIsOpen,setModalIsOpen] = useState(false);
+  const [canaryUrl, setCanaryUrl] = useState(null)
 
-  const canaryUrl = useMemo(() => {
+
+  useEffect(() => {
     if (props.stage.outputs?.canaryReportURL) {
-      let urlPath = props.stage.outputs?.canaryReportURL.split("/");
-      let path: any[];
-      for (var i = urlPath.length - 1; i >= 6; i--)
+      let urlPath = props.stage.outputs.canaryReportURL.split("/");
+      let path: any[] = [];
+      for (let i = urlPath?.length - 1; i >= 6; i--)
         path = [urlPath[i], ...path]
-
       var constructedPath = path.join("/")
-      return `${window.location.origin}/ui/plugin-isd/verification/${constructedPath}`
+      setCanaryUrl(`${window.location.origin}/ui/plugin-isd/verification/${constructedPath}`)
     }
-    return null;
   }, [])
-
 
   
   const getClasses = () => {
@@ -107,7 +105,7 @@ const setModalIsOpenToFalse =()=>{
                   <span className={'scoreSmall ' + getClasses()}>{props.stage.outputs.overallScore}</span>
                 </td>
                 <td>
-                  {props.stage.outputs.verificationUrl != undefined ? (
+                  {props.stage.outputs.verificationUrl != undefined || props.stage.outputs.canaryReportURL != undefined ? (
                     <span className={'clikable scoreSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
                   ) : (
                     null
@@ -122,7 +120,7 @@ const setModalIsOpenToFalse =()=>{
                         <h4 className="modal-title">Verification Details</h4>
                       </div>                                      
                       <div className="grid-span-4 modal-body">
-                      <iframe id="templateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
+                      <iframe id="templateFrame" src={props.stage.outputs.verificationUrl != undefined ? props.stage.outputs.verificationUrl : canaryUrl} title="ISD">
                       </iframe>
                       </div>                    
                     </div>
