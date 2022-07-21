@@ -448,18 +448,6 @@ export function VerificationConfig(props: IStageConfigProps) {
     setcanaryRealTime(e.target.checked);
   };
 
-  const onChangeCustomEnvironment= (value: any) => {
-    console.log("onChangeCustomEnvironment");
-    debugger;
-    console.log(value);
-    //props.stage.para
-    //props.stage.formik.setFieldValue('parameters.customEnvironment', value.toLowerCase());
-    //value = value.toLowerCase();
-    //setTimeout(() => {
-      props.stage.parameters.customEnvironment = value.toLowerCase();
-   // }, 100);    
-  }
-
   //mat-focus-indicator btn btn-primary btnColor mat-button mat-button-base
   //mat-button-wrapper
   return (
