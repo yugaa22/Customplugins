@@ -59,7 +59,15 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   const [tempAccountsList, setTempAccountsList] = useState<any>({});
 
   //Load List of Connectors Details
-  const [listOfConnectors, setListOfConnectors] = useState([])
+  const [listOfConnectors, setListOfConnectors] = useState([]);
+
+  const[customenv,setCustomEnv]=useState('');
+  
+  const handleInput=(event: any)=>{
+      event.preventDefault();
+      setCustomEnv(event.target.value.toLowerCase()); 
+      props.stage.parameters.customEnvironment = event.target.value.toLowerCase();     
+  }
 
   useEffect(() => {
     if (!props.stage.hasOwnProperty('parameters')) {
@@ -220,7 +228,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           if (props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0) {
 
             //Find Id from Environment list
-            const findId = temp.findIndex((val: any) => val.spinnakerEnvironment == props.stage.parameters.customEnvironment);
+            const findId = temp.findIndex((val: any) => (val.spinnakerEnvironment).toLowerCase() == (props.stage.parameters.customEnvironment).toLowerCase());
             if (findId > 0) {
               props.stage.parameters.environment[0].id = temp[findId].id;
               props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
@@ -588,14 +596,18 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 </div>
                 <div className="col-md-7">
                   <div className='grid-span-2'>
-                    <FormikFormField
-                      name="parameters.customEnvironment"
-                      label=""
-                      // help={<HelpField id="opsmx.approval.customEnvironment" />}
-                      input={(props) => <TextInput {...props} />}
-                    />
-
-
+                  <FormikFormField
+                    name="parameters.customEnvironment"
+                    input={(props) => (
+                      <TextInput
+                        {...props}                          
+                        name="customenv" 
+                        id="customenv" 
+                        value={customenv}
+                        onChange={handleInput}                        
+                      />
+                    )}
+                  />                    
                   </div>
                 </div>
               </>) :
