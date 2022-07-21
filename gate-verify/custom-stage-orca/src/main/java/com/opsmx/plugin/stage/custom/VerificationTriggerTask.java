@@ -186,7 +186,7 @@ public class VerificationTriggerTask implements Task {
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
 			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put("Reason", String.format("Failed to get trigger endpoint with response :: %s", registerResponse));
-				outputs.put(OesConstants.EXCEPTION, "Failed to get trigger endpoint. Stage is not in sync, Please re-save the stage again and try");
+				outputs.put(OesConstants.EXCEPTION, "Failed to get trigger endpoint. Please resave the stage before execution");
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
 				outputs.put(OesConstants.OVERALL_RESULT, "Fail");
 				outputs.put(OesConstants.TRIGGER, OesConstants.FAILED);
