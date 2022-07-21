@@ -90,6 +90,14 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const [baselineRealTime,setbaselineRealTime] = useState(false);
 
+  const[customenv,setCustomEnv]=useState('');
+  
+  const handleInput=(event: any)=>{
+      event.preventDefault();
+      setCustomEnv(event.target.value.toLowerCase()); 
+      props.stage.parameters.customEnvironment = event.target.value.toLowerCase();     
+  }
+
   const getGateSecurityParams = () => {
     if (!props.stage.parameters.hasOwnProperty('gateSecurity')) {
       props.stage.parameters.gateSecurity = [
@@ -237,7 +245,7 @@ export function VerificationConfig(props: IStageConfigProps) {
           setenvironmentsList(results);
           if (props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0) {
             //Find Id from Environment list
-            const findId = temp.findIndex((val: any) => val.spinnakerEnvironment == props.stage.parameters.customEnvironment);
+            const findId = temp.findIndex((val: any) => (val.spinnakerEnvironment).toLowerCase() == (props.stage.parameters.customEnvironment).toLowerCase());
             if (findId > 0) {
               props.stage.parameters.environment[0].id = temp[findId].id;
               props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
@@ -502,10 +510,14 @@ export function VerificationConfig(props: IStageConfigProps) {
                         <div className="grid-span-2">
                           {/* <TextInput onChange={(e) => {pushNewEnvironment(e.target.value)}} value={newEnvironment} /> */}
                           <FormikFormField
-                            name="parameters.customEnvironment"
-                            // label="Add new Environment"
-                            // help={<HelpField id="opsmx.verification.customEnvironment" />}           
-                            input={(props) => <TextInput {...props} />}
+                            name="parameters.customEnvironment"                          
+                            input={(props) => (
+                              <TextInput
+                                {...props}                          
+                                name="customenv" id="customenv" value={customenv}
+                                onChange={handleInput}
+                              />
+                            )}
                           />
                         </div>
                       </div>
