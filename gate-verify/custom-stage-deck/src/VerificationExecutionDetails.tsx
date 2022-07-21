@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
 import { useState } from 'react';
-import opsMxLogo from './images/OpsMx_logo_Black.svg'
+import opsMxLogo from './images/OpsMx_logo_Black.svg';
 
 /*
  * You can use this component to provide information to users about
@@ -78,28 +78,15 @@ const setModalIsOpenToFalse =()=>{
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.overallScore >= 0 ? (
         <div>
-          <div className="detailpagelogo">
-            <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
-            {props.stage.outputs.verificationUrl != undefined || props.stage.outputs.canaryReportURL != undefined  ? (
+          <div className="detailpagelogo align-right">
+            {/* <span className={'score ' + getClasses()}>{props.stage.outputs.overallScore}</span>
+            {props.stage.outputs.verificationUrl != undefined ? (
               <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
             ) : (
               null
             )
-            }          
-            <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
-              <div className="modal-content">
-                <div className="modal-header">                      
-                  <button onClick={setModalIsOpenToFalse} className="close">
-                    <span>x</span>
-                  </button>
-                  <h4 className="modal-title">Verification Details</h4>
-                </div>                                      
-                <div className="grid-span-4 modal-body">
-                <iframe id="templateFrame" src={props.stage.outputs.verificationUrl ? props.stage.outputs.verificationUrl : canaryUrl} title="ISD">
-                </iframe>
-                </div>                    
-              </div>
-            </Modal>          
+            }           */}
+                      
             <img
                src={opsMxLogo}
               alt="logo"
@@ -110,7 +97,7 @@ const setModalIsOpenToFalse =()=>{
             <thead>
               <tr>
                 <th>Result</th>
-                {/* <th>Report</th> */}
+                <th>Report</th>
                 <th>Last Updated</th>
               </tr>
             </thead>
@@ -119,11 +106,28 @@ const setModalIsOpenToFalse =()=>{
                 <td>
                   <span className={'scoreSmall ' + getClasses()}>{props.stage.outputs.overallScore}</span>
                 </td>
-                {/* <td>
-                  <a href={props.stage.outputs.canaryReportURL} target="_blank">
-                    Report
-                  </a>
-                </td> */}
+                <td>
+                  {props.stage.outputs.verificationUrl != undefined ? (
+                    <span className={'clikable scoreSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
+                  ) : (
+                    null
+                  )
+                  }
+                  <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
+                    <div className="modal-content">
+                      <div className="modal-header">                                    
+                        <button onClick={setModalIsOpenToFalse} className="close">
+                          <span>x</span>
+                        </button>
+                        <h4 className="modal-title">Verification Details</h4>
+                      </div>                                      
+                      <div className="grid-span-4 modal-body">
+                      <iframe id="templateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
+                      </iframe>
+                      </div>                    
+                    </div>
+                  </Modal>
+                </td>                
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
               </tr>
             </tbody>
