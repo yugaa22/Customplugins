@@ -51,6 +51,13 @@ export function PolicyGateConfig(props: IStageConfigProps) {
 
   const [policyList, setPolicyList] = useState([]);
 
+  const[customenv,setCustomEnv]=useState('');
+  
+  const handleInput=(event: any)=>{
+      event.preventDefault();
+      setCustomEnv(event.target.value.toLowerCase()); 
+      props.stage.parameters.customEnvironment = event.target.value.toLowerCase();     
+  }
   const getGateSecurityParams = () => {
     if (!props.stage.parameters.hasOwnProperty('gateSecurity')) {
       props.stage.parameters.gateSecurity = [
@@ -146,7 +153,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
           setenvironmentsList(results);
           if (props.stage.parameters.environment[0].id == 0 && props.stage.parameters.customEnvironment.length > 0) {
             //Find Id from Environment list
-            const findId = temp.findIndex((val: any) => val.spinnakerEnvironment == props.stage.parameters.customEnvironment);
+            const findId = temp.findIndex((val: any) => (val.spinnakerEnvironment).toLowerCase() == (props.stage.parameters.customEnvironment).toLowerCase());
             if (findId > 0) {
               props.stage.parameters.environment[0].id = temp[findId].id;
               props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
@@ -301,13 +308,18 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                       </div>
                       <div className="col-md-7">
                         <div className='grid-span-2'>
-
-                          <FormikFormField
-                            name="parameters.customEnvironment"
-                            // label="Add new Environment"
-                            // help={<HelpField id="opsmx.policy.customEnvironment" />}           
-                            input={(props) => <TextInput {...props} />}
-                          />
+                        <FormikFormField
+                          name="parameters.customEnvironment"
+                          input={(props) => (
+                            <TextInput
+                              {...props}                          
+                              name="customenv" 
+                              id="customenv" 
+                              value={customenv}
+                              onChange={handleInput}                         
+                            />
+                          )}
+                        />
                         </div>
                       </div>
                     </>) :
