@@ -574,10 +574,12 @@ export function VerificationConfig(props: IStageConfigProps) {
                       <div className="grid-span-2">
                         <Modal id="logtemplate-modal" isOpen={logmodalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
                           <div className="modal-content">
-                            <div className="modal-header">
-                              <button onClick={setLogModalIsOpenToFalse} className="close">
-                                <span>x</span>
+                            <div className="modal-close close-button pull-right">
+                              <button onClick={setLogModalIsOpenToFalse} className="link">
+                                <span className="glyphicon glyphicon-remove close-button-popup"></span>
                               </button>
+                            </div>
+                            <div className="modal-header">
                               <h4 className="modal-title">Log Template</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
@@ -589,10 +591,12 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                         <Modal id="logtemplate-modal-delete" isOpen={deleteLogModalIsOpen} className="modal-popup-delete modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
-                            <div className="modal-header">
-                              <button onClick={setDeleteLogPopupFalse} className="close">
-                                <span>x</span>
+                            <div className="modal-close close-button pull-right">
+                              <button onClick={setDeleteLogPopupFalse} className="link">
+                                <span className="glyphicon glyphicon-remove close-button-popup"></span>
                               </button>
+                            </div>
+                            <div className="modal-header">
                               <h4 className="modal-title">Really Delete Log Template ?</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
@@ -683,10 +687,12 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                         <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
-                            <div className="modal-header">
-                              <button onClick={setModalIsOpenToFalse} className="close">
-                                <span>x</span>
+                            <div className="modal-close close-button pull-right">
+                              <button onClick={setModalIsOpenToFalse} className="link">
+                                <span className="glyphicon glyphicon-remove close-button-popup"></span>
                               </button>
+                            </div>
+                            <div className="modal-header">
                               <h4 className="modal-title">Metric Template</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
@@ -698,10 +704,12 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                         <Modal id="metrictemplate-modal-delete" isOpen={deleteMetricModalIsOpen} className="modal-popup-delete modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
-                            <div className="modal-header">
-                              <button onClick={setDeleteMetricPopupFalse} className="close">
-                                <span>x</span>
+                            <div className="modal-close close-button pull-right">
+                              <button onClick={setDeleteMetricPopupFalse} className="link">
+                                <span className="glyphicon glyphicon-remove"></span>
                               </button>
+                            </div>
+                            <div className="modal-header">
                               <h4 className="modal-title">Really Delete Metric Template ?</h4>
                             </div>
                             <div className="grid-span-4 modal-body">
