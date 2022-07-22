@@ -113,10 +113,12 @@ const setModalIsOpenToFalse =()=>{
                   }
                   <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
                     <div className="modal-content">
-                      <div className="modal-header">                                    
-                        <button onClick={setModalIsOpenToFalse} className="close">
-                          <span>x</span>
+                      <div className="modal-close close-button pull-right">
+                        <button onClick={setModalIsOpenToFalse} className="link">
+                          <span className="glyphicon glyphicon-remove close-button-popup"></span>
                         </button>
+                      </div>
+                      <div className="modal-header"> 
                         <h4 className="modal-title">Verification Details</h4>
                       </div>                                      
                       <div className="grid-span-4 modal-body">
@@ -138,10 +140,12 @@ const setModalIsOpenToFalse =()=>{
             <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
             <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
-                <div className="modal-header">                      
-                  <button onClick={setModalIsOpenToFalse} className="close">
-                    <span>x</span>
+                <div className="modal-close close-button pull-right">
+                  <button onClick={setModalIsOpenToFalse} className="link">
+                    <span className="glyphicon glyphicon-remove close-button-popup"></span>
                   </button>
+                </div>
+                <div className="modal-header">
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
