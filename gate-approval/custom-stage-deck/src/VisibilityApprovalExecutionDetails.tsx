@@ -98,10 +98,12 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                    </a>
                     <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
                       <div className="modal-content">
-                        <div className="modal-header">                      
-                          <button onClick={closeApprovalDetails} className="close">
-                            <span>x</span>
+                        <div className="modal-close close-button pull-right">
+                          <button onClick={closeApprovalDetails} className="link">
+                            <span className="glyphicon glyphicon-remove close-button-popup"></span>
                           </button>
+                        </div>
+                        <div className="modal-header"> 
                           <h4 className="modal-title">Approval Details</h4>
                         </div>                                      
                         <div className="grid-span-4 modal-body">
@@ -132,10 +134,12 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
 
             <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
-                <div className="modal-header">                      
-                  <button onClick={setModalIsOpenToFalse} className="close">
-                    <span>x</span>
+                <div className="modal-close close-button pull-right">
+                  <button onClick={setModalIsOpenToFalse} className="link">
+                    <span className="glyphicon glyphicon-remove close-button-popup"></span>
                   </button>
+                </div>
+                <div className="modal-header">
                   <h4 className="modal-title"> Approval Request</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">

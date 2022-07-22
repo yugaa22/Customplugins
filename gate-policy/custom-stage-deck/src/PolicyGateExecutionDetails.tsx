@@ -92,10 +92,12 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                   <div className="modal-content">
-                    <div className="modal-header">                      
-                      <button onClick={setModalIsOpenToFalse} className="close">
-                        <span>x</span>
+                    <div className="modal-close close-button pull-right">
+                      <button onClick={setModalIsOpenToFalse} className="link">
+                        <span className="glyphicon glyphicon-remove close-button-popup"></span>
                       </button>
+                    </div>
+                    <div className="modal-header">
                       <h4 className="modal-title">Policy Details</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
