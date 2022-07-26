@@ -124,6 +124,12 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
           </div>
           {exceptionDiv}
         </div>
+      ) : props.stage.outputs.exception !== undefined? (
+        <div>
+          <div className="detailpagelogo">
+          </div>
+          {exceptionDiv}
+        </div>
       ) : props.stage.outputs.navigationalURL !== undefined? (
         <div>
           <div className="detailpagelogo">
