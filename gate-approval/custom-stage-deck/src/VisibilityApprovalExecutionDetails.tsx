@@ -92,10 +92,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                 </td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
                 <td>
-                   {/* <span className={'clikable approvalStatus ' + getClasses()} onClick={set ModalIsOpenToTrue}>View Details</span> */}
-                   <a className="clikable" onClick={openApprovalDetails}>
-                     <span>View</span>
-                   </a>
+                     <span className={'clikable approvalStatusSmall ' + getClasses()} onClick={openApprovalDetails}>View</span>
                     <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
                       <div className="modal-content">
                         <div className="modal-close close-button pull-right">
