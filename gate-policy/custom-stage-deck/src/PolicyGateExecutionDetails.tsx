@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import Modal from 'react-modal';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
-import opsMxLogo from './images/OpsMx_logo_Black.svg'
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage,Tooltip } from '@spinnaker/core';
+import opsMxLogo from './images/OpsMx_logo_Black.svg';
+import openInNewTab from './images/open-new-tab-bold.png';
+
 
 /*
  * You can use this component to provide information to users about
@@ -91,7 +93,10 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td>{props.stage.outputs.policyName}</td>
                 <td><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
-                  <div className="modal-content">
+                <div className="modal-content">
+                  <Tooltip value="Open in a new tab" placement="left">
+                  <a href={window.location.origin + "/ui/plugin-isd" + props.stage.outputs.policyLink} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                  </Tooltip>                  
                     <div className="modal-close close-button pull-right">
                       <button onClick={setModalIsOpenToFalse} className="link">
                         <span className="glyphicon glyphicon-remove close-button-popup"></span>
