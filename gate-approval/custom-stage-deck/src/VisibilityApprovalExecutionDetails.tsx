@@ -1,9 +1,10 @@
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
 import Modal from 'react-modal';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage } from '@spinnaker/core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './VisibilityApproval.less';
-import opsMxLogo from './images/OpsMx_logo_Black.svg'
+import opsMxLogo from './images/OpsMx_logo_Black.svg';
+import openInNewTab from './images/open-new-tab-bold.png';
 
 /*
  * You can use this component to provide information to users about
@@ -92,9 +93,12 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                 </td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
                 <td>
-                     <span className={'clikable approvalStatusSmall ' + getClasses()} onClick={openApprovalDetails}>View</span>
+                    <span className={'clikable approvalStatusSmall ' + getClasses()} onClick={openApprovalDetails}>View</span>
                     <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
                       <div className="modal-content">
+                        <Tooltip value="Open in a new tab" placement="left">
+                          <a href={props.stage.outputs.navigationalURL} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                        </Tooltip>
                         <div className="modal-close close-button pull-right">
                           <button onClick={closeApprovalDetails} className="link">
                             <span className="glyphicon glyphicon-remove close-button-popup"></span>
@@ -132,11 +136,14 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
           <div className="detailpagelogo">
 
             <a className='activeBtn'  onClick={setModalIsOpenToTrue}>
-            View Approval Request
+              View Approval Request
             </a>
 
             <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
+              <Tooltip value="Open in a new tab" placement="left">
+                <a href={props.stage.outputs.navigationalURL} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+              </Tooltip>
                 <div className="modal-close close-button pull-right">
                   <button onClick={setModalIsOpenToFalse} className="link">
                     <span className="glyphicon glyphicon-remove close-button-popup"></span>
