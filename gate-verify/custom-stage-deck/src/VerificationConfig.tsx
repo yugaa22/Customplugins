@@ -29,7 +29,8 @@ import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
 import { REST } from '@spinnaker/core';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
-import opsMxLogo from './images/OpsMx_logo_Black.svg'
+import opsMxLogo from './images/OpsMx_logo_Black.svg';
+import openInNewTab from './images/open-new-tab-bold.png';
 
 /*
   IStageConfigProps defines properties passed to all Spinnaker Stages.
@@ -574,6 +575,9 @@ export function VerificationConfig(props: IStageConfigProps) {
                       <div className="grid-span-2">
                         <Modal id="logtemplate-modal" isOpen={logmodalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
                           <div className="modal-content">
+                            <Tooltip value="Open in a new tab" placement="left">            
+                              <a href={logUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                            </Tooltip>
                             <div className="modal-close close-button pull-right">
                               <button onClick={setLogModalIsOpenToFalse} className="link">
                                 <span className="glyphicon glyphicon-remove close-button-popup"></span>
@@ -590,7 +594,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                         </Modal>
 
                         <Modal id="logtemplate-modal-delete" isOpen={deleteLogModalIsOpen} className="modal-popup-delete modal-content" overlayClassName="react-modal-custom">
-                          <div className="modal-content">
+                          <div className="modal-content">                            
                             <div className="modal-close close-button pull-right">
                               <button onClick={setDeleteLogPopupFalse} className="link">
                                 <span className="glyphicon glyphicon-remove close-button-popup"></span>
@@ -687,6 +691,9 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                         <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
+                            <Tooltip value="Open in a new tab" placement="left">            
+                              <a href={metricUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                            </Tooltip>
                             <div className="modal-close close-button pull-right">
                               <button onClick={setModalIsOpenToFalse} className="link">
                                 <span className="glyphicon glyphicon-remove close-button-popup"></span>

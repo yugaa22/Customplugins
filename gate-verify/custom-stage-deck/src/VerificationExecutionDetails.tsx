@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
 import opsMxLogo from './images/OpsMx_logo_Black.svg';
+import openInNewTab from './images/open-new-tab-bold.png';
 
 /*
  * You can use this component to provide information to users about
@@ -72,7 +73,7 @@ const setModalIsOpenToFalse =()=>{
     setModalIsOpen(false);      
 }
 
-  return (
+return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
       {props.stage.outputs.overallScore >= 0 ? (
         <div>
@@ -113,7 +114,10 @@ const setModalIsOpenToFalse =()=>{
                   }
                   <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
                     <div className="modal-content">
-                      <div className="modal-close close-button pull-right">
+                      <Tooltip value="Open in a new tab" placement="left">
+                        <a href={props.stage.outputs.verificationUrl != undefined ? props.stage.outputs.verificationUrl : canaryUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>  
+                      </Tooltip>
+                      <div className="modal-close close-button pull-right">                      
                         <button onClick={setModalIsOpenToFalse} className="link">
                           <span className="glyphicon glyphicon-remove close-button-popup"></span>
                         </button>
@@ -139,7 +143,10 @@ const setModalIsOpenToFalse =()=>{
           <div className="detailpagelogo">
             <span className={'clikable score ' + getClasses()} onClick={setModalIsOpenToTrue}>View Report</span> 
             <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
-              <div className="modal-content">
+              <div className="modal-content">  
+                <Tooltip value="Open in a new tab" placement="left">            
+                  <a href={props.stage.outputs.verificationUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                </Tooltip>
                 <div className="modal-close close-button pull-right">
                   <button onClick={setModalIsOpenToFalse} className="link">
                     <span className="glyphicon glyphicon-remove close-button-popup"></span>
