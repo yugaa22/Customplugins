@@ -25,7 +25,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
 
   useEffect(() => {
     if (props.stage.outputs?.canaryReportURL) {
-      let urlPath = props.stage.outputs?.canaryReportURL.split("/");
+      let urlPath = props.stage.outputs.canaryReportURL.split("/");
       let startIndex = urlPath.findIndex((inp: any) => inp === 'deploymentverification')
       let path: any[] = [];
       for (let i = startIndex + 1; i < urlPath.length; i++)
