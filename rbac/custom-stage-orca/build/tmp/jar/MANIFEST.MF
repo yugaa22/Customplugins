@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Plugin-Class: com.opsmx.plugin.stage.custom.RbacPlugin
-Plugin-Id: Opsmx.RbacPlugin
-Plugin-Version: 1.0.1-SNAPSHOT
-Plugin-Requires: orca>=0.0.0
-Plugin-Description: An example of a PF4J-based plugin that provides a cu
- stom pipeline stage.
-Plugin-Provider: https://github.com/opsmx
-
