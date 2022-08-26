@@ -59,7 +59,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
   }
 
   const truncateTxt = (str : any) => {
-    return str.length > 10 ? str.substring(0,7) + '...' : str;
+    return str && str.length > 10 ? str.substring(0,10) + '...' : str;
   }
 
 
