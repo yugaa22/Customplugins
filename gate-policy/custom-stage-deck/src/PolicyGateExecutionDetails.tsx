@@ -58,6 +58,10 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
     setModalIsOpen(false);      
   }
 
+  const truncateTxt = (str : any) => {
+    return str.length > 10 ? str.substring(0,7) + '...' : str;
+  }
+
 
   return (
     <ExecutionDetailsSection name={props.name} current={props.current}>
@@ -90,7 +94,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td className='wrapMessage'>{props.stage.outputs.message}</td>
                 <td>{props.stage.outputs.executedBy}</td>
                 <td>{new Date(props.stage.endTime).toLocaleString()}</td>
-                <td>{props.stage.outputs.policyName}</td>
+                <td title={props.stage.outputs.policyName}>{truncateTxt(props.stage.outputs.policyName)}   </td>
                 <td><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                 <div className="modal-content">
