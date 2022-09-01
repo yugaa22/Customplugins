@@ -135,7 +135,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   useEffect(() => {
     if (applicationId != undefined) {
-      REST('autopilot/api/v1/applications/' + applicationId + '/metricTemplates').
+      REST('autopilot/api/v5/applications/' + applicationId + '/metricTemplates').
         get()
         .then(
           function (results) {
@@ -149,7 +149,7 @@ export function VerificationConfig(props: IStageConfigProps) {
         .then(
           (results) => {
             setApplicationId(results.applicationId);
-            REST('autopilot/api/v1/applications/' + results.applicationId + '/metricTemplates').
+            REST('autopilot/api/v5/applications/' + results.applicationId + '/metricTemplates').
               get()
               .then(
                 function (results) {
@@ -183,7 +183,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   useEffect(() => {
     if (applicationId != undefined) {
-      REST('autopilot/api/v1/applications/' + applicationId + '/logTemplates').
+      REST('autopilot/api/v5/applications/' + applicationId + '/logTemplates').
         get()
         .then(
           function (results) {
@@ -197,7 +197,7 @@ export function VerificationConfig(props: IStageConfigProps) {
         .then(
           (results) => {
             setApplicationId(results.applicationId);
-            REST('autopilot/api/v1/applications/' + results.applicationId + '/logTemplates').
+            REST('autopilot/api/v5/applications/' + results.applicationId + '/logTemplates').
               get()
               .then(
                 function (results) {
