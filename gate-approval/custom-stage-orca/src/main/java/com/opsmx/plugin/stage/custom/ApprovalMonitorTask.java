@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.api.pipeline.RetryableTask;
 import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
+import org.springframework.beans.factory.annotation.Value;
 
 @Extension
 @PluginComponent
@@ -44,6 +45,12 @@ public class ApprovalMonitorTask implements RetryableTask {
 	private static final String EXCEPTION = "exception";
 
 	public static final String STATUS = "status";
+
+	@Value("${isd.retry.intervalInMinutes:1}")
+	private Integer retryInterval;
+
+	@Value("${isd.retry.count:3}")
+	private Integer retryCount;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -70,7 +77,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 			logger.info("Approval Monitoring started, Application : {}, Pipeline : {}",
 					stage.getExecution().getApplication(), stage.getExecution().getName());
 			String approvalUrl = (String) outputs.get(LOCATION);
-			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs);
+			return getVerificationStatus(approvalUrl, stage.getExecution().getAuthentication().getUser(), outputs, 0);
 		} else {
 			logger.info("Approval Monitoring not starting because trigger task not completed");
 		  return TaskResult.builder(ExecutionStatus.RUNNING)
@@ -95,7 +102,11 @@ public class ApprovalMonitorTask implements RetryableTask {
 			String payload = finalJson.toString();
 			request.setEntity(new StringEntity(payload));
 			CloseableHttpResponse response = httpClient.execute(request);
-		} catch (IOException e) {
+			logger.info("Approval CANCEL STATUS on Timeout : {}", response.getStatusLine().getStatusCode());
+			if (response.getStatusLine().getStatusCode() != 200) {
+				return cancelRequest(approvalUrl,user,outputs,reason);
+			}
+		} catch (Exception e) {
 			logger.info("Exception occurred while cancelling approval", e);
 		} finally {
 			if (httpClient != null) {
@@ -112,62 +123,88 @@ public class ApprovalMonitorTask implements RetryableTask {
 				.build();
 	}
 
-	private TaskResult getVerificationStatus(String approvalUrl, String user, Map<String, Object> outputs) {
-		HttpGet request = new HttpGet(approvalUrl);
+	private TaskResult getVerificationStatus(String approvalUrl, String user, Map<String, Object> outputs, Integer count) {
 
-		CloseableHttpClient httpClient = null;
-		try {
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", user);
-			httpClient = HttpClients.createDefault();
-			CloseableHttpResponse response = httpClient.execute(request);
+		if (count < retryCount) {
+			count += 1;
+			HttpGet request = new HttpGet(approvalUrl);
+			CloseableHttpClient httpClient = null;
+			try {
+				request.setHeader("Content-type", "application/json");
+				request.setHeader("x-spinnaker-user", user);
+				httpClient = HttpClients.createDefault();
+				CloseableHttpResponse response = httpClient.execute(request);
+				String res = EntityUtils.toString(response.getEntity());
+				if (response.getStatusLine().getStatusCode() != 200) {
+					if (count == retryCount) {
+						logger.error("Error occurred while getting approval response, with Status code : {}, response {}",
+								response.getStatusLine().getStatusCode(), res);
+						outputs.put("Reason", String.format("Maximum retry count exceeded :: %s ", res));
+						outputs.put(EXCEPTION,
+								String.format("Failed to get the status of request with response : %s", res));
+						return TaskResult.builder(ExecutionStatus.TERMINAL)
+								.outputs(outputs)
+								.build();
+					} else {
+						Thread.sleep(retryInterval * 60 * 1000);
+						return getVerificationStatus(approvalUrl, user, outputs, count);
+					}
+				}
 
-			HttpEntity entity = response.getEntity();
-			ObjectNode readValue = objectMapper.readValue(EntityUtils.toString(entity), ObjectNode.class);
-			String analysisStatus = readValue.get(STATUS).asText();
-			String comment = "";
-			if (readValue.get(COMMENT2) != null && !readValue.get(COMMENT2).asText().isEmpty()) {
-				comment = readValue.get(COMMENT2).asText();
-			}
+				ObjectNode readValue = objectMapper.readValue(res, ObjectNode.class);
+				String analysisStatus = readValue.get(STATUS).asText();
+				String comment = "";
+				if (readValue.get(COMMENT2) != null && !readValue.get(COMMENT2).asText().isEmpty()) {
+					comment = readValue.get(COMMENT2).asText();
+				}
 
-			logger.info("Approval status : {}", analysisStatus);
-			if (analysisStatus.equalsIgnoreCase(APPROVED)) {
-				outputs.put(STATUS, analysisStatus);
-				outputs.put("comments", comment);
-				return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+				logger.info("Approval status : {}", analysisStatus);
+				if (analysisStatus.equalsIgnoreCase(APPROVED)) {
+					outputs.put(STATUS, analysisStatus);
+					outputs.put("comments", comment);
+					return TaskResult.builder(ExecutionStatus.SUCCEEDED)
+							.outputs(outputs)
+							.build();
+				} else if (analysisStatus.equalsIgnoreCase(REJECTED)) {
+					outputs.put(STATUS, analysisStatus);
+					outputs.put("comments", comment);
+					return TaskResult.builder(ExecutionStatus.TERMINAL)
+							.outputs(outputs)
+							.build();
+				} else if (analysisStatus.equalsIgnoreCase(CANCELED)) {
+					outputs.put(STATUS, analysisStatus);
+					outputs.put("comments", comment);
+					return TaskResult.builder(ExecutionStatus.TERMINAL)
+							.outputs(outputs)
+							.build();
+				}
+				return TaskResult.builder(ExecutionStatus.RUNNING)
 						.outputs(outputs)
 						.build();
-			} else if (analysisStatus.equalsIgnoreCase(REJECTED)) {
-				outputs.put(STATUS, analysisStatus);
-				outputs.put("comments", comment);
+
+			} catch (Exception e) {
+				if (count < retryCount) {
+					try {
+						Thread.sleep(retryInterval * 60 * 1000);
+						return getVerificationStatus(approvalUrl, user, outputs, count);
+					} catch (InterruptedException e1){ }
+				}
+				logger.error("Error occurred while processing approval result ", e);
+				outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e.getMessage()));
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
-			} else if (analysisStatus.equalsIgnoreCase(CANCELED)) {
-				outputs.put(STATUS, analysisStatus);
-				outputs.put("comments", comment);
-				return TaskResult.builder(ExecutionStatus.TERMINAL)
-						.outputs(outputs)
-						.build();
-			}
-			return TaskResult.builder(ExecutionStatus.RUNNING)
-					.outputs(outputs)
-					.build();
-
-		} catch (Exception e) {
-			logger.error("Error occurred while processing approval result ", e);
-			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e.getMessage()));
-			return TaskResult.builder(ExecutionStatus.TERMINAL)
-					.outputs(outputs)
-					.build();
-		} finally {
-			if (httpClient != null) {
-				try {
-					httpClient.close();
-				} catch (IOException e) {
-					logger.warn("Exception occured while closing the connection", e);
+			} finally {
+				if (httpClient != null) {
+					try {
+						httpClient.close();
+					} catch (IOException e) {
+						logger.warn("Exception occured while closing the connection", e);
+					}
 				}
 			}
+		} else  {
+			return null;
 		}
 	}
 

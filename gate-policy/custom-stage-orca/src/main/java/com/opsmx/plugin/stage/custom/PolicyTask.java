@@ -197,6 +197,7 @@ public class PolicyTask implements Task {
 		finalJson.put(NAME2, stage.getExecution().getName());
 		finalJson.put("stage", stage.getName());
 		finalJson.put("executionId", stage.getExecution().getId());
+		finalJson.put("gateId", outputs.get("gateId") != null ? (Integer) outputs.get("gateId") : null);
 		finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, stage.getExecution().getAuthentication().getUser()));
 
 		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
@@ -284,6 +285,11 @@ public class PolicyTask implements Task {
 			if (readValue.get("policyUrl") != null ) {
 				outputs.put("policyLink", readValue.get("policyUrl").asText());
 			}
+
+			if (readValue.get("gateId") != null ) {
+				outputs.put("gateId", readValue.get("gateId").asInt());
+			}
+
 			return triggerUrl;
 		} catch (Exception e) {
 			logger.error("Failed to execute policy stage", e);
