@@ -788,7 +788,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   <div className="col-md-3 sm-label-right">
                     LifeTime *<HelpField id="opsmx.verification.lifeTimeHours" />
                   </div>
-                  <div className="col-md-7">
+                  <div className="col-md-7 hours-adjust">
                     <div>
                       <FormikFormField
                         name="parameters.lifetime"
