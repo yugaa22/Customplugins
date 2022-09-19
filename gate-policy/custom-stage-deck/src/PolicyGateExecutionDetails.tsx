@@ -78,24 +78,24 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
           <table className="table" style={{ marginTop: '15px' }}>
             <thead>
               <tr>
-                <th>Status</th>
-                <th>Message</th>
-                <th style={{ width: '90px' }}>Executed By</th>
-                <th>Time</th>
-                <th>Policy Name</th>
-                <th>Policy Link</th>
+                <th className='policy-details-padding'>Status</th>
+                <th className='policy-details-padding'>Message</th>
+                <th className='policy-details-padding' style={{ width: '90px' }}>Executed By</th>
+                <th className='policy-details-padding'>Time</th>
+                <th className='policy-details-padding'>Policy Name</th>
+                <th className='policy-details-padding'>Policy Link</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>
+                <td className='policy-details-padding'>
                   <span className={'PolicyStatusSmall ' + getClasses()}>{getStatus()}</span>
                 </td>
-                <td className='wrapMessage'>{props.stage.outputs.message}</td>
-                <td>{props.stage.outputs.executedBy}</td>
-                <td>{new Date(props.stage.endTime).toLocaleString()}</td>
-                <td title={props.stage.outputs.policyName}>{truncateTxt(props.stage.outputs.policyName)}   </td>
-                <td><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
+                <td className='policy-details-padding wrapMessage'>{props.stage.outputs.message}</td>
+                <td className='policy-details-padding word-break'>{props.stage.outputs.executedBy}</td>
+                <td className='policy-details-padding'>{new Date(props.stage.endTime).toLocaleString()}</td>
+                <td className='policy-details-padding word-break' title={props.stage.outputs.policyName}>{truncateTxt(props.stage.outputs.policyName)}   </td>
+                <td className='policy-details-padding'><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                 <div className="modal-content">
                   <Tooltip value="Open in a new tab" placement="left">
