@@ -73,7 +73,7 @@ public class VerificationMonitorTask implements RetryableTask {
 			ObjectNode readValue = objectMapper.readValue(EntityUtils.toString(entity), ObjectNode.class);
 			String analysisStatus = readValue.get(OesConstants.STATUS).get(OesConstants.STATUS).asText();
 			outputs.put(OesConstants.CANARY_REPORTURL,
-			String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
+					String.format("%s/%s", readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.CANARY_REPORTURL).asText(), serviceId));
 			if (readValue.get(OesConstants.CANARY_RESULT).get("verificationUrl") != null ) {
 				outputs.put("verificationUrl",
 						String.format("%s/fromPlugin/%s", readValue.get(OesConstants.CANARY_RESULT).get("verificationUrl").asText(), serviceId));
@@ -96,15 +96,15 @@ public class VerificationMonitorTask implements RetryableTask {
 
 			Float overAllScore = readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.OVERALL_SCORE).floatValue();
 			Float minimumScore = readValue.get(OesConstants.CANARY_CONFIG).get(OesConstants.MINIMUM_CANARY_RESULT_SCORE).floatValue();
-			Float maximumScore = readValue.get(OesConstants.CANARY_CONFIG).get(OesConstants.MAXIMUM_CANARY_RESULT_SCORE).floatValue(); 
+			Float maximumScore = readValue.get(OesConstants.CANARY_CONFIG).get(OesConstants.MAXIMUM_CANARY_RESULT_SCORE).floatValue();
 			String result = readValue.get(OesConstants.CANARY_RESULT).get(OesConstants.OVERALL_RESULT).asText();
 
 			outputs.put(OesConstants.OVERALL_RESULT, result);
 			outputs.put(OesConstants.OVERALL_SCORE, overAllScore);
 
 			if (result.equalsIgnoreCase(OesConstants.FAIL)) {
-			outputs.put(OesConstants.EXCEPTION, "Analysis score is below the 'Pass score'");
-			return TaskResult.builder(ExecutionStatus.TERMINAL)
+				outputs.put(OesConstants.EXCEPTION, "Analysis score is below the 'Pass score'");
+				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
 			} else if (result.equalsIgnoreCase(OesConstants.SUCCESS)){
@@ -124,6 +124,7 @@ public class VerificationMonitorTask implements RetryableTask {
 			return TaskResult.builder(ExecutionStatus.RUNNING)
 					.outputs(outputs)
 					.build();
+
 		} catch (Exception e) {
 			logger.error("Error occurred while getting anaysis result ", e);
 			outputs.put(OesConstants.EXCEPTION, String.format("Error occurred while processing %s", e.getMessage()));

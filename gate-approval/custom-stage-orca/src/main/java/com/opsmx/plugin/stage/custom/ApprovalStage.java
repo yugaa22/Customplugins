@@ -51,13 +51,13 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 			cancelRequest(approvalUrl, stage.getExecution().getAuthentication().getUser(), stage.getExecution().getCancellationReason());
 			if (outputs.containsKey(ApprovalTriggerTask.NAVIGATIONAL_URL)) {
 				stage.getOutputs().remove(ApprovalTriggerTask.NAVIGATIONAL_URL);
+				stage.getOutputs().remove(ApprovalTriggerTask.APPROVAL_URL);
 			}
 		}
 		return null;
 	}
 
 	private void cancelRequest(String approvalUrl, String user, String reason) {
-
 		HttpPut request = new	HttpPut(approvalUrl);
 		ObjectNode finalJson = objectMapper.createObjectNode();
 		finalJson.put("action", "cancel");
@@ -65,23 +65,25 @@ public class ApprovalStage implements StageDefinitionBuilder, CancellableStage {
 		String payload = finalJson.toString();
 
 		logger.info("approval cancel url : {}, payload:{}", approvalUrl, payload);
-
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", user);
 			request.setEntity(new StringEntity(payload));
 			CloseableHttpResponse response = httpClient.execute(request);
-
-			logger.info("APPROVAL CANCEL STATUS : {}", response.getStatusLine().getStatusCode());
+			logger.info("Approval CANCEL STATUS : {}", response.getStatusLine().getStatusCode());
+			if (response.getStatusLine().getStatusCode() != 200) {
+				Thread.sleep(10000);
+				cancelRequest(approvalUrl, user, reason);
+			}
 
 			HttpEntity entity = response.getEntity();
 			String registerResponse = "";
 			if (entity != null) {
 				registerResponse = EntityUtils.toString(entity);
 			}
-			logger.info("Approval CANCEL response : {}", registerResponse);
-		} catch (IOException e) {
+			logger.debug("Approval CANCEL response : {}", registerResponse);
+		} catch (Exception e) {
 			logger.info("Exception occurred while cancelling approval", e);
 		} finally {
 			if (httpClient != null) {

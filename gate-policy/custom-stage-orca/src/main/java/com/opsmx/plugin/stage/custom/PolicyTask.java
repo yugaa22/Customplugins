@@ -197,6 +197,7 @@ public class PolicyTask implements Task {
 		finalJson.put(NAME2, stage.getExecution().getName());
 		finalJson.put("stage", stage.getName());
 		finalJson.put("executionId", stage.getExecution().getId());
+		finalJson.put("gateId", outputs.get("gateId") != null ? (Integer) outputs.get("gateId") : null);
 		finalJson.set(TRIGGER, objectMapper.createObjectNode().put(USER2, stage.getExecution().getAuthentication().getUser()));
 
 		ArrayNode payloadConstraintNode = objectMapper.createArrayNode();
@@ -277,13 +278,18 @@ public class PolicyTask implements Task {
 				outputs.put(STATUS, DENY);
 				outputs.put("REASON", String.format("Failed to get the trigger endpoint with status code :: %s, %s",
 						response.getStatusLine().getStatusCode(), registerResponse));
-				outputs.put(MESSAGE, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
+				outputs.put(MESSAGE, "Failed to get trigger endpoint. Please resave the stage before execution");
 				outputs.put(EXECUTED_BY, stage.getExecution().getAuthentication().getUser());
 				return null;
 			}
 			if (readValue.get("policyUrl") != null ) {
 				outputs.put("policyLink", readValue.get("policyUrl").asText());
 			}
+
+			if (readValue.get("gateId") != null ) {
+				outputs.put("gateId", readValue.get("gateId").asInt());
+			}
+
 			return triggerUrl;
 		} catch (Exception e) {
 			logger.error("Failed to execute policy stage", e);

@@ -131,6 +131,8 @@ public class ApprovalTriggerTask implements Task {
 
 	public static final String NAVIGATIONAL_URL = "navigationalURL";
 
+	public static final String APPROVAL_URL = "approvalUrl";
+
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -187,6 +189,7 @@ public class ApprovalTriggerTask implements Task {
 			outputs.put(TRIGGER, SUCCESS);
 			if (readValue.get(NAVIGATIONAL_URL) != null  &&  !readValue.get(NAVIGATIONAL_URL).isNull()) {
 				outputs.put(NAVIGATIONAL_URL, String.format("%s/fromPlugin?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
+				outputs.put(APPROVAL_URL, String.format("%s/fromPlugin?instanceId=%s",readValue.get(NAVIGATIONAL_URL).asText(), readValue.get("id").asText()));
 			}
 
 			return TaskResult.builder(ExecutionStatus.SUCCEEDED)
@@ -492,7 +495,8 @@ public class ApprovalTriggerTask implements Task {
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
 			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
-				outputs.put(EXCEPTION, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
+				outputs.put("Reason", String.format("Failed to get trigger endpoint with response :: %s", registerResponse));
+				outputs.put(EXCEPTION, "Failed to get trigger endpoint. Please resave the stage before execution");
 				outputs.put(TRIGGER, FAILED);
 				outputs.put(STATUS, REJECTED);
 				return null;
