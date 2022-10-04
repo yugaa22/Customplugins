@@ -239,7 +239,7 @@ export function VerificationConfig(props: IStageConfigProps) {
         (results) => {
           console.log(results);
           let temp = results;
-          temp.push({
+          temp.unshift({
             "id": 0,
             "spinnakerEnvironment": "+ Add New Environment"
           });
