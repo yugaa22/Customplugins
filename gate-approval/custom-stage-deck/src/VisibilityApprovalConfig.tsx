@@ -219,7 +219,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       .then(
         (response) => {
           let temp = response;
-          temp.push({
+          temp.unshift({
             "id": 0,
             "spinnakerEnvironment": "+ Add New Environment"
           });

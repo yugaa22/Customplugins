@@ -145,7 +145,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
       .then(
         (results) => {
           let temp = results;
-          temp.push({
+          temp.unshift({
             "id": 0,
             "spinnakerEnvironment": "+ Add New Environment"
           });
