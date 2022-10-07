@@ -3,6 +3,7 @@ import { ExecutionDetailsTasks, IStageTypeConfig } from '@spinnaker/core';
 
 import { VisibilityApprovalExecutionDetails } from './VisibilityApprovalExecutionDetails';
 import { VisibilityApprovalConfig, validate } from './VisibilityApprovalConfig';
+import { ApprovalLabel } from './ApprovalLabel';
 
 /*
   Define Spinnaker Stages with IStageTypeConfig.
@@ -19,6 +20,8 @@ export const approval: IStageTypeConfig = {
   description: 'Stage for Approval',
   component: VisibilityApprovalConfig,
   executionDetailsSections: [VisibilityApprovalExecutionDetails, ExecutionDetailsTasks],
+  executionLabelComponent: ApprovalLabel,
   supportsCustomTimeout: true,
+  useCustomTooltip: true,
   validateFn: validate,
 };
