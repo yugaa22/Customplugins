@@ -5,6 +5,7 @@ import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMes
 import './VisibilityApproval.less';
 import opsMxLogo from './images/OpsMx_logo_Black.svg';
 import openInNewTab from './images/open-new-tab-bold.png';
+import { ApprovalRequestModal } from './ApprovalRequestModal';
 
 /*
  * You can use this component to provide information to users about
@@ -139,7 +140,9 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
               View Approval Request
             </a>
 
-            <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
+            <ApprovalRequestModal stage={props.stage} modalOpen={modalIsOpen} setModalIsOpenToFalse={setModalIsOpenToFalse} />
+
+            {/* <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
               <Tooltip value="Open in a new tab" placement="left">
                 <a href={props.stage.outputs.navigationalURL} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
@@ -157,7 +160,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                 </iframe>
                 </div>                    
               </div>
-            </Modal>    
+            </Modal>     */}
 
 
           </div>
