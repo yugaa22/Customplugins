@@ -32,7 +32,7 @@ export function ApprovalLabel(props: IExecutionStageLabelProps) {
     <>
       {props.stage.isRunning ? (
         <>
-          <HoverablePopover template={template}> {props?.children}</HoverablePopover>
+          <HoverablePopover delayHide={0} delayShow={0} template={template}>{props?.children}</HoverablePopover>
           {
             modalOpen && <ApprovalRequestModal stage={props.stage.stages[0]} modalOpen={modalOpen} setModalIsOpenToFalse={() => setModalOpen(false)} />
           }
