@@ -20,7 +20,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
   console.log(props);
 
   const [modalIsOpen,setModalIsOpen] = useState(false);
-  const [canaryUrl, setCanaryUrl] = useState(null)
+  const [canaryUrl, setCanaryUrl] = useState(null);
 
 
   useEffect(() => {
@@ -126,7 +126,7 @@ return (
                         <h4 className="modal-title">Verification Details</h4>
                       </div>                                      
                       <div className="grid-span-4 modal-body">
-                      <iframe id="templateFrame" src={props.stage.outputs.verificationUrl != undefined ? props.stage.outputs.verificationUrl : canaryUrl} title="ISD">
+                      <iframe id="verificationtemplateFrame" src={props.stage.outputs.verificationUrl != undefined ? props.stage.outputs.verificationUrl : canaryUrl} title="ISD">
                       </iframe>
                       </div>                    
                     </div>
@@ -156,7 +156,7 @@ return (
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe id="templateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
+                <iframe id="verificationtemplateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
                 </iframe>
                 </div>                    
               </div>
