@@ -1064,9 +1064,19 @@ export function validate(stageConfig: IStage) {
   //   .required()
   //   .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
 
-  validator.field('parameters.baselinestarttime','Baseline Start time').required();
+  if(!stageConfig.parameters.baselineRealTime){
+    validator
+    .field('parameters.baselinestarttime','Baseline Start time')
+    .required()
+    .withValidators((value)=> (value == NaN ? 'Baseline Start time is required' : '' ))
+  }
 
-  validator.field('parameters.canarystarttime','Canary Start time').required();
+  if(!stageConfig.parameters.canaryRealTime){
+    validator
+    .field('parameters.canarystarttime','Canary Start time')
+    .required()
+    .withValidators((value)=> ( value == NaN ? 'Canary Start time is required' : '' ))
+  }
 
   return validator.validateForm();
 }
