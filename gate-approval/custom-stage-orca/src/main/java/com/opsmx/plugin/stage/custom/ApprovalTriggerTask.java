@@ -1,6 +1,9 @@
 package com.opsmx.plugin.stage.custom;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -239,7 +242,7 @@ public class ApprovalTriggerTask implements Task {
 			securityNode.forEach(secNode -> {
 				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
 				for (JsonNode jsonNode : valuesNode) {
-					if (jsonNode.get("label") != null && !jsonNode.get("label").isNull() && !jsonNode.get("label").asText().isBlank()) {
+					if (jsonNode.get("label") != null && !jsonNode.get("label").isNull() && !jsonNode.get("label").asText().isEmpty()) {
 						payloadConstraintNode.add(objectMapper.createObjectNode()
 								.put(jsonNode.get("label").asText(), jsonNode.get("value").isNull() ? null : jsonNode.get("value").asText()));
 					}
@@ -468,7 +471,7 @@ public class ApprovalTriggerTask implements Task {
 
 
 
-	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
+	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) throws UnsupportedEncodingException {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -494,7 +497,7 @@ public class ApprovalTriggerTask implements Task {
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
-			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
+			if (triggerUrl == null || triggerUrl.isEmpty() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put("Reason", String.format("Failed to get trigger endpoint with response :: %s", registerResponse));
 				outputs.put(EXCEPTION, "Failed to get trigger endpoint. Please resave the stage before execution");
 				outputs.put(TRIGGER, FAILED);
@@ -520,11 +523,15 @@ public class ApprovalTriggerTask implements Task {
 		}
 	}
 
-	private String constructGateEnpoint(StageExecution stage) {
+	private String constructGateEnpoint(StageExecution stage) throws UnsupportedEncodingException {
 		//applications/{applicationname}/pipeline/{pipelineName}/reference/{ref}/gates/{gatesName}?type={gateType}
 		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=approval",
 				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
-				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getRefId(),
-				stage.getName());
+				stage.getExecution().getApplication(), encodeString(stage.getExecution().getName()), stage.getRefId(),
+				encodeString(stage.getName()));
+	}
+
+	private String encodeString(String value) throws UnsupportedEncodingException {
+		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
 	}
 }
