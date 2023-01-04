@@ -1,6 +1,9 @@
 package com.opsmx.plugin.stage.custom;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,11 +68,15 @@ public class VerificationTriggerTask implements Task {
 	public TaskResult execute(@NotNull StageExecution stage) {
 		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}",
 				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
-		return triggerAnalysis(stage);
+		try {
+			return triggerAnalysis(stage);
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
-	private TaskResult triggerAnalysis(StageExecution stage) {
+	private TaskResult triggerAnalysis(StageExecution stage) throws UnsupportedEncodingException {
 		Map<String, Object> contextMap = new HashMap<>();
 		Map<String, Object> outputs = new HashMap<>();
 		long startTime = Instant.now().toEpochMilli();
@@ -157,7 +164,7 @@ public class VerificationTriggerTask implements Task {
 		}
 	}
 
-	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) {
+	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) throws UnsupportedEncodingException {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -184,7 +191,7 @@ public class VerificationTriggerTask implements Task {
 
 			ObjectNode readValue = objectMapper.readValue(registerResponse, ObjectNode.class);
 			String triggerUrl = readValue.get("gateUrl").isNull() ? null : readValue.get("gateUrl").asText();
-			if (triggerUrl == null || triggerUrl.isBlank() || triggerUrl.equalsIgnoreCase("null")) {
+			if (triggerUrl == null || triggerUrl.isEmpty() || triggerUrl.equalsIgnoreCase("null")) {
 				outputs.put("Reason", String.format("Failed to get trigger endpoint with response :: %s", registerResponse));
 				outputs.put(OesConstants.EXCEPTION, "Failed to get trigger endpoint. Please resave the stage before execution");
 				outputs.put(OesConstants.OVERALL_SCORE, 0.0);
@@ -212,12 +219,16 @@ public class VerificationTriggerTask implements Task {
 		}
 	}
 
-	private String constructGateEnpoint(StageExecution stage) {
+	private String constructGateEnpoint(StageExecution stage) throws UnsupportedEncodingException {
 		//applications/{applicationname}/pipeline/{pipelineName}/reference/{ref}/gates/{gatesName}?type={gateType}
 		return String.format("%s/platformservice/v6/applications/%s/pipeline/%s/reference/%s/gates/%s?type=verification",
 				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
-				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getRefId(),
-				stage.getName());
+				stage.getExecution().getApplication(), encodeString(stage.getExecution().getName()), stage.getRefId(),
+				encodeString(stage.getName()));
+	}
+
+	private String encodeString(String value) throws UnsupportedEncodingException {
+		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
 	}
 
 	private String getPayloadString(StageExecution stage, Long startTime) throws JsonProcessingException {
@@ -234,7 +245,7 @@ public class VerificationTriggerTask implements Task {
 			securityNode.forEach(secNode -> {
 				ArrayNode valuesNode = (ArrayNode)secNode.get("values");
 				for (JsonNode jsonNode : valuesNode) {
-					if (!jsonNode.get("label").isNull() && !jsonNode.get("label").asText().isBlank()) {
+					if (!jsonNode.get("label").isNull() && !jsonNode.get("label").asText().isEmpty()) {
 						payloadConstraintNode.add(objectMapper.createObjectNode()
 								.put(jsonNode.get("label").asText(), jsonNode.get("value").isNull() ? null : jsonNode.get("value").asText()));
 					}
@@ -253,13 +264,13 @@ public class VerificationTriggerTask implements Task {
 
 		ObjectNode baselinePayload = objectMapper.createObjectNode();
 		ObjectNode canaryPayload = objectMapper.createObjectNode();
-		if (parameterContext.get("logTemplate") != null && ! ((String) parameterContext.get("logTemplate")).isBlank()) {
+		if (parameterContext.get("logTemplate") != null && ! ((String) parameterContext.get("logTemplate")).isEmpty()) {
 			baselinePayload.set(LOG,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 			canaryPayload.set(LOG,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 		}
-		if (parameterContext.get("metricTemplate") != null && !((String) parameterContext.get("metricTemplate")).isBlank()) {
+		if (parameterContext.get("metricTemplate") != null && !((String) parameterContext.get("metricTemplate")).isEmpty()) {
 			baselinePayload.set(METRIC,
 					prepareJson(stage.getName(), stage.getExecution().getName()));
 			canaryPayload.set(METRIC,
