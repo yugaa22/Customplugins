@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
+import { SETTINGS } from '@spinnaker/core';
 import {
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
@@ -174,7 +175,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 }
               );
             props.stage['applicationId'] = results.applicationId;            
-            let a = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
+            let a = SETTINGS.gateUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
             setMetricCreateUrl(a);
           }
         )
@@ -205,7 +206,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   setLogDropdownList(response);
                 }
               );
-            let logCreateUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
+            let logCreateUrl = SETTINGS.gateUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
             setLogCreateUrl(logCreateUrl);
           }
         )
@@ -345,7 +346,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setMetricUrl(metricCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
+      let editUrl = SETTINGS.gateUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -361,7 +362,7 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setLogUrl(logCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
+      let editUrl = SETTINGS.gateUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
