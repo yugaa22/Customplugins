@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import Modal from 'react-modal';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage,Tooltip } from '@spinnaker/core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage,Tooltip, SETTINGS } from '@spinnaker/core';
 import opsMxLogo from './images/OpsMx_logo_Black.svg';
 import openInNewTab from './images/open-new-tab-bold.png';
 
@@ -17,6 +17,22 @@ import openInNewTab from './images/open-new-tab-bold.png';
 export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps) {
   console.log("Policy Execution");
   console.log(props);
+  var isdUrl = '';
+  useEffect(()=>{
+    if(SETTINGS.ISDUIHost){
+      isdUrl = SETTINGS.ISDUIHost;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = 'https://poc.isd-dev.opsmx.net/'; //window.location.origin to be changed later;
+    }
+  },[])
   const [modalIsOpen,setModalIsOpen] = useState(false);
   const getClasses = () => {
     let classes = '';
@@ -99,7 +115,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                 <div className="modal-content">
                   <Tooltip value="Open in a new tab" placement="left">
-                  <a href={window.location.origin + "/ui/plugin-isd" + props.stage.outputs.policyLink} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                  <a href={isdUrl + "/ui/plugin-isd" + props.stage.outputs.policyLink} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
                   </Tooltip>                  
                     <div className="modal-close close-button pull-right">
                       <button onClick={setModalIsOpenToFalse} className="link">
@@ -110,7 +126,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                       <h4 className="modal-title">Policy Details</h4>
                     </div>                                      
                     <div className="grid-span-4 modal-body">
-                    <iframe id="PolicyTemplateFrame" src={ window.location.origin + "/ui/plugin-isd" + props.stage.outputs.policyLink} title="ISD">
+                    <iframe id="PolicyTemplateFrame" src={ isdUrl + "/ui/plugin-isd" + props.stage.outputs.policyLink} title="ISD">
                     </iframe>
                     </div>                    
                   </div>

@@ -23,7 +23,8 @@ import {
   LayoutProvider,
   StandardFieldLayout,
   IStageForSpelPreview,
-  Tooltip
+  Tooltip,
+  SETTINGS
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
@@ -49,8 +50,8 @@ const HorizontalRule = () => (
 export function VerificationConfig(props: IStageConfigProps) {
 
   console.log(props);
-
-
+ 
+var isdUrl = '';
   const [applicationId, setApplicationId] = useState()
 
   const [metricDropdownList, setMetricDropdownList] = useState([])
@@ -134,6 +135,19 @@ export function VerificationConfig(props: IStageConfigProps) {
   }
 
   useEffect(() => {
+    if(SETTINGS.ISDUIHost){
+      isdUrl = SETTINGS.ISDUIHost;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = 'https://poc.isd-dev.opsmx.net/'; //window.location.origin to be changed later;
+    }
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/metricTemplates').
         get()
@@ -174,7 +188,8 @@ export function VerificationConfig(props: IStageConfigProps) {
                 }
               );
             props.stage['applicationId'] = results.applicationId;            
-            let a = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
+            let a = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
+            console.log('DUALURL_',a)
             setMetricCreateUrl(a);
           }
         )
@@ -182,6 +197,19 @@ export function VerificationConfig(props: IStageConfigProps) {
   }, [metricListUpdated])
 
   useEffect(() => {
+    if(SETTINGS.ISDUIHost){
+      isdUrl = SETTINGS.ISDUIHost;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = 'https://poc.isd-dev.opsmx.net/'; //window.location.origin to be changed later;
+    }
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/logTemplates').
         get()
@@ -205,7 +233,8 @@ export function VerificationConfig(props: IStageConfigProps) {
                   setLogDropdownList(response);
                 }
               );
-            let logCreateUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
+            let logCreateUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
+            console.log('DUALURL_',logCreateUrl)
             setLogCreateUrl(logCreateUrl);
           }
         )
@@ -345,7 +374,8 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setMetricUrl(metricCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
+      let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
+      console.log('DUALURL_',editUrl)
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -361,7 +391,8 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setLogUrl(logCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
+      let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
+      console.log('DUALURL_',logCreateUrl)
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
