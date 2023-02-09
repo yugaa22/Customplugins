@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, SETTINGS, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './Verification.less';
 import opsMxLogo from './images/OpsMx_logo_Black.svg';
 import openInNewTab from './images/open-new-tab-bold.png';
@@ -18,19 +18,32 @@ import openInNewTab from './images/open-new-tab-bold.png';
 export function VerificationExecutionDetails(props: IExecutionDetailsSectionProps) {
   console.log("Verification Gate Execution");
   console.log(props);
-
+  let isdUrl =  '';
   const [modalIsOpen,setModalIsOpen] = useState(false);
   const [canaryUrl, setCanaryUrl] = useState(null);
 
 
   useEffect(() => {
+    if(window && window.uiUrl){
+      isdUrl = window.uiUrl;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = window.location.origin;
+    }
     if (props.stage.outputs?.canaryReportURL) {
       let urlPath = props.stage.outputs.canaryReportURL.split("/");
       let path: any[] = [];
       for (let i = urlPath?.length - 1; i >= 6; i--)
         path = [urlPath[i], ...path]
       var constructedPath = path.join("/")
-      setCanaryUrl(`${window.location.origin}/ui/plugin-isd/verification/${constructedPath}`)
+      setCanaryUrl(`${isdUrl}/ui/plugin-isd/verification/${constructedPath}`)
     }
   }, [])
 

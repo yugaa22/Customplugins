@@ -23,7 +23,8 @@ import {
   LayoutProvider,
   StandardFieldLayout,
   IStageForSpelPreview,
-  Tooltip
+  Tooltip,
+  SETTINGS
 } from '@spinnaker/core';
 import './Verification.less';
 import { DateTimePicker } from './input/DateTimePickerInput';
@@ -49,8 +50,8 @@ const HorizontalRule = () => (
 export function VerificationConfig(props: IStageConfigProps) {
 
   console.log(props);
-
-
+ 
+var isdUrl = '';
   const [applicationId, setApplicationId] = useState()
 
   const [metricDropdownList, setMetricDropdownList] = useState([])
@@ -134,6 +135,19 @@ export function VerificationConfig(props: IStageConfigProps) {
   }
 
   useEffect(() => {
+    if(window && window.uiUrl){
+      isdUrl = window.uiUrl;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = window.location.origin;
+    }
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/metricTemplates').
         get()
@@ -174,7 +188,8 @@ export function VerificationConfig(props: IStageConfigProps) {
                 }
               );
             props.stage['applicationId'] = results.applicationId;            
-            let a = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
+            let a = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
+            console.log('DUALURL_',a)
             setMetricCreateUrl(a);
           }
         )
@@ -182,6 +197,19 @@ export function VerificationConfig(props: IStageConfigProps) {
   }, [metricListUpdated])
 
   useEffect(() => {
+    if(window && window.uiUrl){
+      isdUrl = window.uiUrl;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = window.location.origin;
+    }
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/logTemplates').
         get()
@@ -205,7 +233,8 @@ export function VerificationConfig(props: IStageConfigProps) {
                   setLogDropdownList(response);
                 }
               );
-            let logCreateUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
+            let logCreateUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
+            console.log('DUALURL_',logCreateUrl)
             setLogCreateUrl(logCreateUrl);
           }
         )
@@ -296,56 +325,13 @@ export function VerificationConfig(props: IStageConfigProps) {
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
 
 
-  // const multiFieldGateSecurityComp = (props: any, formik: any) => {
-
-  //   getGateSecurityParams();
-  //   const fieldParams = props.stage.parameters ?? null;
-  //   //console.log("fieldParams");
-  //   //console.log(fieldParams);
-  //   return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
-  //     if (
-  //       (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-  //       dynamicField.supportedParams.length > 1
-  //     ) {
-  //       HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
-  //       return (
-  //         <div className="grid-span-4 fullWidthContainer">
-  //           <FormikFormField
-  //             name={dynamicField.connectorType}
-  //             label={dynamicField.connectorType}
-  //             help={<HelpField id={dynamicField.connectorType} />}
-  //             input={() => (
-  //               <LayoutProvider value={StandardFieldLayout}>
-  //                 <div className="flex-container-v margin-between-lg dynamicFieldSection">
-  //                   <EvaluateVariablesStageForm
-  //                     blockLabel={dynamicField.connectorType}
-  //                     chosenStage={chosenStage}
-  //                     headers={dynamicField.supportedParams}
-  //                     isMultiSupported={dynamicField.isMultiSupported}
-  //                     fieldMapName="gateSecurity"
-  //                     parentIndex={index}
-  //                     formik={formik}
-  //                     {...props}
-  //                   />
-  //                 </div>
-  //               </LayoutProvider>
-  //             )}
-  //           />
-  //         </div>
-  //       );
-  //     } else {
-  //       return null;
-  //     }
-  //   });
-  // };
-
-
   const setModalIsOpenToTrue = (type: any) => {
     onmetricListUpdated(false);
     if (type == 'add') {
       setMetricUrl(metricCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
+      let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
+      console.log('DUALURL_',editUrl)
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -361,7 +347,8 @@ export function VerificationConfig(props: IStageConfigProps) {
     if (type == 'add') {
       setLogUrl(logCreateUrl);
     } else {
-      let editUrl = window.location.origin + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
+      let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
+      console.log('DUALURL_',logCreateUrl)
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
@@ -462,14 +449,6 @@ export function VerificationConfig(props: IStageConfigProps) {
             <div className="grid"></div>
             <div className=" form mainform">
 
-              {/* <div className="grid-span-3">
-                <FormikFormField
-                  name="parameters.environment"
-                  label="Environment"
-                  help={<HelpField id="opsmx.verification.environment" />}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div>  */}
               <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
@@ -845,45 +824,6 @@ export function VerificationConfig(props: IStageConfigProps) {
                 </div>
               </div>
 
-
-
-              {/* <div className="form-horizontal">
-                <div className="form-group">
-
-                  <div className="col-md-3 sm-label-right">
-                    Log Analysis *<HelpField id="opsmx.verification.logAnalysis" />
-                  </div>
-                  <div className="col-md-7">
-                    <div style={{ paddingLeft: '4em' }}>
-                      <FormikFormField
-                        name="parameters.log"
-                        // label="Log Analysis *"
-                        // help={<HelpField id="opsmx.verification.logAnalysis" />}
-                        input={(props) => <RadioButtonInput {...props} inline={true} options={ANALYSIS_TYPE_OPTIONS} />}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div> */}
-
-              {/* <div className="form-horizontal">
-                <div className="form-group">
-                  <div className="col-md-3 sm-label-right">
-                    Metric Analysis *<HelpField id="opsmx.verification.metricAnalysis" />
-                  </div>
-                  <div className="col-md-7">
-                    <div style={{ paddingLeft: '2em' }}>
-                      <FormikFormField
-                        name="parameters.metric"
-                        // label="Metric Analysis *"
-                        // help={<HelpField id="opsmx.verification.metricAnalysis" />}
-                        input={(props) => <RadioButtonInput {...props} inline={true} options={ANALYSIS_TYPE_OPTIONS} />}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div> */}
-
               <div className="form-horizontal">
                 <div className="form-group">
                   <div className="col-md-3 sm-label-right">
@@ -963,45 +903,6 @@ export function VerificationConfig(props: IStageConfigProps) {
                   </>
                 ) 
               }
-
-
-
-              {/* <div className="grid-span-2">
-                <FormikFormField
-                  name="parameters.gate"
-                  label="Gate Name"
-                  help={<HelpField id="opsmx.verification.gateName" />}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div> */}
-
-              {/* <div className="form-horizontal">
-                <div className="form-group">
-                  <div className="col-md-3 sm-label-right">
-                  Instance Id *<HelpField id="opsmx.verification.imageIds" />
-                  </div>
-                  <div className="col-md-7">
-                    <div className="grid-span-2">
-                      <FormikFormField
-                        name="parameters.imageids"
-                        // label="Image Ids *"
-                        // help={<HelpField id="opsmx.verification.imageIds" />}
-                        required={true}
-                        input={(props) => <TextInput {...props} />}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div> */}
-
-              {/* <div className="grid-span-4">
-                <h4 className="sticky-header ng-binding">Gate Security</h4>
-                <br />
-                <div className="grid-span-2">
-                  {fieldParams.gateUrl}
-                </div>
-                {multiFieldGateSecurityComp({ ...props }, formik)}
-              </div> */}
             </div>
             <div className="opsmxLogo">
               <img
@@ -1034,16 +935,6 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Canary Result Score is required` : undefined));
 
-  // validator
-  //   .field('parameters.log')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Log Analysis is required` : undefined));
-
-  // validator
-  //   .field('parameters.metric')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Metric Analysis is required` : undefined));
-
   validator
     .field('parameters.metricTemplate','Metric Template')
     .required()
@@ -1059,10 +950,6 @@ export function validate(stageConfig: IStage) {
     .required()
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
 
-  // validator
-  //   .field('parameters.imageids','Instance Id')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
 
   if(!stageConfig.parameters.baselineRealTime){
     validator
