@@ -19,8 +19,8 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
   console.log(props);
   var isdUrl = '';
   useEffect(()=>{
-    if(SETTINGS.ISDUIHost){
-      isdUrl = SETTINGS.ISDUIHost;
+    if(window && window.spinnakerSettings?.uiUrl){
+      isdUrl = window.spinnakerSettings?.uiUrl;
     }
     else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
       let gateurl = SETTINGS.gateUrl;
