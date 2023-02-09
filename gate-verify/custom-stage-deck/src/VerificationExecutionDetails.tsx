@@ -35,7 +35,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
       isdUrl = gateurl;
     }
     else{
-      isdUrl = 'https://poc.isd-dev.opsmx.net/'; //window.location.origin to be changed later;
+      isdUrl = window.location.origin;
     }
     if (props.stage.outputs?.canaryReportURL) {
       let urlPath = props.stage.outputs.canaryReportURL.split("/");

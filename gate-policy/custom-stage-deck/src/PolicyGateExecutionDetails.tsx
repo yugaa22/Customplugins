@@ -30,7 +30,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
       isdUrl = gateurl;
     }
     else{
-      isdUrl = 'https://poc.isd-dev.opsmx.net/'; //window.location.origin to be changed later;
+      isdUrl = window.location.origin;
     }
   },[])
   const [modalIsOpen,setModalIsOpen] = useState(false);
