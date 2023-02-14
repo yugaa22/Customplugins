@@ -1,7 +1,7 @@
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import Modal from 'react-modal';
 
-import { ExecutionDetailsSection, IExecutionDetailsSectionProps, StageFailureMessage, Tooltip } from '@spinnaker/core';
+import { ExecutionDetailsSection, IExecutionDetailsSectionProps, SETTINGS, StageFailureMessage, Tooltip } from '@spinnaker/core';
 import './VisibilityApproval.less';
 import opsMxLogo from './images/OpsMx_logo_Black.svg';
 import openInNewTab from './images/open-new-tab-bold.png';
@@ -20,8 +20,32 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
   console.log("Approval Gate Execution");
   console.log(props);
 
+  let isdUrl =  '';
   const [modalIsOpen,setModalIsOpen] = useState(false);
   const [approvalStatusPopup,setApprovalStatusPopup] = useState(false);
+  const [approvalUrl, setApprovalUrl] = useState('');
+
+  useEffect(()=>{
+    if(window && window.uiUrl){
+      isdUrl = window.uiUrl;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = window.location.origin;
+    }
+    if(props.stage.outputs.navigationalURL.startsWith('http')){
+      let modifiedUrl = props.stage.outputs.navigationalURL.replace(/^http[s]?:\/\/.+?\//, '/');
+      setApprovalUrl(`${isdUrl}+${modifiedUrl}`)
+    }else{
+      setApprovalUrl(`${isdUrl}+${props.stage.outputs.navigationalURL}`)
+    }
+  })
 
   const getClasses = () => {
     let classes = '';
@@ -98,7 +122,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                     <Modal id="approval-exe-modal2" isOpen={approvalStatusPopup} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
                       <div className="modal-content">
                         <Tooltip value="Open in a new tab" placement="left">
-                          <a href={props.stage.outputs.navigationalURL} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                          <a href={approvalUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
                         </Tooltip>
                         <div className="modal-close close-button pull-right">
                           <button onClick={closeApprovalDetails} className="link">
@@ -109,7 +133,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
                           <h4 className="modal-title">Approval Details</h4>
                         </div>                                      
                         <div className="grid-span-4 modal-body">
-                        <iframe id="templateFrame" src={props.stage.outputs.navigationalURL} title="ISD">
+                        <iframe id="templateFrame" src={approvalUrl} title="ISD">
                         </iframe>
                         </div>                    
                       </div>
@@ -140,7 +164,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
               View Approval Request
             </a>
 
-            <ApprovalRequestModal stage={props.stage} modalOpen={modalIsOpen} setModalIsOpenToFalse={setModalIsOpenToFalse} />
+            <ApprovalRequestModal approvalUrl={approvalUrl} stage={props.stage} modalOpen={modalIsOpen} setModalIsOpenToFalse={setModalIsOpenToFalse} />
 
             {/* <Modal id="approval-exe-modal" isOpen={modalIsOpen} className="modal-popup-approval modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">
