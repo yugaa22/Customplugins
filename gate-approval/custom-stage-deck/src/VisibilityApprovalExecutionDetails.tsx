@@ -41,11 +41,11 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
     }
     if(props.stage.outputs.navigationalURL.startsWith('http')){
       let modifiedUrl = props.stage.outputs.navigationalURL.replace(/^http[s]?:\/\/.+?\//, '/');
-      setApprovalUrl(`${isdUrl}+${modifiedUrl}`)
+      setApprovalUrl(`${isdUrl}${modifiedUrl}`)
     }else{
-      setApprovalUrl(`${isdUrl}+${props.stage.outputs.navigationalURL}`)
+      setApprovalUrl(`${isdUrl}${props.stage.outputs.navigationalURL}`)
     }
-  })
+  },[])
 
   const getClasses = () => {
     let classes = '';

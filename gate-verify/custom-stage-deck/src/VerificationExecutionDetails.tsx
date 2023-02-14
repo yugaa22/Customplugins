@@ -40,9 +40,9 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
     }
     if(props.stage.outputs.verificationUrl.startsWith('http')){
       let modifiedUrl = props.stage.outputs.verificationUrl.replace(/^http[s]?:\/\/.+?\//, '/');
-      setVerificationUrl(`${isdUrl}+${modifiedUrl}`)
+      setVerificationUrl(`${isdUrl}${modifiedUrl}`)
     }else{
-      setVerificationUrl(`${isdUrl}+${props.stage.outputs.verificationUrl}`)
+      setVerificationUrl(`${isdUrl}${props.stage.outputs.verificationUrl}`)
     }
     if (props.stage.outputs?.canaryReportURL) {
       let urlPath = props.stage.outputs.canaryReportURL.split("/");

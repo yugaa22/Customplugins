@@ -134,7 +134,7 @@ var isdUrl = '';
     }
   }
 
-  useEffect(() => {
+  useEffect(()=>{
     if(window && window.uiUrl){
       isdUrl = window.uiUrl;
     }
@@ -148,6 +148,9 @@ var isdUrl = '';
     else{
       isdUrl = window.location.origin;
     }
+  },[])
+
+  useEffect(() => {
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/metricTemplates').
         get()
@@ -197,19 +200,6 @@ var isdUrl = '';
   }, [metricListUpdated])
 
   useEffect(() => {
-    if(window && window.uiUrl){
-      isdUrl = window.uiUrl;
-    }
-    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
-      let gateurl = SETTINGS.gateUrl;
-      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
-       gateurl = gateurl.replace('/gate','');
-      }
-      isdUrl = gateurl;
-    }
-    else{
-      isdUrl = window.location.origin;
-    }
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/logTemplates').
         get()
@@ -331,7 +321,7 @@ var isdUrl = '';
       setMetricUrl(metricCreateUrl);
     } else {
       let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
-      console.log('DUALURL_',editUrl)
+      console.log('DUALURL_edit',editUrl)
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -348,7 +338,7 @@ var isdUrl = '';
       setLogUrl(logCreateUrl);
     } else {
       let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
-      console.log('DUALURL_',logCreateUrl)
+      console.log('DUALURL_edit',logCreateUrl)
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
