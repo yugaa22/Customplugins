@@ -51,7 +51,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   console.log(props);
  
-var isdUrl = '';
+var isdUrl:any = null;
   const [applicationId, setApplicationId] = useState()
 
   const [metricDropdownList, setMetricDropdownList] = useState([])
@@ -138,7 +138,7 @@ var isdUrl = '';
     if(window && window.uiUrl){
       isdUrl = window.uiUrl;
     }
-    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+    else if(SETTINGS && SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
       let gateurl = SETTINGS.gateUrl;
       if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
        gateurl = gateurl.replace('/gate','');
