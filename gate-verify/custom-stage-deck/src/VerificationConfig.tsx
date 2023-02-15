@@ -136,21 +136,6 @@ export function VerificationConfig(props: IStageConfigProps) {
     }
   }
 
-  // useEffect(()=>{
-  //   if(window && window.uiUrl){
-  //     setIsdUrl(window.uiUrl);
-  //   }
-  //   else if(SETTINGS && SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
-  //     let gateurl = SETTINGS.gateUrl;
-  //     if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
-  //      gateurl = gateurl.replace('/gate','');
-  //     }
-  //     setIsdUrl(gateurl);
-  //   }
-  //   else{
-  //     setIsdUrl(window.location.origin);
-  //   }
-  // },[])
 
   useEffect(() => {
     let tempUrl = '';
@@ -209,7 +194,6 @@ export function VerificationConfig(props: IStageConfigProps) {
               );
             props.stage['applicationId'] = results.applicationId;            
             let a = tempUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
-            console.log('DUALURL_',a)
             setMetricCreateUrl(a);
           }
         )
@@ -256,7 +240,6 @@ export function VerificationConfig(props: IStageConfigProps) {
                 }
               );
             let logCreateUrl = tempUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
-            console.log('DUALURL_',logCreateUrl)
             setLogCreateUrl(logCreateUrl);
           }
         )
@@ -349,13 +332,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const setModalIsOpenToTrue = (type: any) => {
     onmetricListUpdated(false);
-    console.log("isd Url",isdUrl)
     if (type == 'add') {
       setMetricUrl(metricCreateUrl);
     } else {
-      console.log("isd Url in else case",isdUrl)
       let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
-      console.log('DUALURL_edit',editUrl)
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -368,13 +348,10 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   const setLogModalIsOpenToTrue = (type: any) => {
     onlogListUpdated(false);
-    console.log("isd Url",isdUrl)
     if (type == 'add') {
       setLogUrl(logCreateUrl);
     } else {
-      console.log("isd Url in else case",isdUrl)
       let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
-      console.log('DUALURL_edit',editUrl)
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
@@ -696,7 +673,6 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                         <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
-                            {console.log("metric url", isdUrl, metricUrl)}
                             <Tooltip value="Open in a new tab" placement="left">            
                               <a href={metricUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
                             </Tooltip>
