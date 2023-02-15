@@ -51,7 +51,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   console.log(props);
  
-var isdUrl = '';
+
   const [applicationId, setApplicationId] = useState()
 
   const [metricDropdownList, setMetricDropdownList] = useState([])
@@ -93,6 +93,8 @@ var isdUrl = '';
   const [baselineRealTime,setbaselineRealTime] = useState(false);
 
   const[customenv,setCustomEnv]=useState('');
+
+  const[isdUrl,setIsdUrl]=useState('');
   
   const handleInput=(event: any)=>{
       event.preventDefault();
@@ -134,20 +136,23 @@ var isdUrl = '';
     }
   }
 
+
   useEffect(() => {
+    let tempUrl = '';
     if(window && window.uiUrl){
-      isdUrl = window.uiUrl;
+      tempUrl = window.uiUrl;
     }
-    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+    else if(SETTINGS && SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
       let gateurl = SETTINGS.gateUrl;
       if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
        gateurl = gateurl.replace('/gate','');
       }
-      isdUrl = gateurl;
+      tempUrl = gateurl;
     }
     else{
-      isdUrl = window.location.origin;
+      tempUrl = window.location.origin;
     }
+    setIsdUrl(tempUrl)
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/metricTemplates').
         get()
@@ -188,8 +193,7 @@ var isdUrl = '';
                 }
               );
             props.stage['applicationId'] = results.applicationId;            
-            let a = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
-            console.log('DUALURL_',a)
+            let a = tempUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/{}/" + props.application.attributes.email + "/-1/false/false/fromPlugin";
             setMetricCreateUrl(a);
           }
         )
@@ -197,19 +201,21 @@ var isdUrl = '';
   }, [metricListUpdated])
 
   useEffect(() => {
+    let tempUrl = '';
     if(window && window.uiUrl){
-      isdUrl = window.uiUrl;
+      tempUrl = window.uiUrl;
     }
-    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+    else if(SETTINGS && SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
       let gateurl = SETTINGS.gateUrl;
       if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
        gateurl = gateurl.replace('/gate','');
       }
-      isdUrl = gateurl;
+      tempUrl = gateurl;
     }
     else{
-      isdUrl = window.location.origin;
+      tempUrl = window.location.origin;
     }
+    setIsdUrl(tempUrl)
     if (applicationId != undefined) {
       REST('autopilot/api/v1/applications/' + applicationId + '/logTemplates').
         get()
@@ -233,8 +239,7 @@ var isdUrl = '';
                   setLogDropdownList(response);
                 }
               );
-            let logCreateUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
-            console.log('DUALURL_',logCreateUrl)
+            let logCreateUrl = tempUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + results.applicationId + "/null/" + props.application.attributes.email + "/false/write/fromPlugin";
             setLogCreateUrl(logCreateUrl);
           }
         )
@@ -331,7 +336,6 @@ var isdUrl = '';
       setMetricUrl(metricCreateUrl);
     } else {
       let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
-      console.log('DUALURL_',editUrl)
       setMetricUrl(editUrl);
     }
     setModalIsOpen(true);
@@ -348,7 +352,6 @@ var isdUrl = '';
       setLogUrl(logCreateUrl);
     } else {
       let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
-      console.log('DUALURL_',logCreateUrl)
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
