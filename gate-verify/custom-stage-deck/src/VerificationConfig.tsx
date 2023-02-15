@@ -317,9 +317,11 @@ var isdUrl = '';
 
   const setModalIsOpenToTrue = (type: any) => {
     onmetricListUpdated(false);
+    console.log("isd Url",isdUrl)
     if (type == 'add') {
       setMetricUrl(metricCreateUrl);
     } else {
+      console.log("isd Url in else case",isdUrl)
       let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
       console.log('DUALURL_edit',editUrl)
       setMetricUrl(editUrl);
@@ -334,11 +336,13 @@ var isdUrl = '';
 
   const setLogModalIsOpenToTrue = (type: any) => {
     onlogListUpdated(false);
+    console.log("isd Url",isdUrl)
     if (type == 'add') {
       setLogUrl(logCreateUrl);
     } else {
+      console.log("isd Url in else case",isdUrl)
       let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
-      console.log('DUALURL_edit',logCreateUrl)
+      console.log('DUALURL_edit',editUrl)
       setLogUrl(editUrl);
     }
     setLogModalIsOpen(true);
@@ -660,6 +664,7 @@ var isdUrl = '';
 
                         <Modal id="metrictemplate-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-content" overlayClassName="react-modal-custom">
                           <div className="modal-content">
+                            {console.log("metric url", isdUrl, metricUrl)}
                             <Tooltip value="Open in a new tab" placement="left">            
                               <a href={metricUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
                             </Tooltip>
