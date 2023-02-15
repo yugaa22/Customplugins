@@ -38,7 +38,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
     else{
       isdUrl = window.location.origin;
     }
-    if(props.stage.outputs.verificationUrl.startsWith('http')){
+    if(props.stage?.outputs?.verificationUrl?.startsWith('http')){
       let modifiedUrl = props.stage.outputs.verificationUrl.replace(/^http[s]?:\/\/.+?\//, '/');
       setVerificationUrl(`${isdUrl}${modifiedUrl}`)
     }else{

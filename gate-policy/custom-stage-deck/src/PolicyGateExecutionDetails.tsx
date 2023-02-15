@@ -116,7 +116,13 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
                 <div className="modal-content">
                   <Tooltip value="Open in a new tab" placement="left">
-                  {isdUrl && (<a href={isdUrl + "/ui/plugin-isd" + props.stage.outputs.policyLink} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>)}
+                  {isdUrl && (
+                    <>
+                  <a href={isdUrl + "/ui/plugin-isd" + props.stage.outputs.policyLink} target="_blank" className="open-new-tab">
+                    <img src={openInNewTab} alt="logo" width="18px" ></img>
+                    </a>
+                    </>
+                    )}
                   </Tooltip>                  
                     <div className="modal-close close-button pull-right">
                       <button onClick={setModalIsOpenToFalse} className="link">
