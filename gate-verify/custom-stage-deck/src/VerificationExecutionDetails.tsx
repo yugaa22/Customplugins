@@ -52,7 +52,6 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
       var constructedPath = path.join("/")
       setCanaryUrl(`${isdUrl}/ui/plugin-isd/verification/${constructedPath}`)
     }
-    console.log('verificationUrl',verificationUrl)
   }, [])
 
   

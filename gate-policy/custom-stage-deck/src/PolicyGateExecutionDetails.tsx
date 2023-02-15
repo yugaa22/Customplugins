@@ -22,7 +22,6 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
   const [isdUrl,setIsdUrl] = useState('');
 
   useEffect(()=>{
-    console.log("Window Settings policy", SETTINGS)
     if(window && window.uiUrl){
       setIsdUrl(window.uiUrl);
     }
