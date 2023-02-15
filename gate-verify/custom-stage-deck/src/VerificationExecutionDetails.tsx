@@ -21,6 +21,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
   let isdUrl =  '';
   const [modalIsOpen,setModalIsOpen] = useState(false);
   const [canaryUrl, setCanaryUrl] = useState(null);
+  const [verificationUrl, setVerificationUrl] = useState('');
 
 
   useEffect(() => {
@@ -36,6 +37,12 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
     }
     else{
       isdUrl = window.location.origin;
+    }
+    if(props.stage?.outputs?.verificationUrl?.startsWith('http')){
+      let modifiedUrl = props.stage.outputs.verificationUrl.replace(/^http[s]?:\/\/.+?\//, '/');
+      setVerificationUrl(`${isdUrl}${modifiedUrl}`)
+    }else{
+      setVerificationUrl(`${isdUrl}${props.stage.outputs.verificationUrl}`)
     }
     if (props.stage.outputs?.canaryReportURL) {
       let urlPath = props.stage.outputs.canaryReportURL.split("/");
@@ -128,7 +135,7 @@ return (
                   <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
                     <div className="modal-content">
                       <Tooltip value="Open in a new tab" placement="left">
-                        <a href={props.stage.outputs.verificationUrl != undefined ? props.stage.outputs.verificationUrl : canaryUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>  
+                        <a href={props.stage.outputs.verificationUrl != undefined ? verificationUrl : canaryUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>  
                       </Tooltip>
                       <div className="modal-close close-button pull-right">                      
                         <button onClick={setModalIsOpenToFalse} className="link">
@@ -139,7 +146,7 @@ return (
                         <h4 className="modal-title">Verification Details</h4>
                       </div>                                      
                       <div className="grid-span-4 modal-body">
-                      <iframe id="verificationtemplateFrame" src={props.stage.outputs.verificationUrl != undefined ? props.stage.outputs.verificationUrl : canaryUrl} title="ISD">
+                      <iframe id="verificationtemplateFrame" src={props.stage.outputs.verificationUrl != undefined ? verificationUrl : canaryUrl} title="ISD">
                       </iframe>
                       </div>                    
                     </div>
@@ -158,7 +165,7 @@ return (
             <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-verification modal-dialog" overlayClassName="react-modal-custom">
               <div className="modal-content">  
                 <Tooltip value="Open in a new tab" placement="left">            
-                  <a href={props.stage.outputs.verificationUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
+                  <a href={verificationUrl} target="_blank" className="open-new-tab"><img src={openInNewTab} alt="logo" width="18px" ></img></a>               
                 </Tooltip>
                 <div className="modal-close close-button pull-right">
                   <button onClick={setModalIsOpenToFalse} className="link">
@@ -169,7 +176,7 @@ return (
                   <h4 className="modal-title">Verification Details</h4>
                 </div>                                      
                 <div className="grid-span-4 modal-body">
-                <iframe id="verificationtemplateFrame" src={props.stage.outputs.verificationUrl} title="ISD">
+                <iframe id="verificationtemplateFrame" src={verificationUrl} title="ISD">
                 </iframe>
                 </div>                    
               </div>
