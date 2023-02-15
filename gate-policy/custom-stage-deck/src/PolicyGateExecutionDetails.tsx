@@ -17,24 +17,28 @@ import openInNewTab from './images/open-new-tab-bold.png';
 export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps) {
   console.log("Policy Execution");
   console.log(props);
-  let isdUrl = '';
+
+  const [modalIsOpen,setModalIsOpen] = useState(false);
+  const [isdUrl,setIsdUrl] = useState('');
+
   useEffect(()=>{
     console.log("Window Settings policy", SETTINGS)
     if(window && window.uiUrl){
-      isdUrl = window.uiUrl;
+      setIsdUrl(window.uiUrl);
     }
     else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
       let gateurl = SETTINGS.gateUrl;
       if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
        gateurl = gateurl.replace('/gate','');
       }
-      isdUrl = gateurl;
+      setIsdUrl(gateurl);
     }
     else{
-      isdUrl = window.location.origin;
+      setIsdUrl(window.location.origin);
     }
   },[])
-  const [modalIsOpen,setModalIsOpen] = useState(false);
+
+
   const getClasses = () => {
     let classes = '';
     if (props.stage.outputs.status == 'allow') {
