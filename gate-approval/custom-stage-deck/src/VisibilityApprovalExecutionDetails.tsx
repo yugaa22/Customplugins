@@ -39,7 +39,7 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
     else{
       isdUrl = window.location.origin;
     }
-    if(props.stage.outputs.navigationalURL.startsWith('http')){
+    if(props.stage?.outputs?.navigationalURL?.startsWith('http')){
       let modifiedUrl = props.stage.outputs.navigationalURL.replace(/^http[s]?:\/\/.+?\//, '/');
       setApprovalUrl(`${isdUrl}${modifiedUrl}`)
     }else{

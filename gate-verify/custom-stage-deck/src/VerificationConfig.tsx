@@ -51,7 +51,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
   console.log(props);
  
-var isdUrl:any = null;
+
   const [applicationId, setApplicationId] = useState()
 
   const [metricDropdownList, setMetricDropdownList] = useState([])
@@ -93,6 +93,8 @@ var isdUrl:any = null;
   const [baselineRealTime,setbaselineRealTime] = useState(false);
 
   const[customenv,setCustomEnv]=useState('');
+
+  const[isdUrl,setIsdUrl]=useState('');
   
   const handleInput=(event: any)=>{
       event.preventDefault();
@@ -136,17 +138,17 @@ var isdUrl:any = null;
 
   useEffect(()=>{
     if(window && window.uiUrl){
-      isdUrl = window.uiUrl;
+      setIsdUrl(window.uiUrl);
     }
     else if(SETTINGS && SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
       let gateurl = SETTINGS.gateUrl;
       if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
        gateurl = gateurl.replace('/gate','');
       }
-      isdUrl = gateurl;
+      setIsdUrl(gateurl);
     }
     else{
-      isdUrl = window.location.origin;
+      setIsdUrl(window.location.origin);
     }
   },[])
 
