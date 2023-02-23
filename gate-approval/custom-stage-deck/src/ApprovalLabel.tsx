@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { HoverablePopover, Tooltip, IExecutionStageLabelProps, ExecutionBarLabel } from '@spinnaker/core';
+import React, { useEffect, useState } from 'react';
+import { HoverablePopover, Tooltip, IExecutionStageLabelProps, ExecutionBarLabel, SETTINGS } from '@spinnaker/core';
 import { ApprovalRequestModal } from './ApprovalRequestModal';
 
 
@@ -7,6 +7,34 @@ import { ApprovalRequestModal } from './ApprovalRequestModal';
 export function ApprovalLabel(props: IExecutionStageLabelProps) {
   console.log("Approval Label", props)
   const [modalOpen, setModalOpen] = useState(false);
+  const [approvalUrl, setApprovalUrl] = useState('');
+
+
+  let isdUrl =  '';
+  useEffect(()=>{
+    if(window && window.uiUrl){
+      isdUrl = window.uiUrl;
+    }
+    else if(SETTINGS.gateUrl && (SETTINGS.gateUrl !="/gate/" && SETTINGS.gateUrl !="/gate")){
+      let gateurl = SETTINGS.gateUrl;
+      if(gateurl.endsWith('/gate') || gateurl.endsWith('/gate/')){
+       gateurl = gateurl.replace('/gate','');
+      }
+      isdUrl = gateurl;
+    }
+    else{
+      isdUrl = window.location.origin;
+    }
+    if(props.stage.stages[0].outputs.navigationalURL !== undefined){
+      if(props.stage.stages[0].outputs.navigationalURL.startsWith('http')){
+        let modifiedUrl = props.stage.stages[0].outputs.navigationalURL.replace(/^http[s]?:\/\/.+?\//, '/');
+        setApprovalUrl(`${isdUrl}${modifiedUrl}`)
+      }else{
+        setApprovalUrl(`${isdUrl}${props.stage.stages[0].outputs.navigationalURL}`)
+      }
+    }
+
+  },[props.stage.stages[0].outputs.navigationalURL])
 
   const handleApprovalClick = (event: any) => {
     setModalOpen(true)
@@ -34,7 +62,7 @@ export function ApprovalLabel(props: IExecutionStageLabelProps) {
         <>
           <HoverablePopover delayHide={0} delayShow={0} template={template}>{props?.children}</HoverablePopover>
           {
-            modalOpen && <ApprovalRequestModal stage={props.stage.stages[0]} modalOpen={modalOpen} setModalIsOpenToFalse={() => setModalOpen(false)} />
+            modalOpen && <ApprovalRequestModal approvalUrl={approvalUrl} stage={props.stage.stages[0]} modalOpen={modalOpen} setModalIsOpenToFalse={() => setModalOpen(false)} />
           }
         </>
       ) : (
