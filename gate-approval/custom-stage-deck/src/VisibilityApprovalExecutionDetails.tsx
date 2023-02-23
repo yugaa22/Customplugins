@@ -39,13 +39,16 @@ export function VisibilityApprovalExecutionDetails(props: IExecutionDetailsSecti
     else{
       isdUrl = window.location.origin;
     }
-    if(props.stage?.outputs?.navigationalURL?.startsWith('http')){
-      let modifiedUrl = props.stage.outputs.navigationalURL.replace(/^http[s]?:\/\/.+?\//, '/');
-      setApprovalUrl(`${isdUrl}${modifiedUrl}`)
-    }else{
-      setApprovalUrl(`${isdUrl}${props.stage.outputs.navigationalURL}`)
+    if(props.stage.outputs.navigationalURL !== undefined){
+      if(props.stage.outputs.navigationalURL.startsWith('http')){
+        let modifiedUrl = props.stage.outputs.navigationalURL.replace(/^http[s]?:\/\/.+?\//, '/');
+        setApprovalUrl(`${isdUrl}${modifiedUrl}`)
+      }else{
+        setApprovalUrl(`${isdUrl}${props.stage.outputs.navigationalURL}`)
+      }
     }
-  },[])
+
+  },[props.stage.outputs.navigationalURL])
 
   const getClasses = () => {
     let classes = '';
