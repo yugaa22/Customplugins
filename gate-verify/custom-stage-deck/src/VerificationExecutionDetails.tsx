@@ -38,11 +38,13 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
     else{
       isdUrl = window.location.origin;
     }
-    if(props.stage?.outputs?.verificationUrl?.startsWith('http')){
-      let modifiedUrl = props.stage.outputs.verificationUrl.replace(/^http[s]?:\/\/.+?\//, '/');
-      setVerificationUrl(`${isdUrl}${modifiedUrl}`)
-    }else{
-      setVerificationUrl(`${isdUrl}${props.stage.outputs.verificationUrl}`)
+    if (props.stage.outputs.verificationUrl !== undefined) {
+      if (props.stage?.outputs?.verificationUrl?.startsWith('http')) {
+        let modifiedUrl = props.stage.outputs.verificationUrl.replace(/^http[s]?:\/\/.+?\//, '/');
+        setVerificationUrl(`${isdUrl}${modifiedUrl}`);
+      } else {
+        setVerificationUrl(`${isdUrl}${props.stage.outputs.verificationUrl}`);
+      }
     }
     if (props.stage.outputs?.canaryReportURL) {
       let urlPath = props.stage.outputs.canaryReportURL.split("/");
@@ -52,7 +54,7 @@ export function VerificationExecutionDetails(props: IExecutionDetailsSectionProp
       var constructedPath = path.join("/")
       setCanaryUrl(`${isdUrl}/ui/plugin-isd/verification/${constructedPath}`)
     }
-  }, [])
+  }, [props.stage.outputs.verificationUrl])
 
   
   const getClasses = () => {
