@@ -171,14 +171,23 @@
   top: 12px;
   left: -60px;
 }
-.hours-adjust{
-  width: 51.33%;
-  float: left;
-}
-@media (max-width: 990px){
-  .hours-adjust{
-    width: 89.33%;
+@media (min-width: 600px){
+  .inputBox_adjust .col-md-7{
+    width: 58%;
     float: left;
+  }
+}
+@media (max-width:992px){
+  .inputBox_adjust .col-md-3{
+    float: left;
+    width: 33%;
+    text-align: right;
+  }
+}
+@media (min-width:993px){
+  .inputBox_adjust .col-md-3{
+    float: left;
+    width: 25%;
   }
 }
 @media screen and (max-width: 1200px) and (max-height: 800px) {
