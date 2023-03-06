@@ -450,7 +450,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
           <div className="flex">
             <div className="grid"></div>
-            <div className=" form mainform">
+            <div className=" form mainform inputBox_adjust">
 
               <div className="form-horizontal">
                 <div className="form-group">
@@ -770,7 +770,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                   <div className="col-md-3 sm-label-right">
                     LifeTime *<HelpField id="opsmx.verification.lifeTimeHours" />
                   </div>
-                  <div className="col-md-7 hours-adjust">
+                  <div className="col-md-7">
                     <div>
                       <FormikFormField
                         name="parameters.lifetime"
