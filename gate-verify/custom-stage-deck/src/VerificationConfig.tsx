@@ -163,9 +163,11 @@ export function VerificationConfig(props: IStageConfigProps) {
             const response = results['metricTemplates'];
             if(modeType == 'add'){
               const selectItem = response.filter(({ templateName : id1 }) => !metricDropdownList.some(({ templateName: id2 }) => id2 === id1));
-              props.stage.parameters.metricTemplate = selectItem[0].templateName;
-              setMetricTemplate(selectItem[0].templateName)
-              setModeType(null);
+              if (selectItem && selectItem?.length > 0) {
+                props.stage.parameters.metricTemplate = selectItem[0].templateName;
+                setMetricTemplate(selectItem[0].templateName);
+                setModeType(null);
+              }
             }
             setMetricDropdownList(response);
           }
@@ -183,10 +185,12 @@ export function VerificationConfig(props: IStageConfigProps) {
                   const response = results['metricTemplates'];
                   if(modeType == 'add'){
                     const selectItem = response.filter(({ templateName : id1 }) => !metricDropdownList.some(({ templateName: id2 }) => id2 === id1));
-                    props.stage.parameters.metricTemplate = selectItem[0].templateName;
-                    setMetricTemplate(selectItem[0].templateName)
-                    setModeType(null);
-                  }
+                    if (selectItem && selectItem?.length > 0) {
+                      props.stage.parameters.metricTemplate = selectItem[0].templateName;
+                      setMetricTemplate(selectItem[0].templateName);
+                      setModeType(null);
+                    }
+                }
                   setMetricDropdownList(response);
                 }
               );
@@ -238,9 +242,11 @@ export function VerificationConfig(props: IStageConfigProps) {
             const response = results['logTemplates'];
             if(modeType === 'add'){
               const selectItem = response.filter(({ templateId : id1 }) => !logDropdownList.some(({ templateId: id2 }) => id2 === id1));
-              props.stage.parameters.logTemplate = selectItem[0].templateName;
-              setLogTemplate(selectItem[0].templateName)
-              setModeType(null);
+              if (selectItem && selectItem?.length > 0) {
+                props.stage.parameters.logTemplate = selectItem[0].templateName;
+                setLogTemplate(selectItem[0].templateName);
+                setModeType(null);
+              }
             }
             setLogDropdownList(response);
           }
@@ -258,9 +264,11 @@ export function VerificationConfig(props: IStageConfigProps) {
                   const response = results['logTemplates'];
                   if(modeType === 'add'){
                     const selectItem = response.filter(({ templateId : id1 }) => !logDropdownList.some(({ templateId: id2 }) => id2 === id1));
-                    props.stage.parameters.logTemplate = selectItem[0].templateName;
-                    setLogTemplate(selectItem[0].templateName)
-                    setModeType(null);
+                    if (selectItem && selectItem?.length > 0) {
+                      props.stage.parameters.logTemplate = selectItem[0].templateName;
+                      setLogTemplate(selectItem[0].templateName);
+                      setModeType(null);
+                    }
                   }
                   setLogDropdownList(response);
                 }
