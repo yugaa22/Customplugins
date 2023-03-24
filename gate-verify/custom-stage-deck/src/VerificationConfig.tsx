@@ -95,6 +95,8 @@ export function VerificationConfig(props: IStageConfigProps) {
   const[customenv,setCustomEnv]=useState('');
 
   const[isdUrl,setIsdUrl]=useState('');
+
+  const [modeType, setModeType] = useState(null);
   
   const handleInput=(event: any)=>{
       event.preventDefault();
@@ -159,6 +161,12 @@ export function VerificationConfig(props: IStageConfigProps) {
         .then(
           function (results) {
             const response = results['metricTemplates'];
+            if(modeType == 'add'){
+              const selectItem = response.filter(({ templateName : id1 }) => !metricDropdownList.some(({ templateName: id2 }) => id2 === id1));
+              props.stage.parameters.metricTemplate = selectItem[0].templateName;
+              setMetricTemplate(selectItem[0].templateName)
+              setModeType(null);
+            }
             setMetricDropdownList(response);
           }
         );
@@ -173,6 +181,12 @@ export function VerificationConfig(props: IStageConfigProps) {
               .then(
                 function (results) {
                   const response = results['metricTemplates'];
+                  if(modeType == 'add'){
+                    const selectItem = response.filter(({ templateName : id1 }) => !metricDropdownList.some(({ templateName: id2 }) => id2 === id1));
+                    props.stage.parameters.metricTemplate = selectItem[0].templateName;
+                    setMetricTemplate(selectItem[0].templateName)
+                    setModeType(null);
+                  }
                   setMetricDropdownList(response);
                 }
               );
@@ -222,6 +236,12 @@ export function VerificationConfig(props: IStageConfigProps) {
         .then(
           function (results) {
             const response = results['logTemplates'];
+            if(modeType === 'add'){
+              const selectItem = response.filter(({ templateId : id1 }) => !logDropdownList.some(({ templateId: id2 }) => id2 === id1));
+              props.stage.parameters.logTemplate = selectItem[0].templateName;
+              setLogTemplate(selectItem[0].templateName)
+              setModeType(null);
+            }
             setLogDropdownList(response);
           }
         );
@@ -236,6 +256,12 @@ export function VerificationConfig(props: IStageConfigProps) {
               .then(
                 function (results) {
                   const response = results['logTemplates'];
+                  if(modeType === 'add'){
+                    const selectItem = response.filter(({ templateId : id1 }) => !logDropdownList.some(({ templateId: id2 }) => id2 === id1));
+                    props.stage.parameters.logTemplate = selectItem[0].templateName;
+                    setLogTemplate(selectItem[0].templateName)
+                    setModeType(null);
+                  }
                   setLogDropdownList(response);
                 }
               );
@@ -333,6 +359,7 @@ export function VerificationConfig(props: IStageConfigProps) {
   const setModalIsOpenToTrue = (type: any) => {
     onmetricListUpdated(false);
     if (type == 'add') {
+      setModeType(type);
       setMetricUrl(metricCreateUrl);
     } else {
       let editUrl = isdUrl + "/ui/plugin-isd/metric-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.metricTemplate + "/{}/" + props.application.attributes.email + "/-1/true/false/fromPlugin";
@@ -349,6 +376,7 @@ export function VerificationConfig(props: IStageConfigProps) {
   const setLogModalIsOpenToTrue = (type: any) => {
     onlogListUpdated(false);
     if (type == 'add') {
+      setModeType(type);
       setLogUrl(logCreateUrl);
     } else {
       let editUrl = isdUrl + "/ui/plugin-isd/log-template/" + props.application['applicationName'] + "/" + applicationId + "/" + props.stage.parameters.logTemplate + "/" + props.application.attributes.email + "/true/write/fromPlugin";
