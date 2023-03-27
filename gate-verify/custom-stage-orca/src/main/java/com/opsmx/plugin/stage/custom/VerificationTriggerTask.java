@@ -297,7 +297,7 @@ public class VerificationTriggerTask implements Task {
 		}
 
 		if (parameterContext.get("canaryRealTime") != null && parameterContext.get("canaryRealTime").equals(Boolean.TRUE)) {
-			triggerPayload.put("baselineStartTimeMs", startTime);
+			triggerPayload.put("canaryStartTimeMs", startTime);
 		} else {
 			Long canarystarttime = null;
 			try {
