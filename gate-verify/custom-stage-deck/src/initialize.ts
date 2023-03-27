@@ -13,7 +13,7 @@ import { HelpContentsRegistry } from '@spinnaker/core';
 */
 export const initialize = () => {
   HelpContentsRegistry.register('opsmx.verification.gateUrl', 'Please enter the Gate URL');
-  HelpContentsRegistry.register('opsmx.verification.lifeTimeHours', 'Hours to let the analysis run before making a final determination.');
+  HelpContentsRegistry.register('opsmx.verification.lifeTimeMinutes', 'Minutes to let the analysis run before making a final determination.');
   HelpContentsRegistry.register('opsmx.verification.minimumCanaryResult', 'Please enter the Minimum Canary Result');
   HelpContentsRegistry.register('opsmx.verification.canaryResultScore', 'Please enter the Canry Result Score');
   HelpContentsRegistry.register('opsmx.verification.logAnalysis', 'Please Enable Log Analysis with true / false');
