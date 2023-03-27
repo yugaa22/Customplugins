@@ -255,7 +255,7 @@ public class VerificationTriggerTask implements Task {
 		finalJson.set(PAYLOAD_CONSTRAINT, payloadConstraintNode);
 
 		ObjectNode canaryConfig = objectMapper.createObjectNode();
-		canaryConfig.put("lifetimeHours", parameterContext.get("lifetime") != null ? (String) parameterContext.get("lifetime") : "0.152");
+		canaryConfig.put("lifetimeMinutes", parameterContext.get("lifetime") != null ? (String) parameterContext.get("lifetime") : "0.152");
 		canaryConfig.set("canaryHealthCheckHandler", objectMapper.createObjectNode()
 				.put(MINIMUM_CANARY_RESULT_SCORE, parameterContext.get("minicanaryresult") != null ? (String) parameterContext.get("minicanaryresult") : "70" ));
 		canaryConfig.set("canarySuccessCriteria", objectMapper.createObjectNode()
