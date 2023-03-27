@@ -804,7 +804,7 @@ export function VerificationConfig(props: IStageConfigProps) {
                 <div className="form-group">
 
                   <div className="col-md-3 sm-label-right">
-                    LifeTime *<HelpField id="opsmx.verification.lifeTimeHours" />
+                    LifeTime *<HelpField id="opsmx.verification.lifeTimeMinutes" />
                   </div>
                   <div className="col-md-7">
                     <div>
@@ -818,7 +818,7 @@ export function VerificationConfig(props: IStageConfigProps) {
 
                     </div>
                   </div>
-                  <div className="label-left">Hours</div>
+                  <div className="label-left">Minutes</div>
                 </div>
               </div>
               {/* 
@@ -960,9 +960,9 @@ export function validate(stageConfig: IStage) {
   const validator = new FormValidator(stageConfig);
 
   validator
-    .field('parameters.lifetime','Lifetime Hours')
+    .field('parameters.lifetime','Lifetime Minutes')
     .required()
-    .withValidators((value, label) => (value = '' ? `LifeTimeHours is required` : undefined));
+    .withValidators((value, label) => (value = '' ? `LifeTimeMinutes is required` : undefined));
 
   validator
     .field('parameters.minicanaryresult','Marginal Score')
