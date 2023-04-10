@@ -255,6 +255,19 @@ export function PolicyGateConfig(props: IStageConfigProps) {
   //   });
   // };
 
+  const policyOptionRenderer = (option: any) => {
+    return (
+      <div className="body-regular">
+        <strong>
+        {option.label}
+        </strong>
+        <div>
+        {option.description}
+        </div>
+      </div>
+    );
+  };
+
   const HorizontalRule = () => (
     <div className="grid-span-4">
       <hr />
@@ -343,17 +356,22 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                         // help={<HelpField id="opsmx.policy.policyName" />}
                         input={(props) => (
                           <ReactSelectInput
-                            {...props}
-                            clearable={false}
-                            required={true}
-                            onChange={(e) => { handleOnPolicySelect(e, formik) }}
-                            options={policyList && policyList.map((policy: any) => ({
+                          {...props}
+                          clearable={false}
+                          required={true}
+                          onChange={(e) => { handleOnPolicySelect(e, formik)}}
+                            options={
+                            policyList &&
+                            policyList.map((policy: any) => ({
                               label: policy.policyName,
-                              value: policy.policyId
-                            }))}
-                            value={formik.values.parameters.policyId}
-                            searchable={true}
-                          />
+                              value: policy.policyId,
+                              description: policy.description,
+                            }))
+                          }
+                          value={formik.values.parameters.policyId}
+                          searchable={true}
+                          optionRenderer={policyOptionRenderer}
+                        />
                         )}
                       />
 
@@ -361,6 +379,22 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                   </div>
                 </div>
               </div>
+              {formik.values.parameters.policyId ? (
+                <div className="form-horizontal">
+                  <div className="form-group">
+                    <div className="col-md-3 sm-label-right">
+                      Description
+                    </div>
+                    <div className="col-md-7" style={{ paddingLeft: '35px' }}>
+                      <div className="grid-span-3">
+                        {
+                          policyList.find((policy) => policy.policyId === formik.values.parameters.policyId)?.description
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
               {/* <div className="grid-span-2">
                 <FormikFormField
