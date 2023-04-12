@@ -119,7 +119,6 @@ export function PolicyGateConfig(props: IStageConfigProps) {
       )
   }, [])
 
-  ///gate/oes/v2/policy/users/user2/runtime?permissionId=read
 
   useEffect(() => {
     if (!props.stage.hasOwnProperty('parameters')) {
@@ -131,9 +130,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
         "spinnakerEnvironment": ""
       }]
     }
-    // if(!props.stage.parameters.hasOwnProperty('customEnvironment')){
-    //   props.stage.parameters.customEnvironment = "";
-    // }
+
     if (!props.stage.parameters.hasOwnProperty('policyName')) {
       props.stage.parameters.policyName = "";
     }
@@ -159,15 +156,12 @@ export function PolicyGateConfig(props: IStageConfigProps) {
               props.stage.parameters.environment[0].spinnakerEnvironment = temp[findId].spinnakerEnvironment;
             }
           }
-          console.log("Environmen API: ", temp);
         }
       )
     REST('oes/v2/policy/users/' + props.application.attributes.user + '/runtime?permissionId=read').
       get()
       .then(
         (results) => {
-          console.log("policylist");
-          console.log(results);
           setPolicyList(results);
         }
       )
@@ -205,56 +199,11 @@ export function PolicyGateConfig(props: IStageConfigProps) {
     formik.setFieldValue("parameters.policyId", index);
   }
 
-  // const pushNewEnvironment = (data: any) => {
-  //   //setnewEnvironment(data);
-  //   props.stage.parameters.customEnvironment = data;
-  // }
 
 
 
   const [chosenStage] = React.useState({} as IStageForSpelPreview);
-  // const multiFieldComp = (props: any, formik: any) => {
-  //   getGateSecurityParams();
-  //   const fieldParams = props.stage.parameters ?? null;
-  //   console.log("fieldParams");
-  //   console.log(fieldParams);
-  //   return fieldParams?.gateSecurity.map((dynamicField: any, index: number) => {
-  //     if (
-  //       (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-  //       dynamicField.supportedParams.length > 1
-  //     ) {
-  //       HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
-  //       return (
-  //         <div className="grid-span-4 fullWidthContainer">
-  //           <FormikFormField
-  //             name={dynamicField.connectorType}
-  //             label={dynamicField.connectorType}
-  //             help={<HelpField id={dynamicField.connectorType} />}
-  //             input={() => (
-  //               <LayoutProvider value={StandardFieldLayout}>
-  //                 <div className="flex-container-v margin-between-lg dynamicFieldSection">
-  //                   <EvaluateVariablesStageForm
-  //                     blockLabel={dynamicField.connectorType}
-  //                     chosenStage={chosenStage}
-  //                     headers={dynamicField.supportedParams}
-  //                     isMultiSupported={dynamicField.isMultiSupported}
-  //                     fieldMapName="gateSecurity"
-  //                     parentIndex={index}
-  //                     formik={formik}
-  //                     {...props}
-  //                   />
-  //                 </div>
-  //               </LayoutProvider>
-  //             )}
-  //           />
-  //         </div>
-  //       );
-  //     } else {
-  //       return null;
-  //     }
-  //   });
-  // };
-
+ 
   const policyOptionRenderer = (option: any) => {
     return (
       <div className="body-regular">
@@ -267,7 +216,10 @@ export function PolicyGateConfig(props: IStageConfigProps) {
       </div>
     );
   };
-
+  const renderPolicyDescription = (policyId:any)=>{
+    const policyDesc = policyList.find((policy) => policy.policyId === policyId)?.description;
+    return policyDesc ? policyDesc : '';
+  }
   const HorizontalRule = () => (
     <div className="grid-span-4">
       <hr />
@@ -379,39 +331,26 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                   </div>
                 </div>
               </div>
-              {formik.values.parameters.policyId ? (
+              {formik.values.parameters.policyId && renderPolicyDescription(formik.values.parameters.policyId) ? (
                 <div className="form-horizontal">
                   <div className="form-group">
                     <div className="col-md-3 sm-label-right">
                       Description
                     </div>
-                    <div className="col-md-7" style={{ paddingLeft: '35px' }}>
-                      <div className="grid-span-3">
-                        {
-                          policyList.find((policy) => policy.policyId === formik.values.parameters.policyId)?.description
-                        }
+                    <div className="col-md-7">
+                      <div className="grid-span-4" style={{ paddingLeft: '17px' }}> 
+                          <TextAreaInput 
+                          name="old "
+                          id="policyDescripton"
+                          value={renderPolicyDescription(formik.values.parameters.policyId)}
+                          disabled={true}/>
+
                       </div>
                     </div>
                   </div>
                 </div>
               ) : null}
 
-              {/* <div className="grid-span-2">
-                <FormikFormField
-                  name="parameters.policyurl"
-                  label="Policy Proxy"
-                  help={<HelpField id="opsmx.policy.policyProxy" />}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div>
-              <div className="grid-span-2">
-                <FormikFormField
-                  name="parameters.policypath"
-                  label="Policy Path"
-                  help={<HelpField id="opsmx.policy.policyPath" />}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div> */}
               <HorizontalRule />
 
               <div className="form-horizontal">
@@ -433,46 +372,6 @@ export function PolicyGateConfig(props: IStageConfigProps) {
               </div>
 
 
-              {/* <HorizontalRule /> */}
-              {/* <div className="grid-span-2">
-                <FormikFormField
-                  name="parameters.gate"
-                  label="Gate Name"
-                  help={<HelpField id="opsmx.policy.gateName" />}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div> */}
-              {/* <div className="form-horizontal">
-                <div className="form-group">
-                  <div className="col-md-3 sm-label-right">
-                  Instance Id *<HelpField id="opsmx.policy.imageIds" />
-                  </div>
-                  <div className="col-md-7">
-                    <div className="grid-span-2">
-                      <FormikFormField
-                        name="parameters.imageids"
-                        // label="Image IDs *"
-                        // help={<HelpField id="opsmx.policy.imageIds" />}
-                        input={(props) => <TextInput {...props} />}
-                        required={true}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div> */}
-
-
-
-
-              {/* <HorizontalRule />
-              <div className="grid-span-4">
-                <h4 className="sticky-header ng-binding">Gate Security</h4>
-                <br />
-                <div className="grid-span-2">
-                 
-                </div>
-                {multiFieldComp({ ...props }, formik)}
-              </div> */}
             </div>
             <div className="opsmxLogo">
               <img
@@ -498,10 +397,7 @@ export function validate(stageConfig: IStage) {
     .field('parameters.policyName','Policy')
     .required()
     .withValidators((value, label) => (value = '' ? `policy Name is required` : undefined));
-  // validator
-  //   .field('parameters.imageids','Instance Id')
-  //   .required()
-  //   .withValidators((value, label) => (value = '' ? `Image IDs is required` : undefined));
+
 
   return validator.validateForm();
 }
