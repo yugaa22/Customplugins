@@ -13,6 +13,15 @@ import org.springframework.context.annotation.Configuration;
 public class SpinnakerConfig {
 
     private String name;
+    private String ssdName;
+
+    public String getSsdName() {
+        return ssdName;
+    }
+
+    public void setSsdName(String ssdName) {
+        this.ssdName = ssdName;
+    }
 
     public String getName() {
         return name;
