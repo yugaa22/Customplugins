@@ -5,6 +5,7 @@ import com.opsmx.plugin.custom.event.config.CamelConfig;
 import com.opsmx.plugin.custom.event.config.CamelRouteConfig;
 import com.opsmx.plugin.custom.event.config.MessageBrokerConfig;
 import com.opsmx.plugin.custom.event.config.SpinnakerConfig;
+import com.opsmx.plugin.custom.event.config.SsdConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class RabbitMQConfig implements CamelRouteConfig {
 
     @Autowired
     private SpinnakerConfig spinnakerConfig;
+
+    @Autowired
+    private SsdConfig ssdConfig;
 
     private static final String exchange = "echo.events";
 
@@ -88,8 +92,8 @@ public class RabbitMQConfig implements CamelRouteConfig {
     @Override
     public String ssdConfigure() {
         return messageBrokerConfig.getEndpoint().getName() + ":" + exchange + "?queue="
-                + spinnakerConfig.getSsd() + "&autoDelete=false&routingKey="
-                + spinnakerConfig.getSsd() + "&declare=true&durable=true&exchangeType=direct&hostname="
+                + ssdConfig.getName() + "&autoDelete=false&routingKey="
+                + ssdConfig.getName() + "&declare=true&durable=true&exchangeType=direct&hostname="
                 + messageBrokerConfig.getHost() + "&portNumber=" + messageBrokerConfig.getPort()
                 + "&username=" + messageBrokerConfig.getUsername() + "&password=" + messageBrokerConfig.getPassword();
     }

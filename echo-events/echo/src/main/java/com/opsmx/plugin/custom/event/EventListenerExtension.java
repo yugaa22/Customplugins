@@ -8,6 +8,7 @@ import com.netflix.spinnaker.echo.api.events.Event;
 import com.netflix.spinnaker.echo.api.events.EventListener;
 import com.netflix.spinnaker.kork.plugins.api.spring.ExposeToApp;
 import com.opsmx.plugin.custom.event.config.CamelConfig;
+import com.opsmx.plugin.custom.event.config.SsdConfig;
 import com.opsmx.plugin.custom.event.constants.EchoConstant;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
@@ -37,6 +38,9 @@ public class EventListenerExtension implements EventListener {
     @Autowired
     private CamelContext camelContext;
 
+    @Autowired
+    private SsdConfig ssdConfig;
+
     @Override
     public void processEvent(Event event) {
         try {
@@ -49,7 +53,8 @@ public class EventListenerExtension implements EventListener {
                 String message = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(eventMap);
                 producerTemplate.sendBody(EchoConstant.echoEventDirectEndPointUrl, message);
 
-                ssdEvents(eventMap);
+                if (ssdConfig.isEnable())
+                    ssdEvents(eventMap);
             }
         } catch (Exception e) {
             logger.error("Exception occurred while processing event : {}", e);
