@@ -11,12 +11,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.opsmx.plugin.stage.custom.model.ApplicationModel;
-import com.opsmx.plugin.stage.custom.model.GateModel;
+import com.opsmx.plugin.stage.custom.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -38,6 +39,8 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 @Extension
 @PluginComponent
@@ -147,6 +150,12 @@ public class ApprovalTriggerTask implements Task {
 	private static String GET_APPDETAILS_URL = "/platformservice/v1/applications/{applicationName}/pipelines/{pipelineName}?gateSearch=true";
 
 	private static String CREATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates";
+
+	private static String UPDATE_USER_GROUP_URL = "/platformservice/v6/usergroups/permissions/users/{username}/resources/{resourceId}";
+
+	private static String UPDATE_TOOL_CONNECTOR_URL = "/visibilityservice/v4/approvalGates/{id}/connector";
+
+	private static String UPDATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates/{gateId}";
 
 	@Autowired
 	private final ObjectMapper objectMapper = new ObjectMapper();
@@ -552,13 +561,13 @@ public class ApprovalTriggerTask implements Task {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
 			String appDetailsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
-					+ GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("pipelineName", stage.getExecution().getName()) + "&refId="+stage.getRefId()+"&gateName="+stage.getName()+"&gateType="+stage.getType();
+					+ GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId="+stage.getRefId()+"&gateName="+stage.getName()+"&gateType="+stage.getType();
 			HttpGet request = new HttpGet(appDetailsUrl);
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
 			CloseableHttpResponse response = httpClient.execute(request);
-
-			return gson.fromJson(EntityUtils.toString(response.getEntity()), ApplicationModel.class);
+			
+			return objectMapper.readValue(EntityUtils.toString(response.getEntity()), ApplicationModel.class);
 		}
 	}
 
@@ -584,6 +593,7 @@ public class ApprovalTriggerTask implements Task {
 			HttpPost request = new HttpPost(createGateUrl);
 
 			GateModel gateModel = new GateModel();
+			String username = stage.getExecution().getAuthentication().getUser();
 
 			JsonObject parameters = (JsonObject) stage.getContext().get("parameters");
 
@@ -604,11 +614,135 @@ public class ApprovalTriggerTask implements Task {
 			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
 
 			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
+			request.setHeader("x-spinnaker-user", username);
 			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+
+
 			CloseableHttpResponse response = httpClient.execute(request);
 
-			return gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+			GateModel createGateResponse = gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+
+			Integer approvalGateId = createGateResponse.getApprovalGateId();
+			postApprovalGroups(parameters, approvalGateId, username);
+			postConnectorAccountsDetailForApprovalGate(parameters, approvalGateId.longValue(), username);
+			updateGate(approvalGateId,applicationModel.getPipelineId(), gateModel, username);
+
+			return createGateResponse;
+		}
+	}
+
+	private void postApprovalGroups(JsonObject parameters, int gateId, String username) throws Exception {
+		List<UserGroupPermission> userGroupPermissions = new ArrayList<>();
+		List<UserGroup> userGroups = new ArrayList<>();
+		List<String> permissionIds = List.of("approve_gate");
+		JsonArray approvalGroups = parameters.getAsJsonArray("approvalGroups");
+		UserGroupPermission userGroupPermission = new UserGroupPermission();
+
+		for (JsonElement element : approvalGroups) {
+			UserGroup userGroup = new UserGroup();
+
+			JsonObject userGroupJsonObject = element.getAsJsonObject();
+			userGroup.setUserGroupId(userGroupJsonObject.get("userGroupId").getAsInt());
+			userGroup.setUserGroupName(userGroupJsonObject.get("userGroupName").getAsString().trim());
+			userGroup.setAdmin(userGroupJsonObject.get("isAdmin").getAsBoolean());
+			userGroup.setSuperAdmin(userGroupJsonObject.get("isSuperAdmin").getAsBoolean());
+			userGroups.add(userGroup);
+			userGroupPermission.setUserGroupNames(userGroups);
+			userGroupPermission.setPermissionIds(permissionIds);
+		}
+		userGroupPermissions.add(userGroupPermission);
+		GroupPermission approvalUserGroupPermission = new GroupPermission();
+		approvalUserGroupPermission.setUserGroups(userGroupPermissions);
+		CloseableHttpResponse userGroupResponse = updateResourceUserGroupPermissionsForApproval(username, gateId, approvalUserGroupPermission);
+
+
+
+//		if (userGroupResponse.getStatusCodeValue() == HttpStatus.NO_CONTENT.value()) {
+//			logger.info("Successfully updated the approval user group permission for gate id {}", gateId);
+//		}
+
+	}
+
+	private CloseableHttpResponse updateResourceUserGroupPermissionsForApproval(String username, Integer resourceId, GroupPermission groupPermission) throws Exception{
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String updateResourceUserGroupPermissionUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl +
+					UPDATE_USER_GROUP_URL.replace("{username}", username).replace("{resourceId}", resourceId.toString()+"?featureType=APPROVAL_GATE");
+			HttpPut request = new HttpPut(updateResourceUserGroupPermissionUrl);
+			String body = objectMapper.writeValueAsString(groupPermission);
+			request.setEntity(new StringEntity(body));
+
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", username);
+			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+
+			CloseableHttpResponse response = httpClient.execute(request);
+			return response;
+		}
+	}
+
+	private void updateGate(Integer gateId, Integer pipelineId, GateModel gateModel, String username) throws Exception {
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String updateGateUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl +
+					UPDATE_GATE_URL.replace("{pipelineId}", pipelineId.toString()).replace("{gateId}", gateId.toString());
+			HttpPut request = new HttpPut(updateGateUrl);
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", username);
+			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+
+			CloseableHttpResponse response = httpClient.execute(request);
+		}
+
+	}
+
+	private void postConnectorAccountsDetailForApprovalGate(JsonObject parameters, Long approvalGateId, String username) throws Exception {
+		//Post connector details, if available
+		if (parameters.has("selectedConnectors")) {
+			JsonObject selectedConnectors = parameters.getAsJsonArray("selectedConnectors").get(0).getAsJsonObject();
+			if (selectedConnectors.has("values") && selectedConnectors.getAsJsonArray("values").size() > 0) {
+				JsonArray connectorValues = selectedConnectors.getAsJsonArray("values");
+				for (JsonElement e : connectorValues) {
+					JsonObject connectorDetails = e.getAsJsonObject();
+					if(!connectorDetails.has("account") || StringUtils.isBlank(connectorDetails.get("account").getAsString())) {
+						break;
+					}
+					Map<String, String> connectorAccountDetails = new HashMap<>();
+					connectorAccountDetails.put("datasourceName", connectorDetails.get("account").getAsString().trim());
+
+//					ResponseEntity<Map<String, String>> connectorAccountDetailsResponse =
+//							visibilityServiceClient.approvalGatesIdToolConnectorsConnectorIdTemplatePut(username, approvalGateId, connectorAccountDetails);
+					approvalGatesIdToolConnectorsConnectorIdTemplatePut(connectorAccountDetails, approvalGateId, username);
+
+//					if (connectorAccountDetailsResponse.getStatusCodeValue() == HttpStatus.NO_CONTENT.value()) {
+//						logger.info("Successfully updated the approval gate with connector details for account name {} and connector type {} for approval gate id {} ",
+//								connectorDetails.get("account").getAsString().trim(), connectorDetails.get("connector").getAsString(), approvalGateId);
+//					}
+				}
+			}
+		}
+	}
+
+	private void approvalGatesIdToolConnectorsConnectorIdTemplatePut(Map<String, String> connectorAccountDetails, Long approvalGateId, String username) throws Exception {
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+			String updateToolConnectorsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
+					+ UPDATE_TOOL_CONNECTOR_URL.replace("{id}", approvalGateId.toString());
+			HttpPut request = new HttpPut(updateToolConnectorsUrl);
+
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", username);
+			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+
+			String body = objectMapper.writeValueAsString(connectorAccountDetails);
+			request.setEntity(new StringEntity(body));
+
+			CloseableHttpResponse response = httpClient.execute(request);
+
+
 		}
 	}
 
@@ -631,7 +765,7 @@ public class ApprovalTriggerTask implements Task {
 				if (valuesArray != null && valuesArray.size() > 0) {
 					for (JsonElement value : valuesArray) {
 						if (value.getAsJsonObject().has("label") &&
-								!value.getAsJsonObject().get("label").getAsString().isBlank()) {
+								!value.getAsJsonObject().get("label").getAsString().isEmpty()) {
 							Map<String, String> valuesMap = new HashMap<>();
 							valuesMap.put(value.getAsJsonObject().get("label").getAsString(), value.getAsJsonObject().get("value").getAsString());
 							payloadConstraints.add(valuesMap);

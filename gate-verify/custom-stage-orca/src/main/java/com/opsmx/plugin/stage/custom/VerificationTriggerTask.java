@@ -5,11 +5,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.opsmx.plugin.stage.custom.model.ApplicationModel;
+import com.opsmx.plugin.stage.custom.model.GateModel;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -60,8 +64,14 @@ public class VerificationTriggerTask implements Task {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
+	private static String GET_APPDETAILS_URL = "/platformservice/v1/applications/{applicationName}/pipelines/{pipelineName}?gateSearch=true";
+
+	private static String CREATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates";
+
 	@Autowired
 	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	private static Gson gson = new Gson();
 
 	@NotNull
 	@Override
@@ -69,8 +79,15 @@ public class VerificationTriggerTask implements Task {
 		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}",
 				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
 		try {
+			ApplicationModel applicationModel = correctTheAppDetails(stage);
+			if (applicationModel!=null && !applicationModel.getCustomGateFound()){
+				//create verification gate
+				createVerificationGate(stage, applicationModel);
+			}
 			return triggerAnalysis(stage);
 		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -319,5 +336,109 @@ public class VerificationTriggerTask implements Task {
 				objectMapper.createObjectNode()
 						.put(PIPELINE_NAME, pipelineName)
 						.put(SERVICE_GATE, stageName));
+	}
+
+	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws IOException {
+		Map<String, Object> context = stage.getContext();
+		ApplicationModel applicationModel = null;
+
+		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
+
+			applicationModel = getAppDetails(stage);
+			context.put("applicationId", applicationModel.getAppId().doubleValue());
+			context.put("serviceId", applicationModel.getServiceId().doubleValue());
+			context.put("pipelineId", applicationModel.getPipelineId().doubleValue());
+			stage.setContext(context);
+		}
+		return applicationModel;
+	}
+
+	private ApplicationModel getAppDetails(StageExecution stage) throws IOException {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+			String appDetailsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
+					+ GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId="+stage.getRefId()+"&gateName="+stage.getName()+"&gateType="+stage.getType();
+			HttpGet request = new HttpGet(appDetailsUrl);
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
+			CloseableHttpResponse response = httpClient.execute(request);
+
+			return objectMapper.readValue(EntityUtils.toString(response.getEntity()), ApplicationModel.class);
+		}
+	}
+
+	private GateModel createVerificationGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String createGateUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl + CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+			HttpPost request = new HttpPost(createGateUrl);
+
+			GateModel gateModel = new GateModel();
+
+			JsonObject parameters = (JsonObject) stage.getContext().get("parameters");
+
+			gateModel.setApplicationId(applicationModel.getAppId().toString());
+			gateModel.setGateName(stage.getName());
+			gateModel.setDependsOn(new ArrayList<>(stage.getRequisiteStageRefIds()));
+			gateModel.setGateType(stage.getType());
+			gateModel.setRefId(stage.getRefId());
+			gateModel.setServiceId(applicationModel.getServiceId());
+			gateModel.setPipelineId(applicationModel.getPipelineId());
+
+			//Verification Gate specific details start
+
+			if (parameters.has("logTemplate")) {
+				gateModel.setLogTemplateName(parameters.get("logTemplate").getAsString().trim());
+			}
+
+			if (parameters.has("metricTemplate")) {
+				gateModel.setMetricTemplateName(parameters.get("metricTemplate").getAsString().trim());
+			}
+
+			//Verification Gate specific details end
+
+			gateModel.setEnvironmentId(getEnvironmentId(parameters));
+			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
+
+			request.setHeader("Content-type", "application/json");
+			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
+			request.setHeader("Origin", "OpsMxVerificationStagePlugin");
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+			CloseableHttpResponse response = httpClient.execute(request);
+
+			return gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+		}
+	}
+
+	private Integer getEnvironmentId(JsonObject parameters){
+		JsonObject environmentJsonObject = parameters.getAsJsonArray("environment").get(0).getAsJsonObject();
+		return environmentJsonObject.get("id").getAsInt();
+	}
+
+	private List<Map<String, String>> getPayloadConstraints(JsonObject parameters) {
+		// Adding payload constraint to stage / gate creation request
+		List<Map<String, String>> payloadConstraints = new ArrayList<>();
+		JsonObject payloadJsonObject;
+
+		if (parameters.has("gateSecurity")) {
+			payloadJsonObject = parameters.getAsJsonArray("gateSecurity").get(0).getAsJsonObject();
+
+			if (payloadJsonObject.has("values")) {
+				JsonArray valuesArray = payloadJsonObject.getAsJsonArray("values");
+
+				if (valuesArray != null && valuesArray.size() > 0) {
+					for (JsonElement value : valuesArray) {
+						if (value.getAsJsonObject().has("label") &&
+								!value.getAsJsonObject().get("label").getAsString().isEmpty()) {
+							Map<String, String> valuesMap = new HashMap<>();
+							valuesMap.put(value.getAsJsonObject().get("label").getAsString(), value.getAsJsonObject().get("value").getAsString());
+							payloadConstraints.add(valuesMap);
+						}
+					}
+				}
+			}
+		}
+		return payloadConstraints;
 	}
 }
