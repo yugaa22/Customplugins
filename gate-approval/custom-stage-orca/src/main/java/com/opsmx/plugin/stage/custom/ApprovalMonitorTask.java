@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -89,7 +89,9 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 
 	private TaskResult cancelRequest(String approvalUrl, String user, Map<String, Object> outputs, String reason) {
-		HttpPost request = new HttpPost(approvalUrl);
+		logger.info("ApprovalUrl : {}",approvalUrl);
+		logger.info("Execution  authentication user: {}",user);
+		HttpPut request = new HttpPut(approvalUrl);
 
 		ObjectNode finalJson = objectMapper.createObjectNode();
 		finalJson.put("action", "cancel");
@@ -220,7 +222,6 @@ public class ApprovalMonitorTask implements RetryableTask {
 
 	@Override
 	public TaskResult onTimeout(@NotNull StageExecution stage) {
-
 		Map<String, Object> outputs = stage.getOutputs();
 		String trigger = (String) outputs.getOrDefault(ApprovalTriggerTask.TRIGGER, "NOTYET");
 		if (trigger.equals(ApprovalTriggerTask.SUCCESS) && outputs.get(ApprovalMonitorTask.STATUS) == null) {
