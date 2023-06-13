@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.opsmx.plugin.stage.custom.constants.Constants;
 import com.opsmx.plugin.stage.custom.model.ApplicationModel;
 import com.opsmx.plugin.stage.custom.model.GateModel;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 
 import jline.internal.Log;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 @Extension
 @PluginComponent
@@ -75,10 +79,6 @@ public class PolicyTask implements Task {
 	private static final String START_TIME = "startTime";
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
-
-	private static String GET_APPDETAILS_URL = "/platformservice/v1/applications/{applicationName}/pipelines/{pipelineName}?gateSearch=true";
-
-	private static String CREATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates";
 
 	@Autowired
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -340,44 +340,66 @@ public class PolicyTask implements Task {
 		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
 	}
 
-	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws IOException {
+	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws Exception {
 		Map<String, Object> context = stage.getContext();
 		ApplicationModel applicationModel = null;
 
 		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
 
+			logger.debug("State of the context before modification : {}", context);
 			applicationModel = getAppDetails(stage);
-			context.put("applicationId", applicationModel.getAppId().doubleValue());
-			context.put("serviceId", applicationModel.getServiceId().doubleValue());
-			context.put("pipelineId", applicationModel.getPipelineId().doubleValue());
+			context.put("applicationId", applicationModel.getAppId());
+			context.put("serviceId", applicationModel.getServiceId());
+			context.put("pipelineId", applicationModel.getPipelineId());
 			stage.setContext(context);
+			logger.debug("context modified : {}", stage.getContext());
 		}
 		return applicationModel;
 	}
 
-	private ApplicationModel getAppDetails(StageExecution stage) throws IOException {
+	private ApplicationModel getAppDetails(StageExecution stage) throws Exception {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
-			String appDetailsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
-					+ GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId="+stage.getRefId()+"&gateName="+stage.getName()+"&gateType="+stage.getType();
+			String appDetailsUrl = getAppDetailsUrl(stage);
+			logger.debug("Invoking the URL : {} to fetch the app details", appDetailsUrl);
 			HttpGet request = new HttpGet(appDetailsUrl);
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
-			CloseableHttpResponse response = httpClient.execute(request);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
 
-			return objectMapper.readValue(EntityUtils.toString(response.getEntity()), ApplicationModel.class);
+			ApplicationModel applicationModel = gson.fromJson(EntityUtils.toString(httpClient.execute(request).getEntity()), ApplicationModel.class);
+			logger.debug("Application details response : {}", applicationModel);
+			return applicationModel;
 		}
 	}
 
-	private GateModel createPolicyGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
+	@NotNull
+	private String getAppDetailsUrl(StageExecution stage) {
+		return getIsdGateUrl()
+				+ Constants.GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId=" + stage.getRefId() + "&gateName=" + stage.getName() + "&gateType=" + stage.getType();
+	}
+
+	private String getIsdGateUrl(){
+		return isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl;
+	}
+
+	@NotNull
+	private String getCreateGateUrl(ApplicationModel applicationModel) {
+		return getIsdGateUrl() + Constants.CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+	}
+
+	private void createPolicyGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			String createGateUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl + CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+			String createGateUrl = getCreateGateUrl(applicationModel);
+			logger.debug("Create Policy GATE url : {}", createGateUrl);
 			HttpPost request = new HttpPost(createGateUrl);
 
 			GateModel gateModel = new GateModel();
 
-			JsonObject parameters = (JsonObject) stage.getContext().get("parameters");
+			String stringParam = gson.toJson(stage.getContext().get("parameters"), Map.class);
+			logger.debug("Policy GATE parameters : {}", stringParam);
+
+			JsonObject parameters = gson.fromJson(stringParam, JsonObject.class);
 
 			gateModel.setApplicationId(applicationModel.getAppId().toString());
 			gateModel.setGateName(stage.getName());
@@ -388,7 +410,6 @@ public class PolicyTask implements Task {
 			gateModel.setPipelineId(applicationModel.getPipelineId());
 
 			//Policy Gate specific details start
-
 			if (parameters.has("policyName") && !parameters.get("policyName").getAsString().isEmpty()) {
 				gateModel.setPolicyName(parameters.get("policyName").getAsString().trim());
 			}
@@ -396,21 +417,24 @@ public class PolicyTask implements Task {
 			if (parameters.has("policyId") && parameters.get("policyId").getAsInt() > 0) {
 				gateModel.setPolicyId(parameters.get("policyId").getAsInt());
 			}
-
 			//Policy Gate specific details end
 
 			gateModel.setEnvironmentId(getEnvironmentId(parameters));
 			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
 
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
-			request.setHeader("Origin", "OpsMxPolicyStagePlugin");
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
 			String body = objectMapper.writeValueAsString(gateModel);
 			request.setEntity(new StringEntity(body));
 
-			CloseableHttpResponse response = httpClient.execute(request);
+			logger.debug("Create Policy GATE request body : {}", body);
 
-			return gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+			CloseableHttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+				logger.info("Successfully created Policy GATE");
+				logger.debug("Create Policy GATE response body : {}", EntityUtils.toString(response.getEntity()));
+			}
 		}
 	}
 

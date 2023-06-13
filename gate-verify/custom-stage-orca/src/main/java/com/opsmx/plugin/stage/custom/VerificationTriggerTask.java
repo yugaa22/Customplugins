@@ -38,6 +38,9 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 @Extension
 @PluginComponent
@@ -344,11 +347,13 @@ public class VerificationTriggerTask implements Task {
 
 		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
 
+			logger.debug("State of the context before modification : {}", context);
 			applicationModel = getAppDetails(stage);
-			context.put("applicationId", applicationModel.getAppId().doubleValue());
-			context.put("serviceId", applicationModel.getServiceId().doubleValue());
-			context.put("pipelineId", applicationModel.getPipelineId().doubleValue());
+			context.put("applicationId", applicationModel.getAppId());
+			context.put("serviceId", applicationModel.getServiceId());
+			context.put("pipelineId", applicationModel.getPipelineId());
 			stage.setContext(context);
+			logger.debug("context modified : {}", stage.getContext());
 		}
 		return applicationModel;
 	}
@@ -356,26 +361,41 @@ public class VerificationTriggerTask implements Task {
 	private ApplicationModel getAppDetails(StageExecution stage) throws IOException {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
-			String appDetailsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
-					+ GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId="+stage.getRefId()+"&gateName="+stage.getName()+"&gateType="+stage.getType();
+			String appDetailsUrl = getAppDetailsUrl(stage);
+			logger.debug("Invoking the URL : {} to fetch the app details", appDetailsUrl);
 			HttpGet request = new HttpGet(appDetailsUrl);
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
-			CloseableHttpResponse response = httpClient.execute(request);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(OesConstants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
 
-			return objectMapper.readValue(EntityUtils.toString(response.getEntity()), ApplicationModel.class);
+			ApplicationModel applicationModel = gson.fromJson(EntityUtils.toString(httpClient.execute(request).getEntity()), ApplicationModel.class);
+			logger.debug("Application details response : {}", applicationModel);
+			return applicationModel;
 		}
 	}
 
-	private GateModel createVerificationGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
+	@NotNull
+	private String getAppDetailsUrl(StageExecution stage) {
+		return getIsdGateUrl()
+				+ OesConstants.GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId=" + stage.getRefId() + "&gateName=" + stage.getName() + "&gateType=" + stage.getType();
+	}
+
+	private String getIsdGateUrl(){
+		return isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl;
+	}
+
+	private void createVerificationGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			String createGateUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl + CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+			String createGateUrl = getCreateGateUrl(applicationModel);
+			logger.debug("Create Verification GATE url : {}", createGateUrl);
 			HttpPost request = new HttpPost(createGateUrl);
 
 			GateModel gateModel = new GateModel();
 
-			JsonObject parameters = (JsonObject) stage.getContext().get("parameters");
+			String stringParam = gson.toJson(stage.getContext().get("parameters"), Map.class);
+			logger.debug("Verification GATE parameters : {}", stringParam);
+
+			JsonObject parameters = gson.fromJson(stringParam, JsonObject.class);
 
 			gateModel.setApplicationId(applicationModel.getAppId().toString());
 			gateModel.setGateName(stage.getName());
@@ -386,7 +406,6 @@ public class VerificationTriggerTask implements Task {
 			gateModel.setPipelineId(applicationModel.getPipelineId());
 
 			//Verification Gate specific details start
-
 			if (parameters.has("logTemplate")) {
 				gateModel.setLogTemplateName(parameters.get("logTemplate").getAsString().trim());
 			}
@@ -394,21 +413,30 @@ public class VerificationTriggerTask implements Task {
 			if (parameters.has("metricTemplate")) {
 				gateModel.setMetricTemplateName(parameters.get("metricTemplate").getAsString().trim());
 			}
-
 			//Verification Gate specific details end
 
 			gateModel.setEnvironmentId(getEnvironmentId(parameters));
 			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
 
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
-			request.setHeader("Origin", "OpsMxVerificationStagePlugin");
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(OesConstants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+			request.setHeader(HttpHeaders.ORIGIN, OesConstants.PLUGIN_NAME);
 			String body = objectMapper.writeValueAsString(gateModel);
 			request.setEntity(new StringEntity(body));
-			CloseableHttpResponse response = httpClient.execute(request);
 
-			return gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+			logger.debug("Create Verification GATE request body : {}", body);
+
+			CloseableHttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+				logger.info("Successfully created Verification GATE");
+				logger.debug("Create Verification GATE response body : {}", EntityUtils.toString(response.getEntity()));
+			}
 		}
+	}
+
+	@NotNull
+	private String getCreateGateUrl(ApplicationModel applicationModel) {
+		return getIsdGateUrl() + OesConstants.CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
 	}
 
 	private Integer getEnvironmentId(JsonObject parameters){
