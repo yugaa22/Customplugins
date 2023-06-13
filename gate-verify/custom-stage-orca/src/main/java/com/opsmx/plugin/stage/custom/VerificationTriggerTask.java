@@ -67,14 +67,10 @@ public class VerificationTriggerTask implements Task {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static String GET_APPDETAILS_URL = "/platformservice/v1/applications/{applicationName}/pipelines/{pipelineName}?gateSearch=true";
-
-	private static String CREATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates";
-
 	@Autowired
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	private static Gson gson = new Gson();
+	private final Gson gson = new Gson();
 
 	@NotNull
 	@Override
