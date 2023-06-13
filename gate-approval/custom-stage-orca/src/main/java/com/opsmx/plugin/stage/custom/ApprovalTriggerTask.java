@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.opsmx.plugin.stage.custom.constants.Constants;
 import com.opsmx.plugin.stage.custom.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -39,7 +40,9 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @Extension
@@ -145,17 +148,9 @@ public class ApprovalTriggerTask implements Task {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static Gson gson = new Gson();
+	private final Gson gson = new Gson();
 
-	private static String GET_APPDETAILS_URL = "/platformservice/v1/applications/{applicationName}/pipelines/{pipelineName}?gateSearch=true";
 
-	private static String CREATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates";
-
-	private static String UPDATE_USER_GROUP_URL = "/platformservice/v6/usergroups/permissions/users/{username}/resources/{resourceId}";
-
-	private static String UPDATE_TOOL_CONNECTOR_URL = "/visibilityservice/v4/approvalGates/{id}/connector";
-
-	private static String UPDATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates/{gateId}";
 
 	@Autowired
 	private final ObjectMapper objectMapper = new ObjectMapper();
@@ -170,9 +165,9 @@ public class ApprovalTriggerTask implements Task {
 		logger.info("Approval execution started, Application name : {}, Pipeline name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
 		CloseableHttpClient httpClient = null;
 		try {
+
 			ApplicationModel applicationModel = correctTheAppDetails(stage);
 			if (applicationModel!=null && !applicationModel.getCustomGateFound()){
-				//create approval gate
 				createApprovalGate(stage, applicationModel);
 			}
 			String triggerUrl = getTriggerURL(stage, outputs);
@@ -226,7 +221,7 @@ public class ApprovalTriggerTask implements Task {
 					.build();
 
 		} catch (Exception e) {
-			logger.error("Error occurred while processing approval", e);
+			logger.error("Error occurred while processing approval gate : {}", e);
 			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e));
 			outputs.put(TRIGGER, FAILED);
 			outputs.put(STATUS, REJECTED);
@@ -239,7 +234,7 @@ public class ApprovalTriggerTask implements Task {
 				try {
 					httpClient.close();
 				} catch (IOException e) {
-					logger.info("Error while closing client connection");
+					logger.error("Error while closing client connection : {}", e);
 				}
 			}
 		}
@@ -499,6 +494,7 @@ public class ApprovalTriggerTask implements Task {
 	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) throws UnsupportedEncodingException {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
+		logger.info("triggerEndpoint : {}", triggerEndpoint);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
 			HttpGet request = new HttpGet(triggerEndpoint);
@@ -512,7 +508,7 @@ public class ApprovalTriggerTask implements Task {
 				registerResponse = EntityUtils.toString(entity);
 			}
 
-			logger.debug("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
 			if (response.getStatusLine().getStatusCode() != 200) {
 				outputs.put(EXCEPTION, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
 				outputs.put(TRIGGER, FAILED);
@@ -557,31 +553,44 @@ public class ApprovalTriggerTask implements Task {
 	}
 
 
-	private ApplicationModel getAppDetails(StageExecution stage) throws IOException {
+	private ApplicationModel getAppDetails(StageExecution stage) throws Exception {
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
-			String appDetailsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
-					+ GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId="+stage.getRefId()+"&gateName="+stage.getName()+"&gateType="+stage.getType();
+			String appDetailsUrl = getAppDetailsUrl(stage);
+			logger.debug("Invoking the URL : {} to fetch the app details", appDetailsUrl);
 			HttpGet request = new HttpGet(appDetailsUrl);
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
-			CloseableHttpResponse response = httpClient.execute(request);
-			
-			return objectMapper.readValue(EntityUtils.toString(response.getEntity()), ApplicationModel.class);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+
+			ApplicationModel applicationModel = gson.fromJson(EntityUtils.toString(httpClient.execute(request).getEntity()), ApplicationModel.class);
+			logger.debug("Application details response : {}", applicationModel);
+			return applicationModel;
 		}
 	}
 
-	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws IOException {
+	@NotNull
+	private String getAppDetailsUrl(StageExecution stage) {
+		return getIsdGateUrl()
+				+ Constants.GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId=" + stage.getRefId() + "&gateName=" + stage.getName() + "&gateType=" + stage.getType();
+	}
+
+	private String getIsdGateUrl(){
+		return isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl;
+	}
+
+	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws Exception {
 		Map<String, Object> context = stage.getContext();
 		ApplicationModel applicationModel = null;
 
 		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
 
+			logger.debug("State of the context before modification : {}", context);
 			applicationModel = getAppDetails(stage);
-			context.put("applicationId", applicationModel.getAppId().doubleValue());
-			context.put("serviceId", applicationModel.getServiceId().doubleValue());
-			context.put("pipelineId", applicationModel.getPipelineId().doubleValue());
+			context.put("applicationId", applicationModel.getAppId());
+			context.put("serviceId", applicationModel.getServiceId());
+			context.put("pipelineId", applicationModel.getPipelineId());
 			stage.setContext(context);
+			logger.debug("context modified : {}", stage.getContext());
 		}
 		return applicationModel;
 	}
@@ -589,13 +598,18 @@ public class ApprovalTriggerTask implements Task {
 	private GateModel createApprovalGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
 
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			String createGateUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl + CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+			String createGateUrl = getCreateGateUrl(applicationModel);
+			logger.debug("Create Approval GATE url : {}", createGateUrl);
 			HttpPost request = new HttpPost(createGateUrl);
 
 			GateModel gateModel = new GateModel();
 			String username = stage.getExecution().getAuthentication().getUser();
 
-			JsonObject parameters = (JsonObject) stage.getContext().get("parameters");
+			String stringParam = gson.toJson(stage.getContext().get("parameters"), Map.class);
+			logger.debug("Approval GATE parameters : {}", stringParam);
+
+			JsonObject parameters = gson.fromJson(stringParam, JsonObject.class);
+
 
 			gateModel.setApplicationId(applicationModel.getAppId().toString());
 			gateModel.setGateName(stage.getName());
@@ -613,25 +627,38 @@ public class ApprovalTriggerTask implements Task {
 			gateModel.setEnvironmentId(getEnvironmentId(parameters));
 			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
 
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", username);
-			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
 
 			String body = objectMapper.writeValueAsString(gateModel);
 			request.setEntity(new StringEntity(body));
 
+			logger.debug("Create Approval GATE request body : {}", body);
 
 			CloseableHttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+				logger.info("Successfully created Approval GATE");
+			}
 
 			GateModel createGateResponse = gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+			logger.debug("Create Approval GATE response body : {}", createGateResponse);
 
 			Integer approvalGateId = createGateResponse.getApprovalGateId();
 			postApprovalGroups(parameters, approvalGateId, username);
 			postConnectorAccountsDetailForApprovalGate(parameters, approvalGateId.longValue(), username);
-			updateGate(approvalGateId,applicationModel.getPipelineId(), gateModel, username);
+			CloseableHttpResponse updateGateResponse = updateGate(approvalGateId,applicationModel.getPipelineId(), gateModel, username);
+			if (updateGateResponse.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
+				logger.info("Successfully updated Approval Gate with tool connectors");
+			}
 
 			return createGateResponse;
 		}
+	}
+
+	@NotNull
+	private String getCreateGateUrl(ApplicationModel applicationModel) {
+		return getIsdGateUrl() + Constants.CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
 	}
 
 	private void postApprovalGroups(JsonObject parameters, int gateId, String username) throws Exception {
@@ -658,46 +685,60 @@ public class ApprovalTriggerTask implements Task {
 		approvalUserGroupPermission.setUserGroups(userGroupPermissions);
 		CloseableHttpResponse userGroupResponse = updateResourceUserGroupPermissionsForApproval(username, gateId, approvalUserGroupPermission);
 
+		logger.debug("Response received from update Resource User Group Permissions For Approval : {}", EntityUtils.toString(userGroupResponse.getEntity()));
 
-
-//		if (userGroupResponse.getStatusCodeValue() == HttpStatus.NO_CONTENT.value()) {
-//			logger.info("Successfully updated the approval user group permission for gate id {}", gateId);
-//		}
+		if (userGroupResponse.getStatusLine().getStatusCode() == HttpStatus.NO_CONTENT.value()) {
+			logger.info("Successfully updated the approval user group permission for gate id : {}", gateId);
+		}
 
 	}
 
 	private CloseableHttpResponse updateResourceUserGroupPermissionsForApproval(String username, Integer resourceId, GroupPermission groupPermission) throws Exception{
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			String updateResourceUserGroupPermissionUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl +
-					UPDATE_USER_GROUP_URL.replace("{username}", username).replace("{resourceId}", resourceId.toString()+"?featureType=APPROVAL_GATE");
+			String updateResourceUserGroupPermissionUrl = getUpdateResourceUserGroupPermissionUrl(username, resourceId);
+			logger.debug("updateResourceUserGroupPermissionUrl : {}", updateResourceUserGroupPermissionUrl);
 			HttpPut request = new HttpPut(updateResourceUserGroupPermissionUrl);
 			String body = objectMapper.writeValueAsString(groupPermission);
 			request.setEntity(new StringEntity(body));
 
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", username);
-			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+			logger.debug("Request body to update Resource User Group Permissions For Approval : {}", body);
 
-			CloseableHttpResponse response = httpClient.execute(request);
-			return response;
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+
+			return httpClient.execute(request);
 		}
 	}
 
-	private void updateGate(Integer gateId, Integer pipelineId, GateModel gateModel, String username) throws Exception {
+	@NotNull
+	private String getUpdateResourceUserGroupPermissionUrl(String username, Integer resourceId) {
+		return getIsdGateUrl() +
+				Constants.UPDATE_USER_GROUP_URL.replace("{username}", username).replace("{resourceId}", resourceId.toString()+"?featureType=APPROVAL_GATE");
+	}
+
+	private CloseableHttpResponse updateGate(Integer gateId, Integer pipelineId, GateModel gateModel, String username) throws Exception {
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-			String updateGateUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl +
-					UPDATE_GATE_URL.replace("{pipelineId}", pipelineId.toString()).replace("{gateId}", gateId.toString());
+			String updateGateUrl = getUpdateGateUrl(gateId, pipelineId);
+			logger.debug("update approval gate url : {}", updateGateUrl);
 			HttpPut request = new HttpPut(updateGateUrl);
 			String body = objectMapper.writeValueAsString(gateModel);
 			request.setEntity(new StringEntity(body));
 
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", username);
-			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+			logger.debug("update approval gate request body : {}", body);
 
-			CloseableHttpResponse response = httpClient.execute(request);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+
+			return httpClient.execute(request);
 		}
+	}
 
+	@NotNull
+	private String getUpdateGateUrl(Integer gateId, Integer pipelineId) {
+		return getIsdGateUrl() +
+				Constants.UPDATE_GATE_URL.replace("{pipelineId}", pipelineId.toString()).replace("{gateId}", gateId.toString());
 	}
 
 	private void postConnectorAccountsDetailForApprovalGate(JsonObject parameters, Long approvalGateId, String username) throws Exception {
@@ -714,36 +755,41 @@ public class ApprovalTriggerTask implements Task {
 					Map<String, String> connectorAccountDetails = new HashMap<>();
 					connectorAccountDetails.put("datasourceName", connectorDetails.get("account").getAsString().trim());
 
-//					ResponseEntity<Map<String, String>> connectorAccountDetailsResponse =
-//							visibilityServiceClient.approvalGatesIdToolConnectorsConnectorIdTemplatePut(username, approvalGateId, connectorAccountDetails);
-					approvalGatesIdToolConnectorsConnectorIdTemplatePut(connectorAccountDetails, approvalGateId, username);
+					CloseableHttpResponse connectorAccountDetailsResponse = updateApprovalGatesIdToolConnectorTemplate(connectorAccountDetails, approvalGateId, username);
 
-//					if (connectorAccountDetailsResponse.getStatusCodeValue() == HttpStatus.NO_CONTENT.value()) {
-//						logger.info("Successfully updated the approval gate with connector details for account name {} and connector type {} for approval gate id {} ",
-//								connectorDetails.get("account").getAsString().trim(), connectorDetails.get("connector").getAsString(), approvalGateId);
-//					}
+					logger.debug("connectorAccountDetailsResponse : {}", EntityUtils.toString(connectorAccountDetailsResponse.getEntity()));
+
+					if (connectorAccountDetailsResponse.getStatusLine().getStatusCode() == HttpStatus.NO_CONTENT.value()) {
+						logger.info("Successfully updated the approval gate with connector details for account name {} and connector type {} for approval gate id {} ",
+								connectorDetails.get("account").getAsString().trim(), connectorDetails.get("connector").getAsString(), approvalGateId);
+					}
 				}
 			}
 		}
 	}
 
-	private void approvalGatesIdToolConnectorsConnectorIdTemplatePut(Map<String, String> connectorAccountDetails, Long approvalGateId, String username) throws Exception {
+	private CloseableHttpResponse updateApprovalGatesIdToolConnectorTemplate(Map<String, String> connectorAccountDetails, Long approvalGateId, String username) throws Exception {
 		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
-			String updateToolConnectorsUrl = isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl
-					+ UPDATE_TOOL_CONNECTOR_URL.replace("{id}", approvalGateId.toString());
+			String updateToolConnectorsUrl = getUpdateToolConnectorsUrl(approvalGateId);
+			logger.debug("updateToolConnectorsUrl : {}", updateToolConnectorsUrl);
 			HttpPut request = new HttpPut(updateToolConnectorsUrl);
 
-			request.setHeader("Content-type", "application/json");
-			request.setHeader("x-spinnaker-user", username);
-			request.setHeader("Origin", "OpsMxApprovalStagePlugin");
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
 
 			String body = objectMapper.writeValueAsString(connectorAccountDetails);
 			request.setEntity(new StringEntity(body));
+			logger.debug("updateToolConnectors API request body : {}", body);
 
-			CloseableHttpResponse response = httpClient.execute(request);
-
-
+			return httpClient.execute(request);
 		}
+	}
+
+	@NotNull
+	private String getUpdateToolConnectorsUrl(Long approvalGateId) {
+		return getIsdGateUrl()
+				+ Constants.UPDATE_TOOL_CONNECTOR_URL.replace("{id}", approvalGateId.toString());
 	}
 
 	private Integer getEnvironmentId(JsonObject parameters){

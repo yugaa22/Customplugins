@@ -202,4 +202,29 @@ public class GateModel {
             this.policyName = policyName;
         }
     }
+
+    @Override
+    public String toString() {
+        return "GateModel{" +
+                "applicationId='" + applicationId + '\'' +
+                ", pipelineName='" + pipelineName + '\'' +
+                ", gateId=" + gateId +
+                ", gateName='" + gateName + '\'' +
+                ", gateType='" + gateType + '\'' +
+                ", environmentId=" + environmentId +
+                ", logTemplateName='" + logTemplateName + '\'' +
+                ", metricTemplateName='" + metricTemplateName + '\'' +
+                ", dependsOn=" + dependsOn +
+                ", nextStage='" + nextStage + '\'' +
+                ", refId='" + refId + '\'' +
+                ", approvalGateId=" + approvalGateId +
+                ", policyId=" + policyId +
+                ", policyName='" + policyName + '\'' +
+                ", payloadConstraint=" + payloadConstraint +
+                ", isAutomatedApproval=" + isAutomatedApproval +
+                ", approvalGatePolicies=" + approvalGatePolicies +
+                ", pipelineId=" + pipelineId +
+                ", serviceId=" + serviceId +
+                '}';
+    }
 }

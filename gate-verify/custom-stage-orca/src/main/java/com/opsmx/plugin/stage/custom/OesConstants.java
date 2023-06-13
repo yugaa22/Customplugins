@@ -39,4 +39,12 @@ public final class OesConstants {
 	public static final String REVIEW = "REVIEW";
 
 	public static final String FAIL = "FAIL";
+
+	public static final String GET_APPDETAILS_URL = "/platformservice/v1/applications/{applicationName}/pipelines/{pipelineName}?gateSearch=true";
+
+	public static final String CREATE_GATE_URL = "/dashboardservice/v4/pipelines/{pipelineId}/gates";
+
+	public static final String X_SPINNAKER_USER = "x-spinnaker-user";
+
+	public static final String PLUGIN_NAME = "OpsMxVerificationStagePlugin";
 }

@@ -66,4 +66,17 @@ public class ApplicationModel {
     public void setCustomGateFound(Boolean customGateFound) {
         isCustomGateFound = customGateFound;
     }
+
+    @Override
+    public String toString() {
+        return "ApplicationModel{" +
+                "appName='" + appName + '\'' +
+                ", appId=" + appId +
+                ", serviceName='" + serviceName + '\'' +
+                ", serviceId=" + serviceId +
+                ", pipelineName='" + pipelineName + '\'' +
+                ", pipelineId=" + pipelineId +
+                ", isCustomGateFound=" + isCustomGateFound +
+                '}';
+    }
 }
