@@ -10,6 +10,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.opsmx.plugin.stage.custom.constants.Constants;
+import com.opsmx.plugin.stage.custom.model.ApplicationModel;
+import com.opsmx.plugin.stage.custom.model.GateModel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -40,6 +43,9 @@ import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 
 import jline.internal.Log;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 @Extension
 @PluginComponent
@@ -92,8 +98,13 @@ public class PolicyTask implements Task {
 
 		String triggerUrl = null;
 		try {
+			ApplicationModel applicationModel = correctTheAppDetails(stage);
+			if (applicationModel!=null && !applicationModel.getCustomGateFound()){
+				//create verification gate
+				createPolicyGate(stage, applicationModel);
+			}
 			triggerUrl = getTriggerURL(stage, outputs);
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 		if (triggerUrl == null) {
@@ -327,5 +338,134 @@ public class PolicyTask implements Task {
 
 	private String encodeString(String value) throws UnsupportedEncodingException {
 		return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+	}
+
+	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws Exception {
+		Map<String, Object> context = stage.getContext();
+		ApplicationModel applicationModel = null;
+
+		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
+
+			logger.debug("State of the context before modification : {}", context);
+			applicationModel = getAppDetails(stage);
+			context.put("applicationId", applicationModel.getAppId());
+			context.put("serviceId", applicationModel.getServiceId());
+			context.put("pipelineId", applicationModel.getPipelineId());
+			stage.setContext(context);
+			logger.debug("context modified : {}", stage.getContext());
+		}
+		return applicationModel;
+	}
+
+	private ApplicationModel getAppDetails(StageExecution stage) throws Exception {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+			String appDetailsUrl = getAppDetailsUrl(stage);
+			logger.debug("Invoking the URL : {} to fetch the app details", appDetailsUrl);
+			HttpGet request = new HttpGet(appDetailsUrl);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+
+			ApplicationModel applicationModel = gson.fromJson(EntityUtils.toString(httpClient.execute(request).getEntity()), ApplicationModel.class);
+			logger.debug("Application details response : {}", applicationModel);
+			return applicationModel;
+		}
+	}
+
+	@NotNull
+	private String getAppDetailsUrl(StageExecution stage) {
+		return getIsdGateUrl()
+				+ Constants.GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId=" + stage.getRefId() + "&gateName=" + stage.getName() + "&gateType=" + stage.getType();
+	}
+
+	private String getIsdGateUrl(){
+		return isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl;
+	}
+
+	@NotNull
+	private String getCreateGateUrl(ApplicationModel applicationModel) {
+		return getIsdGateUrl() + Constants.CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+	}
+
+	private void createPolicyGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String createGateUrl = getCreateGateUrl(applicationModel);
+			logger.debug("Create Policy GATE url : {}", createGateUrl);
+			HttpPost request = new HttpPost(createGateUrl);
+
+			GateModel gateModel = new GateModel();
+
+			String stringParam = gson.toJson(stage.getContext().get("parameters"), Map.class);
+			logger.debug("Policy GATE parameters : {}", stringParam);
+
+			JsonObject parameters = gson.fromJson(stringParam, JsonObject.class);
+
+			gateModel.setApplicationId(applicationModel.getAppId().toString());
+			gateModel.setGateName(stage.getName());
+			gateModel.setDependsOn(new ArrayList<>(stage.getRequisiteStageRefIds()));
+			gateModel.setGateType(stage.getType());
+			gateModel.setRefId(stage.getRefId());
+			gateModel.setServiceId(applicationModel.getServiceId());
+			gateModel.setPipelineId(applicationModel.getPipelineId());
+
+			//Policy Gate specific details start
+			if (parameters.has("policyName") && !parameters.get("policyName").getAsString().isEmpty()) {
+				gateModel.setPolicyName(parameters.get("policyName").getAsString().trim());
+			}
+
+			if (parameters.has("policyId") && parameters.get("policyId").getAsInt() > 0) {
+				gateModel.setPolicyId(parameters.get("policyId").getAsInt());
+			}
+			//Policy Gate specific details end
+
+			gateModel.setEnvironmentId(getEnvironmentId(parameters));
+			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
+
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+
+			logger.debug("Create Policy GATE request body : {}", body);
+
+			CloseableHttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+				logger.info("Successfully created Policy GATE");
+				logger.debug("Create Policy GATE response body : {}", EntityUtils.toString(response.getEntity()));
+			}
+		}
+	}
+
+	private Integer getEnvironmentId(JsonObject parameters){
+		JsonObject environmentJsonObject = parameters.getAsJsonArray("environment").get(0).getAsJsonObject();
+		return environmentJsonObject.get("id").getAsInt();
+	}
+
+	private List<Map<String, String>> getPayloadConstraints(JsonObject parameters) {
+		// Adding payload constraint to stage / gate creation request
+		List<Map<String, String>> payloadConstraints = new ArrayList<>();
+		JsonObject payloadJsonObject;
+
+		if (parameters.has("gateSecurity")) {
+			payloadJsonObject = parameters.getAsJsonArray("gateSecurity").get(0).getAsJsonObject();
+
+			if (payloadJsonObject.has("values")) {
+				JsonArray valuesArray = payloadJsonObject.getAsJsonArray("values");
+
+				if (valuesArray != null && valuesArray.size() > 0) {
+					for (JsonElement value : valuesArray) {
+						if (value.getAsJsonObject().has("label") &&
+								!value.getAsJsonObject().get("label").getAsString().isEmpty()) {
+							Map<String, String> valuesMap = new HashMap<>();
+							valuesMap.put(value.getAsJsonObject().get("label").getAsString(), value.getAsJsonObject().get("value").getAsString());
+							payloadConstraints.add(valuesMap);
+						}
+					}
+				}
+			}
+		}
+		return payloadConstraints;
 	}
 }

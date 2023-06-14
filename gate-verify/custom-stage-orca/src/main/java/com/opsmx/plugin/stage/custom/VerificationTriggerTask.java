@@ -5,11 +5,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.opsmx.plugin.stage.custom.model.ApplicationModel;
+import com.opsmx.plugin.stage.custom.model.GateModel;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -34,6 +38,9 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 @Extension
 @PluginComponent
@@ -63,14 +70,23 @@ public class VerificationTriggerTask implements Task {
 	@Autowired
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+	private final Gson gson = new Gson();
+
 	@NotNull
 	@Override
 	public TaskResult execute(@NotNull StageExecution stage) {
 		logger.info("Application name : {}, Service/pipeline name : {}, Stage name : {}",
 				stage.getExecution().getApplication(), stage.getExecution().getName(), stage.getName());
 		try {
+			ApplicationModel applicationModel = correctTheAppDetails(stage);
+			if (applicationModel!=null && !applicationModel.getCustomGateFound()){
+				//create verification gate
+				createVerificationGate(stage, applicationModel);
+			}
 			return triggerAnalysis(stage);
 		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -319,5 +335,134 @@ public class VerificationTriggerTask implements Task {
 				objectMapper.createObjectNode()
 						.put(PIPELINE_NAME, pipelineName)
 						.put(SERVICE_GATE, stageName));
+	}
+
+	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws IOException {
+		Map<String, Object> context = stage.getContext();
+		ApplicationModel applicationModel = null;
+
+		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
+
+			logger.debug("State of the context before modification : {}", context);
+			applicationModel = getAppDetails(stage);
+			context.put("applicationId", applicationModel.getAppId());
+			context.put("serviceId", applicationModel.getServiceId());
+			context.put("pipelineId", applicationModel.getPipelineId());
+			stage.setContext(context);
+			logger.debug("context modified : {}", stage.getContext());
+		}
+		return applicationModel;
+	}
+
+	private ApplicationModel getAppDetails(StageExecution stage) throws IOException {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+			String appDetailsUrl = getAppDetailsUrl(stage);
+			logger.debug("Invoking the URL : {} to fetch the app details", appDetailsUrl);
+			HttpGet request = new HttpGet(appDetailsUrl);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(OesConstants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+
+			ApplicationModel applicationModel = gson.fromJson(EntityUtils.toString(httpClient.execute(request).getEntity()), ApplicationModel.class);
+			logger.debug("Application details response : {}", applicationModel);
+			return applicationModel;
+		}
+	}
+
+	@NotNull
+	private String getAppDetailsUrl(StageExecution stage) {
+		return getIsdGateUrl()
+				+ OesConstants.GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId=" + stage.getRefId() + "&gateName=" + stage.getName() + "&gateType=" + stage.getType();
+	}
+
+	private String getIsdGateUrl(){
+		return isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl;
+	}
+
+	private void createVerificationGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String createGateUrl = getCreateGateUrl(applicationModel);
+			logger.debug("Create Verification GATE url : {}", createGateUrl);
+			HttpPost request = new HttpPost(createGateUrl);
+
+			GateModel gateModel = new GateModel();
+
+			String stringParam = gson.toJson(stage.getContext().get("parameters"), Map.class);
+			logger.debug("Verification GATE parameters : {}", stringParam);
+
+			JsonObject parameters = gson.fromJson(stringParam, JsonObject.class);
+
+			gateModel.setApplicationId(applicationModel.getAppId().toString());
+			gateModel.setGateName(stage.getName());
+			gateModel.setDependsOn(new ArrayList<>(stage.getRequisiteStageRefIds()));
+			gateModel.setGateType(stage.getType());
+			gateModel.setRefId(stage.getRefId());
+			gateModel.setServiceId(applicationModel.getServiceId());
+			gateModel.setPipelineId(applicationModel.getPipelineId());
+
+			//Verification Gate specific details start
+			if (parameters.has("logTemplate")) {
+				gateModel.setLogTemplateName(parameters.get("logTemplate").getAsString().trim());
+			}
+
+			if (parameters.has("metricTemplate")) {
+				gateModel.setMetricTemplateName(parameters.get("metricTemplate").getAsString().trim());
+			}
+			//Verification Gate specific details end
+
+			gateModel.setEnvironmentId(getEnvironmentId(parameters));
+			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
+
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(OesConstants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+			request.setHeader(HttpHeaders.ORIGIN, OesConstants.PLUGIN_NAME);
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+
+			logger.debug("Create Verification GATE request body : {}", body);
+
+			CloseableHttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+				logger.info("Successfully created Verification GATE");
+				logger.debug("Create Verification GATE response body : {}", EntityUtils.toString(response.getEntity()));
+			}
+		}
+	}
+
+	@NotNull
+	private String getCreateGateUrl(ApplicationModel applicationModel) {
+		return getIsdGateUrl() + OesConstants.CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+	}
+
+	private Integer getEnvironmentId(JsonObject parameters){
+		JsonObject environmentJsonObject = parameters.getAsJsonArray("environment").get(0).getAsJsonObject();
+		return environmentJsonObject.get("id").getAsInt();
+	}
+
+	private List<Map<String, String>> getPayloadConstraints(JsonObject parameters) {
+		// Adding payload constraint to stage / gate creation request
+		List<Map<String, String>> payloadConstraints = new ArrayList<>();
+		JsonObject payloadJsonObject;
+
+		if (parameters.has("gateSecurity")) {
+			payloadJsonObject = parameters.getAsJsonArray("gateSecurity").get(0).getAsJsonObject();
+
+			if (payloadJsonObject.has("values")) {
+				JsonArray valuesArray = payloadJsonObject.getAsJsonArray("values");
+
+				if (valuesArray != null && valuesArray.size() > 0) {
+					for (JsonElement value : valuesArray) {
+						if (value.getAsJsonObject().has("label") &&
+								!value.getAsJsonObject().get("label").getAsString().isEmpty()) {
+							Map<String, String> valuesMap = new HashMap<>();
+							valuesMap.put(value.getAsJsonObject().get("label").getAsString(), value.getAsJsonObject().get("value").getAsString());
+							payloadConstraints.add(valuesMap);
+						}
+					}
+				}
+			}
+		}
+		return payloadConstraints;
 	}
 }

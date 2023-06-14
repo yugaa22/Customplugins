@@ -4,15 +4,21 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.opsmx.plugin.stage.custom.constants.Constants;
+import com.opsmx.plugin.stage.custom.model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -34,6 +40,10 @@ import com.netflix.spinnaker.orca.api.pipeline.TaskResult;
 import com.netflix.spinnaker.orca.api.pipeline.models.ExecutionStatus;
 import com.netflix.spinnaker.orca.api.pipeline.models.StageExecution;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 
 @Extension
 @PluginComponent
@@ -138,6 +148,10 @@ public class ApprovalTriggerTask implements Task {
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
+	private final Gson gson = new Gson();
+
+
+
 	@Autowired
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -151,6 +165,11 @@ public class ApprovalTriggerTask implements Task {
 		logger.info("Approval execution started, Application name : {}, Pipeline name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
 		CloseableHttpClient httpClient = null;
 		try {
+
+			ApplicationModel applicationModel = correctTheAppDetails(stage);
+			if (applicationModel!=null && !applicationModel.getCustomGateFound()){
+				createApprovalGate(stage, applicationModel);
+			}
 			String triggerUrl = getTriggerURL(stage, outputs);
 			if (triggerUrl == null) {
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
@@ -158,6 +177,7 @@ public class ApprovalTriggerTask implements Task {
 						.outputs(outputs)
 						.build();
 			}
+
 
 			logger.info("Application name : {}, pipeline name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
 			HttpPost request = new HttpPost(triggerUrl);
@@ -201,7 +221,7 @@ public class ApprovalTriggerTask implements Task {
 					.build();
 
 		} catch (Exception e) {
-			logger.error("Error occurred while processing approval", e);
+			logger.error("Error occurred while processing approval gate : {}", e);
 			outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e));
 			outputs.put(TRIGGER, FAILED);
 			outputs.put(STATUS, REJECTED);
@@ -214,7 +234,7 @@ public class ApprovalTriggerTask implements Task {
 				try {
 					httpClient.close();
 				} catch (IOException e) {
-					logger.info("Error while closing client connection");
+					logger.error("Error while closing client connection : {}", e);
 				}
 			}
 		}
@@ -474,6 +494,7 @@ public class ApprovalTriggerTask implements Task {
 	private String getTriggerURL(StageExecution stage, Map<String, Object> outputs) throws UnsupportedEncodingException {
 
 		String triggerEndpoint = constructGateEnpoint(stage);
+		logger.info("triggerEndpoint : {}", triggerEndpoint);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
 			HttpGet request = new HttpGet(triggerEndpoint);
@@ -487,7 +508,7 @@ public class ApprovalTriggerTask implements Task {
 				registerResponse = EntityUtils.toString(entity);
 			}
 
-			logger.debug("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
+			logger.info("STATUS CODE: {}, RESPONSE : {}", response.getStatusLine().getStatusCode(), registerResponse);
 			if (response.getStatusLine().getStatusCode() != 200) {
 				outputs.put(EXCEPTION, String.format("Failed to get the trigger endpoint with Response :: %s", registerResponse));
 				outputs.put(TRIGGER, FAILED);
@@ -529,6 +550,287 @@ public class ApprovalTriggerTask implements Task {
 				isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl,
 				stage.getExecution().getApplication(), encodeString(stage.getExecution().getName()), stage.getRefId(),
 				encodeString(stage.getName()));
+	}
+
+
+	private ApplicationModel getAppDetails(StageExecution stage) throws Exception {
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+			String appDetailsUrl = getAppDetailsUrl(stage);
+			logger.debug("Invoking the URL : {} to fetch the app details", appDetailsUrl);
+			HttpGet request = new HttpGet(appDetailsUrl);
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, stage.getExecution().getAuthentication().getUser());
+
+			ApplicationModel applicationModel = gson.fromJson(EntityUtils.toString(httpClient.execute(request).getEntity()), ApplicationModel.class);
+			logger.debug("Application details response : {}", applicationModel);
+			return applicationModel;
+		}
+	}
+
+	@NotNull
+	private String getAppDetailsUrl(StageExecution stage) {
+		return getIsdGateUrl()
+				+ Constants.GET_APPDETAILS_URL.replace("{applicationName}", stage.getExecution().getApplication()).replace("{pipelineName}", stage.getExecution().getName()) + "&refId=" + stage.getRefId() + "&gateName=" + stage.getName() + "&gateType=" + stage.getType();
+	}
+
+	private String getIsdGateUrl(){
+		return isdGateUrl.endsWith("/") ? isdGateUrl.substring(0, isdGateUrl.length() - 1) : isdGateUrl;
+	}
+
+	private ApplicationModel correctTheAppDetails(@NotNull StageExecution stage) throws Exception {
+		Map<String, Object> context = stage.getContext();
+		ApplicationModel applicationModel = null;
+
+		if (context.containsKey("applicationId") && context.containsKey("serviceId") && context.containsKey("pipelineId")){
+
+			logger.debug("State of the context before modification : {}", context);
+			applicationModel = getAppDetails(stage);
+			context.put("applicationId", applicationModel.getAppId());
+			context.put("serviceId", applicationModel.getServiceId());
+			context.put("pipelineId", applicationModel.getPipelineId());
+			stage.setContext(context);
+			logger.debug("context modified : {}", stage.getContext());
+		}
+		return applicationModel;
+	}
+
+	private GateModel createApprovalGate(StageExecution stage, ApplicationModel applicationModel) throws Exception{
+
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String createGateUrl = getCreateGateUrl(applicationModel);
+			logger.debug("Create Approval GATE url : {}", createGateUrl);
+			HttpPost request = new HttpPost(createGateUrl);
+
+			GateModel gateModel = new GateModel();
+			String username = stage.getExecution().getAuthentication().getUser();
+
+			String stringParam = gson.toJson(stage.getContext().get("parameters"), Map.class);
+			logger.debug("Approval GATE parameters : {}", stringParam);
+
+			JsonObject parameters = gson.fromJson(stringParam, JsonObject.class);
+
+
+			gateModel.setApplicationId(applicationModel.getAppId().toString());
+			gateModel.setGateName(stage.getName());
+			gateModel.setDependsOn(new ArrayList<>(stage.getRequisiteStageRefIds()));
+			gateModel.setGateType(stage.getType());
+			gateModel.setRefId(stage.getRefId());
+			gateModel.setServiceId(applicationModel.getServiceId());
+			gateModel.setPipelineId(applicationModel.getPipelineId());
+
+			//Approval Gate specific details start
+			gateModel.setApprovalGateId(0);
+			gateModel.setAutomatedApproval(isAutomatedApproval(parameters));
+			//Approval Gate specific details end
+
+			gateModel.setEnvironmentId(getEnvironmentId(parameters));
+			gateModel.setPayloadConstraint(getPayloadConstraints(parameters));
+
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+
+			logger.debug("Create Approval GATE request body : {}", body);
+
+			CloseableHttpResponse response = httpClient.execute(request);
+			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+				logger.info("Successfully created Approval GATE");
+			}
+
+			GateModel createGateResponse = gson.fromJson(EntityUtils.toString(response.getEntity()), GateModel.class);
+			logger.debug("Create Approval GATE response body : {}", createGateResponse);
+
+			Integer approvalGateId = createGateResponse.getApprovalGateId();
+			postApprovalGroups(parameters, approvalGateId, username);
+			postConnectorAccountsDetailForApprovalGate(parameters, approvalGateId.longValue(), username);
+			CloseableHttpResponse updateGateResponse = updateGate(approvalGateId,applicationModel.getPipelineId(), gateModel, username);
+			if (updateGateResponse.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
+				logger.info("Successfully updated Approval Gate with tool connectors");
+			}
+
+			return createGateResponse;
+		}
+	}
+
+	@NotNull
+	private String getCreateGateUrl(ApplicationModel applicationModel) {
+		return getIsdGateUrl() + Constants.CREATE_GATE_URL.replace("{pipelineId}", applicationModel.getPipelineId().toString());
+	}
+
+	private void postApprovalGroups(JsonObject parameters, int gateId, String username) throws Exception {
+		List<UserGroupPermission> userGroupPermissions = new ArrayList<>();
+		List<UserGroup> userGroups = new ArrayList<>();
+		List<String> permissionIds = List.of("approve_gate");
+		JsonArray approvalGroups = parameters.getAsJsonArray("approvalGroups");
+		UserGroupPermission userGroupPermission = new UserGroupPermission();
+
+		for (JsonElement element : approvalGroups) {
+			UserGroup userGroup = new UserGroup();
+
+			JsonObject userGroupJsonObject = element.getAsJsonObject();
+			userGroup.setUserGroupId(userGroupJsonObject.get("userGroupId").getAsInt());
+			userGroup.setUserGroupName(userGroupJsonObject.get("userGroupName").getAsString().trim());
+			userGroup.setAdmin(userGroupJsonObject.get("isAdmin").getAsBoolean());
+			userGroup.setSuperAdmin(userGroupJsonObject.get("isSuperAdmin").getAsBoolean());
+			userGroups.add(userGroup);
+			userGroupPermission.setUserGroupNames(userGroups);
+			userGroupPermission.setPermissionIds(permissionIds);
+		}
+		userGroupPermissions.add(userGroupPermission);
+		GroupPermission approvalUserGroupPermission = new GroupPermission();
+		approvalUserGroupPermission.setUserGroups(userGroupPermissions);
+		CloseableHttpResponse userGroupResponse = updateResourceUserGroupPermissionsForApproval(username, gateId, approvalUserGroupPermission);
+
+		logger.debug("Response received from update Resource User Group Permissions For Approval : {}", EntityUtils.toString(userGroupResponse.getEntity()));
+
+		if (userGroupResponse.getStatusLine().getStatusCode() == HttpStatus.NO_CONTENT.value()) {
+			logger.info("Successfully updated the approval user group permission for gate id : {}", gateId);
+		}
+
+	}
+
+	private CloseableHttpResponse updateResourceUserGroupPermissionsForApproval(String username, Integer resourceId, GroupPermission groupPermission) throws Exception{
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String updateResourceUserGroupPermissionUrl = getUpdateResourceUserGroupPermissionUrl(username, resourceId);
+			logger.debug("updateResourceUserGroupPermissionUrl : {}", updateResourceUserGroupPermissionUrl);
+			HttpPut request = new HttpPut(updateResourceUserGroupPermissionUrl);
+			String body = objectMapper.writeValueAsString(groupPermission);
+			request.setEntity(new StringEntity(body));
+
+			logger.debug("Request body to update Resource User Group Permissions For Approval : {}", body);
+
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+
+			return httpClient.execute(request);
+		}
+	}
+
+	@NotNull
+	private String getUpdateResourceUserGroupPermissionUrl(String username, Integer resourceId) {
+		return getIsdGateUrl() +
+				Constants.UPDATE_USER_GROUP_URL.replace("{username}", username).replace("{resourceId}", resourceId.toString()+"?featureType=APPROVAL_GATE");
+	}
+
+	private CloseableHttpResponse updateGate(Integer gateId, Integer pipelineId, GateModel gateModel, String username) throws Exception {
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+			String updateGateUrl = getUpdateGateUrl(gateId, pipelineId);
+			logger.debug("update approval gate url : {}", updateGateUrl);
+			HttpPut request = new HttpPut(updateGateUrl);
+			String body = objectMapper.writeValueAsString(gateModel);
+			request.setEntity(new StringEntity(body));
+
+			logger.debug("update approval gate request body : {}", body);
+
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+
+			return httpClient.execute(request);
+		}
+	}
+
+	@NotNull
+	private String getUpdateGateUrl(Integer gateId, Integer pipelineId) {
+		return getIsdGateUrl() +
+				Constants.UPDATE_GATE_URL.replace("{pipelineId}", pipelineId.toString()).replace("{gateId}", gateId.toString());
+	}
+
+	private void postConnectorAccountsDetailForApprovalGate(JsonObject parameters, Long approvalGateId, String username) throws Exception {
+		//Post connector details, if available
+		if (parameters.has("selectedConnectors")) {
+			JsonObject selectedConnectors = parameters.getAsJsonArray("selectedConnectors").get(0).getAsJsonObject();
+			if (selectedConnectors.has("values") && selectedConnectors.getAsJsonArray("values").size() > 0) {
+				JsonArray connectorValues = selectedConnectors.getAsJsonArray("values");
+				for (JsonElement e : connectorValues) {
+					JsonObject connectorDetails = e.getAsJsonObject();
+					if(!connectorDetails.has("account") || StringUtils.isBlank(connectorDetails.get("account").getAsString())) {
+						break;
+					}
+					Map<String, String> connectorAccountDetails = new HashMap<>();
+					connectorAccountDetails.put("datasourceName", connectorDetails.get("account").getAsString().trim());
+
+					CloseableHttpResponse connectorAccountDetailsResponse = updateApprovalGatesIdToolConnectorTemplate(connectorAccountDetails, approvalGateId, username);
+
+					logger.debug("connectorAccountDetailsResponse : {}", EntityUtils.toString(connectorAccountDetailsResponse.getEntity()));
+
+					if (connectorAccountDetailsResponse.getStatusLine().getStatusCode() == HttpStatus.NO_CONTENT.value()) {
+						logger.info("Successfully updated the approval gate with connector details for account name {} and connector type {} for approval gate id {} ",
+								connectorDetails.get("account").getAsString().trim(), connectorDetails.get("connector").getAsString(), approvalGateId);
+					}
+				}
+			}
+		}
+	}
+
+	private CloseableHttpResponse updateApprovalGatesIdToolConnectorTemplate(Map<String, String> connectorAccountDetails, Long approvalGateId, String username) throws Exception {
+		try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+			String updateToolConnectorsUrl = getUpdateToolConnectorsUrl(approvalGateId);
+			logger.debug("updateToolConnectorsUrl : {}", updateToolConnectorsUrl);
+			HttpPut request = new HttpPut(updateToolConnectorsUrl);
+
+			request.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+			request.setHeader(Constants.X_SPINNAKER_USER, username);
+			request.setHeader(HttpHeaders.ORIGIN, Constants.PLUGIN_NAME);
+
+			String body = objectMapper.writeValueAsString(connectorAccountDetails);
+			request.setEntity(new StringEntity(body));
+			logger.debug("updateToolConnectors API request body : {}", body);
+
+			return httpClient.execute(request);
+		}
+	}
+
+	@NotNull
+	private String getUpdateToolConnectorsUrl(Long approvalGateId) {
+		return getIsdGateUrl()
+				+ Constants.UPDATE_TOOL_CONNECTOR_URL.replace("{id}", approvalGateId.toString());
+	}
+
+	private Integer getEnvironmentId(JsonObject parameters){
+		JsonObject environmentJsonObject = parameters.getAsJsonArray("environment").get(0).getAsJsonObject();
+		return environmentJsonObject.get("id").getAsInt();
+	}
+
+	private List<Map<String, String>> getPayloadConstraints(JsonObject parameters) {
+		// Adding payload constraint to stage / gate creation request
+		List<Map<String, String>> payloadConstraints = new ArrayList<>();
+		JsonObject payloadJsonObject;
+
+		if (parameters.has("gateSecurity")) {
+			payloadJsonObject = parameters.getAsJsonArray("gateSecurity").get(0).getAsJsonObject();
+
+			if (payloadJsonObject.has("values")) {
+				JsonArray valuesArray = payloadJsonObject.getAsJsonArray("values");
+
+				if (valuesArray != null && valuesArray.size() > 0) {
+					for (JsonElement value : valuesArray) {
+						if (value.getAsJsonObject().has("label") &&
+								!value.getAsJsonObject().get("label").getAsString().isEmpty()) {
+							Map<String, String> valuesMap = new HashMap<>();
+							valuesMap.put(value.getAsJsonObject().get("label").getAsString(), value.getAsJsonObject().get("value").getAsString());
+							payloadConstraints.add(valuesMap);
+						}
+					}
+				}
+			}
+		}
+		return payloadConstraints;
+	}
+
+	private boolean isAutomatedApproval(JsonObject parameters) {
+		boolean isAutomatedApproval;
+		if (parameters.has("isAutomatedApproval")) {
+			isAutomatedApproval = parameters.get("isAutomatedApproval").getAsBoolean();
+		} else {
+			isAutomatedApproval = false;
+		}
+		return isAutomatedApproval;
 	}
 
 	private String encodeString(String value) throws UnsupportedEncodingException {
