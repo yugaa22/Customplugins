@@ -2,6 +2,7 @@ package com.opsmx.plugin.stage.custom;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -11,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.opsmx.plugin.stage.custom.constants.Constants;
 import com.opsmx.plugin.stage.custom.model.*;
 import org.apache.commons.lang3.StringUtils;
@@ -621,7 +623,13 @@ public class ApprovalTriggerTask implements Task {
 
 			//Approval Gate specific details start
 			gateModel.setApprovalGateId(0);
-			gateModel.setAutomatedApproval(isAutomatedApproval(parameters));
+			gateModel.setIsAutomatedApproval(isAutomatedApproval(parameters));
+
+			if (gateModel.getIsAutomatedApproval()) {
+				gateModel.setApprovalGatePolicies(getApprovalGatePolicies(parameters));
+			}
+
+
 			//Approval Gate specific details end
 
 			gateModel.setEnvironmentId(getEnvironmentId(parameters));
@@ -648,13 +656,23 @@ public class ApprovalTriggerTask implements Task {
 			Integer platformGateId = createGateResponse.getGateId();
 			postApprovalGroups(parameters, platformGateId, username);
 			postConnectorAccountsDetailForApprovalGate(parameters, approvalGateId.longValue(), username);
-			CloseableHttpResponse updateGateResponse = updateGate(platformGateId,applicationModel.getPipelineId(), gateModel, username);
+			CloseableHttpResponse updateGateResponse = updateGate(platformGateId,applicationModel.getPipelineId(), createGateResponse, username);
 			if (updateGateResponse.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
 				logger.info("Successfully updated Approval Gate with tool connectors");
 			}
 
 			return createGateResponse;
 		}
+	}
+
+	private Set<GateModel.ApprovalGatePolicy> getApprovalGatePolicies(JsonObject parameters) {
+		Type approvalType = new TypeToken<HashSet<GateModel.ApprovalGatePolicy>>() {
+		}.getType();
+		if (parameters.has("automatedApproval")) {
+			return gson.fromJson(parameters.getAsJsonArray("automatedApproval"), approvalType);
+		}
+		return Collections.emptySet();
+
 	}
 
 	@NotNull
