@@ -423,7 +423,7 @@ public class VerificationTriggerTask implements Task {
 			logger.debug("Create Verification GATE request body : {}", body);
 
 			CloseableHttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+			if (response.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
 				logger.info("Successfully created Verification GATE");
 				logger.debug("Create Verification GATE response body : {}", EntityUtils.toString(response.getEntity()));
 			}
