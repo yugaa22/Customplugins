@@ -24,6 +24,8 @@ import {
   ReactSelectInput,
   useData,
   REST,
+  IUser,
+  AuthenticationService,
 } from '@spinnaker/core';
 import './VisibilityApproval.less';
 import { EvaluateVariablesStageForm } from './input/dynamicFormFields';
@@ -53,6 +55,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 
   //Load Initial Values
+  const loggedInUser:IUser = AuthenticationService.getAuthenticatedUser();
   const [parametersPresent, setParametersPresent] = useState(false);
 
   const [accountsApiCall, setAccountsApiCall] = useState(true);
@@ -262,7 +265,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
   const [policyList, setpolicyList] = useState([]);
   useEffect(() => {
-    REST(`oes/v2/policy/users/${props.application.attributes.user}/runtime?permissionId=read`).
+    REST(`oes/v2/policy/users/${loggedInUser.name}/runtime?permissionId=view`).
       get()
       .then(
         (results) => {
@@ -363,7 +366,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       return;
     }
     // IgorService.getConnectorAccounts(connectorName, application.attributes.user).then(response => {
-    REST(`platformservice/v6/users/${props.application.attributes.user}/datasources?datasourceType=${connectorName}&permissionId=view`).
+    REST(`platformservice/v6/users/${loggedInUser.name}/datasources?datasourceType=${connectorName}&permissionId=view`).
       get()
       .then((response) => {
         if (listOfConnectors && (connectorName.length > 0)) {
