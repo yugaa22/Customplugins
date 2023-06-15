@@ -431,7 +431,7 @@ public class PolicyTask implements Task {
 			logger.debug("Create Policy GATE request body : {}", body);
 
 			CloseableHttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+			if (response.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
 				logger.info("Successfully created Policy GATE");
 				logger.debug("Create Policy GATE response body : {}", EntityUtils.toString(response.getEntity()));
 			}
