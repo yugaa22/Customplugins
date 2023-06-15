@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import {
+  AuthenticationService,
   ExecutionDetailsSection,
   ExecutionDetailsTasks,
   FormikFormField,
@@ -15,6 +16,7 @@ import {
   IStageConfigProps,
   IStageForSpelPreview,
   IStageTypeConfig,
+  IUser,
   LayoutProvider,
   NumberInput,
   ReactSelectInput,
@@ -39,6 +41,7 @@ import opsMxLogo from './images/OpsMx_logo_Black.svg'
 export function PolicyGateConfig(props: IStageConfigProps) {
 
   console.log(props);
+  const loggedInUser:IUser = AuthenticationService.getAuthenticatedUser();
 
 
   const [applicationId, setApplicationId] = useState()
@@ -158,7 +161,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
           }
         }
       )
-    REST('oes/v2/policy/users/' + props.application.attributes.user + '/runtime?permissionId=read').
+    REST('oes/v2/policy/users/' + loggedInUser.name + '/runtime?permissionId=view').
       get()
       .then(
         (results) => {
