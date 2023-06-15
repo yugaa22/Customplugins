@@ -25,8 +25,13 @@ public class GateModel {
     private Integer policyId;
     private String policyName;
     private List<Map<String, String>> payloadConstraint;
+
+    @JsonProperty(value = "isAutomatedApproval")
     private Boolean isAutomatedApproval = false;
+
+    @JsonProperty("approvalGatePolicies")
     private Set<ApprovalGatePolicy> approvalGatePolicies = new HashSet<>();
+
     private Integer pipelineId;
     private Integer serviceId;
 
@@ -150,12 +155,12 @@ public class GateModel {
         this.payloadConstraint = payloadConstraint;
     }
 
-    public Boolean getAutomatedApproval() {
+    public Boolean getIsAutomatedApproval() {
         return isAutomatedApproval;
     }
 
-    public void setAutomatedApproval(Boolean automatedApproval) {
-        isAutomatedApproval = automatedApproval;
+    public void setIsAutomatedApproval(Boolean isAutomatedApproval) {
+        this.isAutomatedApproval = isAutomatedApproval;
     }
 
     public Set<ApprovalGatePolicy> getApprovalGatePolicies() {
