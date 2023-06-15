@@ -637,7 +637,7 @@ public class ApprovalTriggerTask implements Task {
 			logger.debug("Create Approval GATE request body : {}", body);
 
 			CloseableHttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.CREATED.value()){
+			if (response.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
 				logger.info("Successfully created Approval GATE");
 			}
 
@@ -645,9 +645,10 @@ public class ApprovalTriggerTask implements Task {
 			logger.debug("Create Approval GATE response body : {}", createGateResponse);
 
 			Integer approvalGateId = createGateResponse.getApprovalGateId();
-			postApprovalGroups(parameters, approvalGateId, username);
+			Integer platformGateId = createGateResponse.getGateId();
+			postApprovalGroups(parameters, platformGateId, username);
 			postConnectorAccountsDetailForApprovalGate(parameters, approvalGateId.longValue(), username);
-			CloseableHttpResponse updateGateResponse = updateGate(approvalGateId,applicationModel.getPipelineId(), gateModel, username);
+			CloseableHttpResponse updateGateResponse = updateGate(platformGateId,applicationModel.getPipelineId(), gateModel, username);
 			if (updateGateResponse.getStatusLine().getStatusCode() == HttpStatus.OK.value()){
 				logger.info("Successfully updated Approval Gate with tool connectors");
 			}
@@ -687,7 +688,7 @@ public class ApprovalTriggerTask implements Task {
 
 		logger.debug("Response received from update Resource User Group Permissions For Approval : {}", EntityUtils.toString(userGroupResponse.getEntity()));
 
-		if (userGroupResponse.getStatusLine().getStatusCode() == HttpStatus.NO_CONTENT.value()) {
+		if (userGroupResponse.getStatusLine().getStatusCode() == HttpStatus.OK.value()) {
 			logger.info("Successfully updated the approval user group permission for gate id : {}", gateId);
 		}
 
@@ -759,7 +760,7 @@ public class ApprovalTriggerTask implements Task {
 
 					logger.debug("connectorAccountDetailsResponse : {}", EntityUtils.toString(connectorAccountDetailsResponse.getEntity()));
 
-					if (connectorAccountDetailsResponse.getStatusLine().getStatusCode() == HttpStatus.NO_CONTENT.value()) {
+					if (connectorAccountDetailsResponse.getStatusLine().getStatusCode() == HttpStatus.OK.value()) {
 						logger.info("Successfully updated the approval gate with connector details for account name {} and connector type {} for approval gate id {} ",
 								connectorDetails.get("account").getAsString().trim(), connectorDetails.get("connector").getAsString(), approvalGateId);
 					}
