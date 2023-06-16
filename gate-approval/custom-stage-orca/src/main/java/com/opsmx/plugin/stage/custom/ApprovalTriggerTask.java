@@ -618,7 +618,6 @@ public class ApprovalTriggerTask implements Task {
 			gateModel.setDependsOn(new ArrayList<>(stage.getRequisiteStageRefIds()));
 			gateModel.setGateType(stage.getType());
 			gateModel.setRefId(stage.getRefId());
-			gateModel.setServiceId(applicationModel.getServiceId());
 			gateModel.setPipelineId(applicationModel.getPipelineId());
 
 			//Approval Gate specific details start
@@ -653,7 +652,7 @@ public class ApprovalTriggerTask implements Task {
 			logger.debug("Create Approval GATE response body : {}", createGateResponse);
 
 			Integer approvalGateId = createGateResponse.getApprovalGateId();
-			Integer platformGateId = createGateResponse.getGateId();
+			Integer platformGateId = createGateResponse.getId();
 			postApprovalGroups(parameters, platformGateId, username);
 			postConnectorAccountsDetailForApprovalGate(parameters, approvalGateId.longValue(), username);
 			CloseableHttpResponse updateGateResponse = updateGate(platformGateId,applicationModel.getPipelineId(), createGateResponse, username);

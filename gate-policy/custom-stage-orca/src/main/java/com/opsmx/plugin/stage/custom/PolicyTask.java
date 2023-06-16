@@ -406,7 +406,6 @@ public class PolicyTask implements Task {
 			gateModel.setDependsOn(new ArrayList<>(stage.getRequisiteStageRefIds()));
 			gateModel.setGateType(stage.getType());
 			gateModel.setRefId(stage.getRefId());
-			gateModel.setServiceId(applicationModel.getServiceId());
 			gateModel.setPipelineId(applicationModel.getPipelineId());
 
 			//Policy Gate specific details start
