@@ -10,9 +10,8 @@ import java.util.Set;
 public class GateModel {
 
     private String applicationId;
-    private String pipelineName;
-    @JsonProperty(value = "id")
-    private Integer gateId;
+    private Integer pipelineId;
+    private Integer id;
     private String gateName;
     private String gateType;
     private Integer environmentId;
@@ -24,6 +23,7 @@ public class GateModel {
     private Integer approvalGateId;
     private Integer policyId;
     private String policyName;
+
     private List<Map<String, String>> payloadConstraint;
 
     @JsonProperty(value = "isAutomatedApproval")
@@ -32,8 +32,7 @@ public class GateModel {
     @JsonProperty("approvalGatePolicies")
     private Set<ApprovalGatePolicy> approvalGatePolicies = new HashSet<>();
 
-    private Integer pipelineId;
-    private Integer serviceId;
+
 
     public String getApplicationId() {
         return applicationId;
@@ -41,22 +40,6 @@ public class GateModel {
 
     public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
-    }
-
-    public String getPipelineName() {
-        return pipelineName;
-    }
-
-    public void setPipelineName(String pipelineName) {
-        this.pipelineName = pipelineName;
-    }
-
-    public Integer getGateId() {
-        return gateId;
-    }
-
-    public void setGateId(Integer gateId) {
-        this.gateId = gateId;
     }
 
     public String getGateName() {
@@ -179,12 +162,12 @@ public class GateModel {
         this.pipelineId = pipelineId;
     }
 
-    public Integer getServiceId() {
-        return serviceId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setServiceId(Integer serviceId) {
-        this.serviceId = serviceId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public static class ApprovalGatePolicy {
@@ -212,8 +195,8 @@ public class GateModel {
     public String toString() {
         return "GateModel{" +
                 "applicationId='" + applicationId + '\'' +
-                ", pipelineName='" + pipelineName + '\'' +
-                ", gateId=" + gateId +
+                ", pipelineId=" + pipelineId +
+                ", id=" + id +
                 ", gateName='" + gateName + '\'' +
                 ", gateType='" + gateType + '\'' +
                 ", environmentId=" + environmentId +
@@ -228,8 +211,6 @@ public class GateModel {
                 ", payloadConstraint=" + payloadConstraint +
                 ", isAutomatedApproval=" + isAutomatedApproval +
                 ", approvalGatePolicies=" + approvalGatePolicies +
-                ", pipelineId=" + pipelineId +
-                ", serviceId=" + serviceId +
                 '}';
     }
 }
