@@ -193,6 +193,8 @@ public class ApprovalMonitorTask implements RetryableTask {
 				}
 				logger.error("Error occurred while processing approval result ", e);
 				outputs.put(EXCEPTION, String.format("Error occurred while processing, %s", e.getMessage()));
+				outputs.put(STATUS, CANCELED);
+				outputs.put("comments", "");
 				return TaskResult.builder(ExecutionStatus.TERMINAL)
 						.outputs(outputs)
 						.build();
