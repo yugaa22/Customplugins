@@ -1008,7 +1008,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="form-horizontal">
               <div className="form-group">
                 <div className="col-md-3 sm-label-right">
-                <p style={{fontSize:"16px"}}>Connector Configuration *<HelpField id={dynamicField.connectorType} /></p>
+                <p style={{fontSize:"16px"}}>Connector Configuration <HelpField id={dynamicField.connectorType} /></p>
                 </div>
                 <div className="col-md-7">
                   <FormikFormField
