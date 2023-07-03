@@ -1099,9 +1099,10 @@ export function validate(stageConfig: IStage) {
     stageConfig.parameters.selectedConnectors[0].values?.map((connectorValue: any, index:number) => {
         validator
         .field(`parameters.selectedConnectors[0].values[${index}].connector`)
-        // .required(`Connectors are required for row ${index + 1} `)
+        .optional()
         .withValidators((value)=> {
-          console.log("VALUE-----------",value)
+          //  .required(`Connectors are required for row ${index + 1} `)
+          console.log(((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector)))
           if ((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector))
           return ""
           return `${connectorValue.connector == 'AUTOPILOT'  ? "VERIFICATION" : connectorValue.connector} Account is required`
