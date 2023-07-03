@@ -1102,9 +1102,13 @@ export function validate(stageConfig: IStage) {
         .optional()
         .withValidators((value)=> {
           //  .required(`Connectors are required for row ${index + 1} `)
-          console.log(((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector)))
-          if ((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector))
+          console.log("STarted")
+          console.log(((Boolean(connectorValue.connector) && Boolean(connectorValue.account))))
+          console.log(Boolean(!connectorValue.connector))
+          if ((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector)){
+            console.log("No Account Selection Done!!!!!!!!!!!!!!!!!!!!!!!")
           return ""
+          }
           return `${connectorValue.connector == 'AUTOPILOT'  ? "VERIFICATION" : connectorValue.connector} Account is required`
         })
   });
