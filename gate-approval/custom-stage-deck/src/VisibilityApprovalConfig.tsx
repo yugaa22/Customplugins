@@ -1008,7 +1008,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="form-horizontal">
               <div className="form-group">
                 <div className="col-md-3 sm-label-right">
-                <p style={{fontSize:"16px"}}>Connector Configuration *<HelpField id={dynamicField.connectorType} /></p>
+                <p style={{fontSize:"16px"}}>Connector Configuration <HelpField id={dynamicField.connectorType} /></p>
                 </div>
                 <div className="col-md-7">
                   <FormikFormField
@@ -1099,18 +1099,17 @@ export function validate(stageConfig: IStage) {
     stageConfig.parameters.selectedConnectors[0].values?.map((connectorValue: any, index:number) => {
         validator
         .field(`parameters.selectedConnectors[0].values[${index}].connector`)
-        .required(`Connectors are required for row ${index + 1} `)
+        .optional()
         .withValidators((value)=> {
-          console.log("VALUE-----------",value)
-          if (Boolean(connectorValue.connector) && Boolean(connectorValue.account))
+          if ((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector)){
           return ""
+          }
           return `${connectorValue.connector == 'AUTOPILOT'  ? "VERIFICATION" : connectorValue.connector} Account is required`
         })
   });
 
     stageConfig.parameters.connectors.map((connector: any, index: number) => {
-      console.log('validating connectors', connector.supportedParams?.length);
-  
+     
       if (connector.values?.length > 1) {
         connector.values.map((connectorValue: any, valueIndex: number) => {
           if (connector.supportedParams?.length > 1) {
