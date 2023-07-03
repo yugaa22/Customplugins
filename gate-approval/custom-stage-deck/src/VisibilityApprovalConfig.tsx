@@ -1096,52 +1096,51 @@ export function validate(stageConfig: IStage) {
     .required("Approver Group is required")
     .withValidators((value, label) => (value = '' ? `Approver Group is required` : undefined));
 
-  //   stageConfig.parameters.selectedConnectors[0].values?.map((connectorValue: any, index:number) => {
-  //       validator
-  //       .field(`parameters.selectedConnectors[0].values[${index}].connector`)
-  //       .required(`Connectors are required for row ${index + 1} `)
-  //       .withValidators((value)=> {
-  //         console.log("VALUE-----------",value)
-  //         if (Boolean(connectorValue.connector) && Boolean(connectorValue.account))
-  //         return ""
-  //         return `${connectorValue.connector == 'AUTOPILOT'  ? "VERIFICATION" : connectorValue.connector} Account is required`
-  //       })
-  // });
+    stageConfig.parameters.selectedConnectors[0].values?.map((connectorValue: any, index:number) => {
+        validator
+        .field(`parameters.selectedConnectors[0].values[${index}].connector`)
+        // .required(`Connectors are required for row ${index + 1} `)
+        .withValidators((value)=> {
+          console.log("VALUE-----------",value)
+          if ((Boolean(connectorValue.connector) && Boolean(connectorValue.account)) || Boolean(!connectorValue.connector))
+          return ""
+          return `${connectorValue.connector == 'AUTOPILOT'  ? "VERIFICATION" : connectorValue.connector} Account is required`
+        })
+  });
 
-  //   stageConfig.parameters.connectors.map((connector: any, index: number) => {
-  //     console.log('validating connectors', connector.supportedParams?.length);
+    stageConfig.parameters.connectors.map((connector: any, index: number) => {
+     
+      if (connector.values?.length > 1) {
+        connector.values.map((connectorValue: any, valueIndex: number) => {
+          if (connector.supportedParams?.length > 1) {
+            connector.supportedParams.map((param: any, paramIndex: number) => {
+              console.log("connectorValue", param, connectorValue);
+              {
+                validator
+                  .field(`parameters.connectors[${index}].values[${valueIndex}].${connector.supportedParams[paramIndex].name}`)
+                  .required(`${connector.connectorType == 'AUTOPILOT' ? "VERIFICATION" : connector.connectorType + ' ' + connector.supportedParams[paramIndex].label}  is required for row ${valueIndex+1}`);
   
-  //     if (connector.values?.length > 1) {
-  //       connector.values.map((connectorValue: any, valueIndex: number) => {
-  //         if (connector.supportedParams?.length > 1) {
-  //           connector.supportedParams.map((param: any, paramIndex: number) => {
-  //             console.log("connectorValue", param, connectorValue);
-  //             {
-  //               validator
-  //                 .field(`parameters.connectors[${index}].values[${valueIndex}].${connector.supportedParams[paramIndex].name}`)
-  //                 .required(`${connector.connectorType == 'AUTOPILOT' ? "VERIFICATION" : connector.connectorType + ' ' + connector.supportedParams[paramIndex].label}  is required for row ${valueIndex+1}`);
+              }
+            });
+          }
+        })
+      } else if(connector.supportedParams?.length > 1){
+        connector.supportedParams.map((param: any, paramIndex: number) => {
+          console.log("connectorValue", param);
+          {
+            validator
+              .field(`parameters.connectors[${index}].values[0].${connector.supportedParams[paramIndex].name}`)
+              .required(`${connector.connectorType == 'AUTOPILOT' ? "VERIFICATION" : connector.connectorType + ' ' + connector.supportedParams[paramIndex].label} is required.`);
   
-  //             }
-  //           });
-  //         }
-  //       })
-  //     } else if(connector.supportedParams?.length > 1){
-  //       connector.supportedParams.map((param: any, paramIndex: number) => {
-  //         console.log("connectorValue", param);
-  //         {
-  //           validator
-  //             .field(`parameters.connectors[${index}].values[0].${connector.supportedParams[paramIndex].name}`)
-  //             .required(`${connector.connectorType == 'AUTOPILOT' ? "VERIFICATION" : connector.connectorType + ' ' + connector.supportedParams[paramIndex].label} is required.`);
-  
-  //         }
-  //       });
-  //     }
-  //     else {
-  //       validator
-  //         .field(`parameters.connectors[${index}].values[0].${connector.supportedParams[0].name}`)
-  //         .required(`${(connector.connectorType == 'AUTOPILOT' ? 'VERIFICATION' : connector.connectorType) + ' ' + connector.supportedParams[0].label} is required`);
-  //     }
-  //   });
+          }
+        });
+      }
+      else {
+        validator
+          .field(`parameters.connectors[${index}].values[0].${connector.supportedParams[0].name}`)
+          .required(`${(connector.connectorType == 'AUTOPILOT' ? 'VERIFICATION' : connector.connectorType) + ' ' + connector.supportedParams[0].label} is required`);
+      }
+    });
 
 
 
