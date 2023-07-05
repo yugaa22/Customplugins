@@ -409,12 +409,12 @@ public class PolicyTask implements Task {
 			gateModel.setPipelineId(applicationModel.getPipelineId());
 
 			//Policy Gate specific details start
-			if (parameters.has("policyName") && !parameters.get("policyName").getAsString().isEmpty()) {
+			if ((parameters.has("policyName") && !parameters.get("policyName").getAsString().isEmpty()) &&
+					(parameters.has("policyId") && parameters.get("policyId").getAsInt() > 0)) {
 				gateModel.setPolicyName(parameters.get("policyName").getAsString().trim());
-			}
-
-			if (parameters.has("policyId") && parameters.get("policyId").getAsInt() > 0) {
 				gateModel.setPolicyId(parameters.get("policyId").getAsInt());
+			} else {
+				throw new IllegalArgumentException("Invalid parameters: PolicyName is empty for policy gate");
 			}
 			//Policy Gate specific details end
 
