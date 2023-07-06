@@ -414,7 +414,7 @@ public class PolicyTask implements Task {
 				gateModel.setPolicyName(parameters.get("policyName").getAsString().trim());
 				gateModel.setPolicyId(parameters.get("policyId").getAsInt());
 			} else {
-				throw new IllegalArgumentException("Invalid parameters: PolicyName is empty for policy gate");
+				throw new IllegalArgumentException("Policy gate requires a Policy to be configured");
 			}
 			//Policy Gate specific details end
 
