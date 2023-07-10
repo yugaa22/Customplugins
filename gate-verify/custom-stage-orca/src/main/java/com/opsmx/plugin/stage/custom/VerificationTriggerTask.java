@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import com.opsmx.plugin.stage.custom.model.ApplicationModel;
 import com.opsmx.plugin.stage.custom.model.GateModel;
 import org.apache.http.HttpEntity;
@@ -414,7 +413,7 @@ public class VerificationTriggerTask implements Task {
 				throw new IllegalArgumentException("Verification gate requires a Metric Template to be configured");
 			}
 			if (!(parameters.has("canaryresultscore")) || !(parameters.has("minicanaryresult"))) {
-				throw new InvalidRequestException("Pass score and Marginal score are required to analyze canary success criteria");
+				throw new IllegalArgumentException("Pass score and Marginal score are required to analyze canary success criteria");
 			}
 			//Verification Gate specific details end
 
