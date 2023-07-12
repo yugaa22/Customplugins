@@ -40,11 +40,18 @@ jobs:
             yarn --version
             
             pwd
-            
+            ls -ltra
+            echo "into loop"
             for config in $(gate-policy gate-verify gate-testverify gate-approval rbac echo-events)
              do
+             echo "inside loop"
+             pwd
+              ls -ltra
               cd $config 
+              echo "inside folder"
               pwd
+              ls -ltra
+              
               ./gradlew clean releaseBundle
               cd ..
              done
