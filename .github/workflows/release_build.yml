@@ -1,4 +1,4 @@
-name: Branch Build gate
+name: Branch custom  plugin
 
 on:
   workflow_dispatch:
@@ -35,14 +35,14 @@ jobs:
           java-version: 11
           distribution: 'zulu'
       - name: Build
+        env:
+         FILES: gate-policy gate-verify gate-testverify gate-approval rbac echo-events
         run: | 
             npm install --global yarn
             yarn --version
             
-            pwd
-            ls -ltra
-            echo "into loop"
-            for config in $(gate-policy gate-verify gate-testverify gate-approval rbac echo-events)
+
+            for config in $FILES
              do
              echo "inside loop"
              pwd
