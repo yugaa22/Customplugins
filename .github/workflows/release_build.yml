@@ -1,0 +1,82 @@
+name: Branch Build gate
+
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      branch:
+        description: 'Branch_name to create Tag'
+        # Default value if no value is explicitly provided
+        default: 'v4.0'
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: string
+      release:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Release_name to create Tag'
+        # Default value if no value is explicitly provided
+        default: 'v4.0-custom2'
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: string
+ 
+
+jobs:
+  publish-plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+         ref: refs/heads/${{ inputs.branch }}
+      - uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Build
+        run: | 
+            npm install --global yarn
+            yarn --version
+            
+            
+            for config in {gate-policy gate-verify gate-testverify gate-approval rbac echo-events }
+             do
+              cd $config 
+              pwd
+              ./gradlew clean releaseBundle
+              cd ..
+             done
+            
+
+            mv ./gate-policy/build/distributions/policyPlugin-v1.0.1-SNAPSHOT.zip PolicyPlugin-v1.0.1-SNAPSHOT.zip  
+            mv ./gate-verify/build/distributions/VerificationPlugin-v1.0.1-SNAPSHOT.zip VerificationPlugin-v1.0.1-SNAPSHOT.zip
+            mv ./gate-testverify/build/distributions/TestVerificationPlugin-v1.0.1-SNAPSHOT.zip TestVerificationPlugin-v1.0.1-SNAPSHOT.zip
+            mv ./gate-approval/build/distributions/ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip
+            mv ./rbac/build/distributions/RbacPlugin-v1.0.1-SNAPSHOT.zip RbacPlugin-v1.0.1-SNAPSHOT.zip
+            mv ./echo-events/build/distributions/EchoEventPlugin-v1.0.1-SNAPSHOT.zip EchoEventPlugin-v1.0.1-SNAPSHOT.zip
+
+
+               shasum -a512 PolicyPlugin-v1.0.1-SNAPSHOT.zip
+               shasum -a512 VerificationPlugin-v1.0.1-SNAPSHOT.zip
+               shasum -a512 TestVerificationPlugin-v1.0.1-SNAPSHOT.zip
+               shasum -a512 ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip
+               shasum -a512 RbacPlugin-v1.0.1-SNAPSHOT.zip
+               shasum -a512 EchoEventPlugin-v1.0.1-SNAPSHOT.zip
+               
+               token="${{ secrets.GIT_TOKEN }}"
+
+             tag=${{ inputs.release }}
+             name="OES-customGate-${tag}"
+             description="custom-plugin release version :: ${tag}"
+             release=$(curl -XPOST -H "Authorization:token $token" --data "{\"tag_name\": \"$tag\", \"target_commitish\": \"main\", \"name\": \"$name\", \"body\": \"$description\", \"draft\": false, \"prerelease\": false}" https://api.github.com/repos/OpsMx/Customplugins/releases)
+             id=$(echo "$release" | sed -n -e 's/"id":\ \([0-9]\+\),/\1/p' | head -n 1 | sed 's/[[:blank:]]//g')
+    
+              curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @PolicyPlugin-v1.0.1-SNAPSHOT.zip https://uploads.github.com/repos/OpsMx/Customplugins/releases/$id/assets?name=policyPlugin-v1.0.1-SNAPSHOT.zip
+              curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @VerificationPlugin-v1.0.1-SNAPSHOT.zip https://uploads.github.com/repos/OpsMx/Customplugins/releases/$id/assets?name=VerificationPlugin-v1.0.1-SNAPSHOT.zip
+              curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @TestVerificationPlugin-v1.0.1-SNAPSHOT.zip https://uploads.github.com/repos/OpsMx/Customplugins/releases/$id/assets?name=TestVerificationPlugin-v1.0.1-SNAPSHOT.zip
+              curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip https://uploads.github.com/repos/OpsMx/Customplugins/releases/$id/assets?name=ApprovalStagePlugin-v1.0.1-SNAPSHOT.zip
+              curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @RbacPlugin-v1.0.1-SNAPSHOT.zip https://uploads.github.com/repos/OpsMx/Customplugins/releases/$id/assets?name=RbacPlugin-v1.0.1-SNAPSHOT.zip
+              curl -XPOST -H "Authorization:token $token" -H "Content-Type:application/octet-stream" --data-binary @EchoEventPlugin-v1.0.1-SNAPSHOT.zip https://uploads.github.com/repos/OpsMx/Customplugins/releases/$id/assets?name=EchoEventPlugin-v1.0.1-SNAPSHOT.zip
+            
+            
