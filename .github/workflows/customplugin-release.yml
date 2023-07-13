@@ -1,4 +1,4 @@
-name: Branch custom  plugin
+name: Branch custom  plugin release only
 on:
   workflow_dispatch:
     inputs:
