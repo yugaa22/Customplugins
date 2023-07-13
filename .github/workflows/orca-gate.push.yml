@@ -48,7 +48,7 @@ jobs:
             
             ./gradlew --no-daemon orca-web:installDist -x test
             
-            docker build --build-arg CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom -t quay.io/opsmxpublic/ubi8-oes-orca:testplugin3 -f docker/ubi8/Dockerfile-fips .
+            docker build --build-arg CUSTOMPLUGIN_RELEASEVERSION=v4.0-custom4 -t quay.io/opsmxpublic/ubi8-oes-orca:testplugin3 -f docker/ubi8/Dockerfile-fips .
             docker push quay.io/opsmxpublic/ubi8-oes-orca:testplugin3
     
 
