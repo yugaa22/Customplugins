@@ -45,11 +45,11 @@ jobs:
       env:
           ORG_GRADLE_PROJECT_version: ${{ steps.build_variables.outputs.VERSION }}
       run: |
-            ./gradlew --no-daemon -PenableCrossCompilerPlugin=true orca-web:installDist -x test
             
-            docker build -f docker/ubi8/Dockerfile-fips . -t ${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }} --build-arg CUSTOMPLUGIN_RELEASEVERSION=${{ inputs.release }}
-      
-            docker push ${{ env.CONTAINER_REGISTRY }}/${{ steps.build_variables.outputs.REPO }}:${{ steps.build_variables.outputs.VERSION }}
+            ./gradlew --no-daemon orca-web:installDist -x test
+            
+            docker build --build-arg CUSTOMPLUGIN_RELEASEVERSION=v4.0.4-custom -t quay.io/opsmxpublic/ubi8-oes-orca:testplugin3 -f docker/ubi8/Dockerfile-fips .
+            docker push quay.io/opsmxpublic/ubi8-oes-orca:testplugin3
     
 
 
