@@ -729,51 +729,53 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
         <div className="form-horizontal">
           <div className="form-group">
-            <div className="col-md-3 sm-label-right">
-              Approver Group * <HelpField id="opsmx.approval.approverGroup" />
-            </div>
-            <div className="col-md-7">
-              <div className="padding-8">
+            {!propsFormik?.parameters?.isAutomatedApproval ? (
+              <>
+                <div className="col-md-3 sm-label-right">
+                  Approver Group * <HelpField id="opsmx.approval.approverGroup" />
+                </div>
+                <div className="col-md-7">
+                  <div className="padding-8">
 
-                <Multiselect
-                  id="parameters.approvalGroups"
-                  name="parameters.approvalGroups"
-                  options={approvalGroupsList && approvalGroupsList?.map((approvalGroup: any) => ({
-                    label: approvalGroup.userGroupName,
-                    value: approvalGroup.userGroupId,
-                    userGroupName: approvalGroup.userGroupName,
-                    userGroupId: approvalGroup.userGroupId,
-                    isAdmin: approvalGroup.isAdmin,
-                    isSuperAdmin: approvalGroup.isSuperAdmin
-                  }))}
-                  selectedValues={propsFormik?.parameters.approvalGroups}
-                  onSelect={(e: any) => handleApprovalGroups(e, props)}
-                  onRemove={(e: any) => handleOnremoveOption(e, props)}
-                  displayValue="label"
-                  showCheckbox={true}
-                  showArrow
-                  style={{
-                    multiSelectContainer: {
-                      height: '200px !important',
-                      width: '50%'
-                    },
-                    searchBox: { // To change search box element look
+                    <Multiselect
+                      id="parameters.approvalGroups"
+                      name="parameters.approvalGroups"
+                      options={approvalGroupsList && approvalGroupsList?.map((approvalGroup: any) => ({
+                        label: approvalGroup.userGroupName,
+                        value: approvalGroup.userGroupId,
+                        userGroupName: approvalGroup.userGroupName,
+                        userGroupId: approvalGroup.userGroupId,
+                        isAdmin: approvalGroup.isAdmin,
+                        isSuperAdmin: approvalGroup.isSuperAdmin
+                      }))}
+                      selectedValues={propsFormik?.parameters.approvalGroups}
+                      onSelect={(e: any) => handleApprovalGroups(e, props)}
+                      onRemove={(e: any) => handleOnremoveOption(e, props)}
+                      displayValue="label"
+                      showCheckbox={true}
+                      showArrow
+                      style={{
+                        multiSelectContainer: {
+                          height: '200px !important',
+                          width: '50%'
+                        },
+                        searchBox: { // To change search box element look
 
-                    },
-                    option: { // To change css for dropdown options
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '6px'
-                    },
-                    optionContainer: {
-                      maxHeight: '200px !important'
-                    }
-                  }}
-                />
-            
-                            
-           
-                 {/* <FormikFormField
+                        },
+                        option: { // To change css for dropdown options
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '6px'
+                        },
+                        optionContainer: {
+                          maxHeight: '200px !important'
+                        }
+                      }}
+                    />
+
+
+
+                    {/* <FormikFormField
                   name="parameters.approvalGroups"
                   label=""
                   input={(approvrGroupProps) => (
@@ -794,9 +796,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                   )}
                 
                 />  */}
-             
-              </div>
-            </div>
+
+                  </div>
+                </div>
+              </>) :
+              null}
           </div>
         </div>
         {/* </div>
@@ -1091,10 +1095,12 @@ export function validate(stageConfig: IStage) {
     .required("Environment is required")
     .withValidators((value, label) => (value = '' ? `Environment is required` : undefined));
     
+  if (!stageConfig.parameters.isAutomatedApproval) {
     validator
-    .field('parameters.approvalGroups','Approver Group')
-    .required("Approver Group is required")
-    .withValidators((value, label) => (value = '' ? `Approver Group is required` : undefined));
+      .field('parameters.approvalGroups', 'Approver Group')
+      .required("Approver group is required. If Approver group is not entered anybody can able to approve or reject the application.")
+      .withValidators((value, label) => (value = '' ? `Approver group is required. If Approver group is not entered anybody can able to approve or reject the application.` : undefined));
+  }
 
     stageConfig.parameters.selectedConnectors[0].values?.map((connectorValue: any, index:number) => {
         validator
