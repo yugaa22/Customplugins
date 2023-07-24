@@ -343,7 +343,7 @@ export function PolicyGateConfig(props: IStageConfigProps) {
                     <div className="col-md-7">
                       <div className="grid-span-4" style={{ paddingLeft: '17px' }}> 
                           <TextAreaInput 
-                          name="old "
+                          name="Description"
                           id="policyDescripton"
                           value={renderPolicyDescription(formik.values.parameters.policyId)}
                           disabled={true}/>
