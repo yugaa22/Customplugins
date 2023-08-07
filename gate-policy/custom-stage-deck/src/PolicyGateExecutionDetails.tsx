@@ -116,7 +116,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
                 <td className='policy-details-padding'>{new Date(props.stage.endTime).toLocaleString()}</td>
                 <td className='policy-details-padding word-break' title={props.stage.outputs.policyName}>{truncateTxt(props.stage.outputs.policyName)}   </td>
                 <td className='policy-details-padding'><span className={'clikable PolicyStatusSmall ' + getClasses()} onClick={setModalIsOpenToTrue}>View</span>
-                <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup modal-dialog" overlayClassName="react-modal-custom">
+                <Modal id="verification-exe-modal" isOpen={modalIsOpen} className="modal-popup-policy modal-dialog" overlayClassName="react-modal-custom">
                 <div className="modal-content">
                   <Tooltip value="Open in a new tab" placement="left">
                   <a href={isdUrl + "/ui/plugin-isd" + props.stage.outputs.policyLink} target="_blank" className="open-new-tab">
