@@ -99,6 +99,7 @@ public class ApprovalMonitorTask implements RetryableTask {
 		try {
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", user);
+			logger.info("*********** x-spinnaker-user :{}",user);
 			String payload = finalJson.toString();
 			request.setEntity(new StringEntity(payload));
 			CloseableHttpResponse response = httpClient.execute(request);

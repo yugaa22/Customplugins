@@ -180,8 +180,9 @@ public class ApprovalTriggerTask implements Task {
 						.build();
 			}
 
-
+            logger.info("Trigger Url:{}",triggerUrl);
 			logger.info("Application name : {}, pipeline name : {}", stage.getExecution().getApplication(), stage.getExecution().getName());
+			logger.info("*********** Approval Trigger user :{}",stage.getExecution().getAuthentication().getUser());
 			HttpPost request = new HttpPost(triggerUrl);
 			String triggerPayload = preparePayload((Map<String, Object>) stage.getContext().get("parameters"), stage.getExecution().getId());
 			outputs.put(TRIGGER_JSON, String.format("Payload json - %s", triggerPayload));
@@ -499,6 +500,8 @@ public class ApprovalTriggerTask implements Task {
 		logger.info("triggerEndpoint : {}", triggerEndpoint);
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		try {
+			logger.info("*****Trigger Endpoint :{}",triggerEndpoint)
+			logger.info("*********** Stage Authentication user :{}",stage.getExecution().getAuthentication().getUser());
 			HttpGet request = new HttpGet(triggerEndpoint);
 			request.setHeader("Content-type", "application/json");
 			request.setHeader("x-spinnaker-user", stage.getExecution().getAuthentication().getUser());
