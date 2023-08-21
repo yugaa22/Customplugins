@@ -528,10 +528,10 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   // };
 
   const renderSupportedParams = (props: IFormikStageConfigInjectedProps) => {
-    console.log("What's Single Field  Props content here: ", props.stage.parameters)
-    console.log("What's Multiple Props content here: ", props.formik.values.parameters)
+    console.log("What's Single Field  Props content here: ", props?.stage?.parameters)
+    console.log("What's Multiple Props content here: ", props?.formik?.values?.parameters)
 
-    const fieldParams = props.formik.values.parameters ?? null
+    const fieldParams = props?.formik?.values?.parameters ? props.formik.values.parameters : props?.stage?.parameters ? props.stage.parameters : null;
     if (!(fieldParams && fieldParams.connectors)) {
       return;
     }
