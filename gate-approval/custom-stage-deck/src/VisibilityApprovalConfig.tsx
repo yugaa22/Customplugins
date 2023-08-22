@@ -51,7 +51,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     </div>
   );
 
-  console.log("Main Return", props);
 
 
   //Load Initial Values
@@ -59,7 +58,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   const [parametersPresent, setParametersPresent] = useState(false);
 
   const [accountsApiCall, setAccountsApiCall] = useState(true);
-  const [tempAccountsList, setTempAccountsList] = useState<any>({});
 
   //Load List of Connectors Details
   const [listOfConnectors, setListOfConnectors] = useState([]);
@@ -258,7 +256,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       formik.setFieldValue("parameters.environment[0]['spinnakerEnvironment']", spinnValue);
     }
 
-    console.log("After update handleOnEnvironmentSelect", props);
   }
 
   //Automated Approval
@@ -340,21 +337,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 
 
-    // REST(`platformservice/v6/users/${props.application.attributes.user}/datasources?datasourceType=${selectedConnector}&permissionId=view`).
-    // get()
-    // .then((response) => {
 
-    //   if(listOfConnectors && (selectedConnector.length > 0)){
-    //   // Find Index of listOfConnectors to see if the selected connector is present
-    //         const findIndex = accountsOptions.findIndex((specificAccountOption : any) => specificAccountOption[selectedConnector.toLowerCase()] == selectedConnector.toLowerCase());
-
-    //         if(findIndex < 0){
-    //           let temp: any = {};
-    //           temp[selectedConnector.toLowerCase()] = response;
-    //           setAccountsOptions([...accountsOptions, temp]);
-    //         }
-    //   }
-    // })
 
 
   }, [selectedConnector])
@@ -390,7 +373,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
                 localStorage.setItem('accountList', JSON.stringify(options));
               }
             }
-            console.log("Final OPTIONS: ", options);
             setAccountsOptions(options);
           }
         }
@@ -418,7 +400,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
         const selectedConnectorsObj = props.stage.parameters.selectedConnectors
 
         if (selectedConnectorsObj.length > 0 && selectedConnectorsObj[0].values) {
-          console.log("Display selectedConnectorsObj Value: ", selectedConnectorsObj[0].values);
           const selectedArray = [...new Set(selectedConnectorsObj[0].values.map((obj: any) => obj.connector ? obj.connector?.toLowerCase() : null))];
           selectedArray.forEach((element: any, index: number) => {
             if (!element)
@@ -454,9 +435,13 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
   //  Component Starts ------------------------------
 
-  const singleFieldComponent = (fieldParams: any) => {
+  const [chosenStage] = React.useState({} as IStageForSpelPreview);
 
-    fieldParams = props.stage.parameters ?? null
+
+  
+  const renderSupportedParams = (props: IFormikStageConfigInjectedProps) => {
+
+    const fieldParams = props?.formik?.values?.parameters ? props.formik.values.parameters : props?.stage?.parameters ? props.stage.parameters : null;
     if (!(fieldParams && fieldParams.connectors)) {
       return;
     }
@@ -472,13 +457,11 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
             <div className="form-horizontal">
               <div className="form-group">
                 <div className="col-md-3 sm-label-right">
-                  {((dynamicField.connectorType == 'AUTOPILOT'  ? "VERIFICATION" : dynamicField.connectorType) + ' ' + dynamicField.supportedParams[0].label).toUpperCase()}<HelpField id={'approval' + dynamicField.connectorType + dynamicField.supportedParams[0].name} />
+                  {((dynamicField.connectorType == 'AUTOPILOT' ? "VERIFICATION" : dynamicField.connectorType) + ' ' + dynamicField.supportedParams[0].label).toUpperCase()}<HelpField id={'approval' + dynamicField.connectorType + dynamicField.supportedParams[0].name} />
                 </div>
                 <div className="col-md-7">
                   <FormikFormField
                     name={`parameters.connectors[${index}].values[0].${dynamicField.supportedParams[0].name}`}
-                    // label={dynamicField.connectorType + ' ' + dynamicField.supportedParams[0].label}
-                    // help={<HelpField id={'approval' + dynamicField.connectorType + dynamicField.supportedParams[0].name} />}
                     input={(props) => <TextInput {...props} />}
                   />
                 </div>
@@ -487,65 +470,50 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
           </div>
         );
       } else {
-        return null;
-      }
-    });
-  };
-
-  const [chosenStage] = React.useState({} as IStageForSpelPreview);
-
-  const multiFieldComp = (props: any) => {
-    const fieldParams = props.formik.values.parameters ?? null
-    if (!(fieldParams && fieldParams.connectors)) {
-      return;
-    }
-    return fieldParams.connectors.map((dynamicField: any, index: number) => {
-      if (
-        (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-        dynamicField.supportedParams.length > 1
-      ) {
-        HelpContentsRegistry.register('approval' + dynamicField.connectorType, dynamicField.helpText);
-        return (
-          <div className="grid-span-2">
-
-            <div className="form-horizontal">
-              <div className="form-group">
-                <div className="col-md-3 sm-label-right">
-                  {dynamicField.connectorType.toUpperCase()}<HelpField id={'approval'+ dynamicField.connectorType} />
-                </div>
-                <div className="col-md-7">
-                  <FormikFormField
-                    name={dynamicField.connectorType}
-                    // label={dynamicField.connectorType}
-                    // help={<HelpField id={dynamicField.connectorType} />}
-                    input={() => (
-                      <LayoutProvider value={StandardFieldLayout}>
-                        <div className="flex-container-v margin-between-lg dynamicFieldSection">
-                          <EvaluateVariablesStageForm
-                            blockLabel={dynamicField.connectorType}
-                            chosenStage={chosenStage}
-                            headers={dynamicField.supportedParams}
-                            isMultiSupported={dynamicField.isMultiSupported}
-                            fieldMapName="connectors"
-                            parentIndex={index}
-                            // deleteConnectorDetails={deleteConnectorDetails}
-                            {...props}
-                          />
-                        </div>
-                      </LayoutProvider>
-                    )}
-                  />
+        if (
+          (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
+          dynamicField.supportedParams.length > 1
+        ) {
+          HelpContentsRegistry.register('approval' + dynamicField.connectorType, dynamicField.helpText);
+          return (
+            <div className="grid-span-2">
+  
+              <div className="form-horizontal">
+                <div className="form-group">
+                  <div className="col-md-3 sm-label-right">
+                    {dynamicField.connectorType.toUpperCase()}<HelpField id={'approval' + dynamicField.connectorType} />
+                  </div>
+                  <div className="col-md-7">
+                    <FormikFormField
+                      name={dynamicField.connectorType}
+                      input={() => (
+                        <LayoutProvider value={StandardFieldLayout}>
+                          <div className="flex-container-v margin-between-lg dynamicFieldSection">
+                            <EvaluateVariablesStageForm
+                              blockLabel={dynamicField.connectorType}
+                              chosenStage={chosenStage}
+                              headers={dynamicField.supportedParams}
+                              isMultiSupported={dynamicField.isMultiSupported}
+                              fieldMapName="connectors"
+                              parentIndex={index}
+                              {...props}
+                            />
+                          </div>
+                        </LayoutProvider>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
+  
             </div>
-
-          </div>
-        );
-      } else {
-        return null;
+          );
+        } else {
+          return null;
+        }
       }
-    });
-  };
+  })
+}
 
   const renderComponent = (props: IFormikStageConfigInjectedProps) => {
     const propsFormik = props.formik.values;
@@ -640,33 +608,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
             </div>
 
-            {/* {propsFormik?.parameters?.isAutomatedApproval ?
-              <div className="grid">
-
-                <div className="grid-span-1 automatedApprovalAlign">
-                  <FormikFormField
-                    name="parameters.automatedApproval[0].policyId"
-                    label=""
-                    input={(automatedApproval) => (
-                      <ReactSelectInput
-                        {...automatedApproval}
-                        clearable={false}
-                        onChange={(e: any) => handleAutomatedApproval(e, props)}
-                        //   this.props.formik.setFieldValue('parameters.connectorType', o.target.value);
-                        // }}
-                        options={policyList && policyList.map((policy: any) => ({
-                          value: policy.policyId,
-                          label: policy.policyName
-                        }))}
-                        value={props.formik.values.parameters?.automatedApproval[0].policyId}
-                      //stringOptions={...props}
-                      />
-                    )}
-                  />
-                </div>
-
-              </div>
-              : null} */}
 
           </div>
         </div>
@@ -775,27 +716,6 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
 
 
-                    {/* <FormikFormField
-                  name="parameters.approvalGroups"
-                  label=""
-                  input={(approvrGroupProps) => (
-                    <MultiSelect
-                    {...approvrGroupProps}
-                      options={approvalGroupsList && approvalGroupsList.map((approvalGroMultiSelectup: any) => ({
-                        label: approvalGroup.userGroupName,
-                        value: approvalGroup.userGroupId,
-                        userGroupName: approvalGroup.userGroupName,
-                        userGroupId: approvalGroup.userGroupId,
-                        isAdmin: approvalGroup.isAdmin,
-                        isSuperAdmin: approvalGroup.isSuperAdmin
-                      }))}
-                      onChange={(e: any) => handleApprovalGroups(e, props)}
-                      labelledBy="parameters.approvalGroups"
-                      value={propsFormik?.parameters.approvalGroups}
-                    />
-                  )}
-                
-                />  */}
 
                   </div>
                 </div>
@@ -812,49 +732,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
       {/*  */}
 
 
-
-
-
-
-
-
-      {/* <div  className='grid grid-4'>
-            <div className="grid-span-1">
-              <div className='sp-formItem'>
-
-                <p className='approvalGroupTxt'>Approval Groups *</p> 
-                <MultiSelect
-                  options = {approvalGroupsList && approvalGroupsList.map((approvalGroup: any) => ({
-                            label: approvalGroup.userGroupName,
-                            value: approvalGroup.userGroupId,
-                            userGroupName: approvalGroup.userGroupName,
-                            userGroupId: approvalGroup.userGroupId,
-                            isAdmin: approvalGroup.isAdmin,
-                            isSuperAdmin: approvalGroup.isSuperAdmin
-                          }))} 
-                  onChange={(e:any) => handleApprovalGroups(e,props)}
-                  labelledBy="Select"
-                  value={propsFormik?.parameters?.approvalGroups}
-
-                /> 
-              </div>
-            </div>
-
-        </div> */}
-
       <HorizontalRule />
-
-
-      {/* <div className="form-horizontal">
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-         
-          </div>
-          <div className="col-md-7">
-          
-          </div>
-        </div>
-      </div> */}
 
 
       <div className='grid grid-span-2'>
@@ -864,132 +742,14 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
 
       <div className="grid grid-4"></div>
 
-      {/* Load Connecto Specific Details */}
+      {/* Load Connector Specific Details */}
       <div className='grid grid-2'>
-        {loadConnectors ? multiFieldComp(props) : null}
-        {loadConnectors ? singleFieldComponent(props) : null}
+        {loadConnectors ? renderSupportedParams(props) : null}
       </div>
-
-      {/* <HorizontalRule /> */}
-
-
-
-
-
-      {/* <div className="grid-span-4 fullWidthContainer">
-                  <FormikFormField
-              name="parameters.gateUrl"
-              label="Gate Url"
-              help={<HelpField id="opsmx.approval.gateUrl" />}
-              input={(props) => <TextInput className="fullWidthField" {...props} />}
-            />
-          </div> */}
-      {/* {singleFieldComponent(fieldParams)}*/}
-      {/* {multiFieldComp({ ...props })}  */}
-
-      {/* <div className="grid-span-4 fullWidthContainer">
-            <FormikFormField
-              name="parameters.imageIds"
-              label="Image Ids"
-              help={<HelpField id="opsmx.approval.imageIds" />}
-              input={(props) => <TextInput className="fullWidthField" {...props} />}
-            />
-          </div> */}
-
-
-      {/* Load Image Id's for Execution Details*/}
-
-      {/* <div className="form-horizontal">
-        <div className="form-group">
-          <div className="col-md-3 sm-label-right">
-          Instance Id *<HelpField id="opsmx.approval.imageIds" />
-          </div>
-          <div className="col-md-7">
-            <div className='grid grid-4'>
-              <div className="grid-span-4">
-                <FormikFormField
-                  name="parameters.imageids"
-                  label=""
-                  // help={<HelpField id="opsmx.approval.imageIds" />}
-                  required={true}
-                  input={(props) => <TextInput {...props} />}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <HorizontalRule /> */}
-
-
-
-      {/* <div  className='grid grid-4'>
-
-              <div className="grid-span-2">
-                <h4 className='gateSecurity'>Gate Security</h4>
-                <br />
-                <div className="grid-span-2">
-                  {propsFormik.gateUrl}
-                </div>
-                {multiFieldGateSecurityComp({ ...props })}
-              </div>
-          </div> */}
 
     </>
-    // );
-    // } else {
-    //   renderContent = exceptionDiv;
-    // }
-    // return renderContent;
+   
   };
-
-
-// Gate Security
-  
-  // const multiFieldGateSecurityComp = (props: any) => {
-  //   // getGateSecurityParams();
-
-  //   const fieldParams = props.formik.values?.parameters ?? null
-  //   if(!(fieldParams && fieldParams.gateSecurity)){
-  //     return;
-  //   }
-  //   // const fieldParams = props.stage.parameters ?? null
-  //   return fieldParams.gateSecurity.map((dynamicField: any, index: number) => {
-  //     if (
-  //       (dynamicField.supportedParams.length > 0 && dynamicField.isMultiSupported) ||
-  //       dynamicField.supportedParams.length > 1
-  //     ) {
-  //       HelpContentsRegistry.register(dynamicField.connectorType, dynamicField.helpText);
-  //       return (
-  //         <div className="grid-span-4 fullWidthContainer">
-  //           <FormikFormField
-  //             name={dynamicField.connectorType}
-  //             label={dynamicField.connectorType}
-  //             help={<HelpField id={dynamicField.connectorType} />}
-  //             input={() => (
-  //               <LayoutProvider value={StandardFieldLayout}>
-  //                 <div className="flex-container-v margin-between-lg dynamicFieldSection">
-  //                   <EvaluateVariablesStageForm
-  //                     blockLabel={dynamicField.connectorType}
-  //                     chosenStage={chosenStage}
-  //                     headers={dynamicField.supportedParams}
-  //                     isMultiSupported={dynamicField.isMultiSupported}
-  //                     fieldMapName = "gateSecurity"
-  //                     parentIndex={index}
-  //                     {...props}
-  //                   />
-  //                 </div>
-  //               </LayoutProvider>
-  //             )}
-  //           />
-  //         </div>
-  //       );
-  //     } else {
-  //       return null;
-  //     }
-  //   });
-  // };
 
 
   //MultiField Selected Connectors dropdown
@@ -1120,7 +880,6 @@ export function validate(stageConfig: IStage) {
         connector.values.map((connectorValue: any, valueIndex: number) => {
           if (connector.supportedParams?.length > 1) {
             connector.supportedParams.map((param: any, paramIndex: number) => {
-              console.log("connectorValue", param, connectorValue);
               {
                 validator
                   .field(`parameters.connectors[${index}].values[${valueIndex}].${connector.supportedParams[paramIndex].name}`)
@@ -1132,7 +891,6 @@ export function validate(stageConfig: IStage) {
         })
       } else if(connector.supportedParams?.length > 1){
         connector.supportedParams.map((param: any, paramIndex: number) => {
-          console.log("connectorValue", param);
           {
             validator
               .field(`parameters.connectors[${index}].values[0].${connector.supportedParams[paramIndex].name}`)
@@ -1150,10 +908,6 @@ export function validate(stageConfig: IStage) {
 
 
 
-  // validator
-  //   .field('parameters.imageids','Instance Id')
-  //   .required("Instance Id is required")
-  //   .withValidators((value, label) => (value = '' ? `Image Ids is required` : undefined));
     
  return validator.validateForm();
 }
