@@ -61,6 +61,7 @@ public class EventListenerExtension implements EventListener {
 
                 if (ssdConfig.isEnable()) {
                     eventMap.put("spinnakerName", spinnakerConfig.getName());
+                    ssdEvents(eventMap);
                     ssdStageWithDeploymentManifestEvents(eventMap);
                 }
             }
