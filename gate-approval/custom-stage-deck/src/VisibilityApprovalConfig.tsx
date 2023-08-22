@@ -529,6 +529,15 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
     if (!(fieldParams && fieldParams.connectors)) {
       return;
     }
+    if(fieldParams.selectedConnectors && fieldParams.selectedConnectors[0] && fieldParams.selectedConnectors[0].values?.length>0){
+      let selectedConnTypes = [];
+      fieldParams.selectedConnectors[0].values.forEach(el=>{
+        selectedConnTypes.push(el.connector)
+      })
+      fieldParams.connectors.sort(function (a, b) {
+     return selectedConnTypes.indexOf(a.connectorType) - selectedConnTypes.indexOf(b.connectorType);
+   });
+    }
     return fieldParams.connectors.map((dynamicField: any, index: number) => {
       console.log("Each Connector: ", dynamicField)
       if (dynamicField.supportedParams.length < 2 && !dynamicField.isMultiSupported) {
