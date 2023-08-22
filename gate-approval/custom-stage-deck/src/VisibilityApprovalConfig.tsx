@@ -538,6 +538,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
      return selectedConnTypes.indexOf(a.connectorType) - selectedConnTypes.indexOf(b.connectorType);
    });
     }
+    console.log("alignedddddddd Connector: ", fieldParams)
     return fieldParams.connectors.map((dynamicField: any, index: number) => {
       console.log("Each Connector: ", dynamicField)
       if (dynamicField.supportedParams.length < 2 && !dynamicField.isMultiSupported) {
