@@ -118,18 +118,17 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
         : []) 
       : []) 
     : []).map((obj:any) => obj.connector);
-    let connectors = [];
-    for (const key in connectorsList) {
-      if (connectorsList.hasOwnProperty(key)) {
-        connectors.push({label:connectorsList[key] == "AUTOPILOT" ? "VERIFICATION" : connectorsList[key], value:key, disabled: temp.includes(key)})
-      }
-    }
-   return connectors;
-  //  connectorsList.map(e => ({
-  //     value: e,
-  //     label: e == "AUTOPILOT" ? "VERIFICATION" : e,
-  //     disabled: temp.includes(e)
-  //   }))
+    // let connectors = [];
+    // for (const key in connectorsList) {
+    //   if (connectorsList.hasOwnProperty(key)) {
+    //     connectors.push({label:connectorsList[key], value:key, disabled: temp.includes(key)})
+    //   }
+    // }
+   return connectorsList.map(e => ({
+      value: e,
+      label: e == "AUTOPILOT" ? "VERIFICATION" : e,
+      disabled: temp.includes(e)
+    }))
   }
 
 
