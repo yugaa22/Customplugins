@@ -147,7 +147,7 @@ export function PolicyGateExecutionDetails(props: IExecutionDetailsSectionProps)
             </thead>
             <tbody>
               <tr>
-                <td className='policy-details-padding wrapMessage' colSpan ={5}>{props.stage.outputs.message}</td>
+                <td className='policy-details-padding' colSpan ={5}>{props.stage.outputs.message}</td>
               </tr>
             </tbody>
           </table>
