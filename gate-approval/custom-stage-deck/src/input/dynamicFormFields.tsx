@@ -23,7 +23,7 @@ interface IEvaluateVariablesStageFormProps extends IFormikStageConfigInjectedPro
   isMultiSupported: boolean;
   selectInput: boolean;
   options: [];
-  connectorsList: [];
+  connectorsList: any;
   listOfConnectorDetails: any;
   accountsOptions: any,
   // accountsList: [];
@@ -119,13 +119,13 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
       : []) 
     : []).map((obj:any) => obj.connector);
 
-   return connectorsList.map(e => ({
-      value: e,
-      label: e == "AUTOPILOT" ? "VERIFICATION" : e,
-      disabled: temp.includes(e)
-    }))
-  }
-
+      let frameConnector = [];
+      for (const [key, value] of Object.entries(connectorsList)) {
+        let labeloption = value == "Autopilot" ? "Verification" : value
+        frameConnector.push({ value: key, label: labeloption, disabled: temp.includes(key) })
+      }
+      return frameConnector;
+    }
 
   return (
     <>
