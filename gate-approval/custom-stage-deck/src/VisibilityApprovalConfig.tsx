@@ -315,7 +315,7 @@ export function VisibilityApprovalConfig(props: IStageConfigProps) {
   const [connectorTypeList, setConnectorTypeList] = useState([]);
 
   useEffect(() => {
-    REST(`visibilityservice/v1/toolConnectors/configuredConnectorTypes`).
+    REST(`visibilityservice/v2/toolConnectors/configuredConnectorTypes`).
       get()
       .then((response) => {
         setConnectorTypeList(response)
