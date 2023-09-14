@@ -121,8 +121,7 @@ export function EvaluateVariablesStageForm(props: IEvaluateVariablesStageFormPro
 
       let frameConnector = [];
       for (const [key, value] of Object.entries(connectorsList)) {
-        let labeloption = value == "Autopilot" ? "Verification" : value
-        frameConnector.push({ value: key, label: labeloption, disabled: temp.includes(key) })
+        frameConnector.push({ value: key, label: value, disabled: temp.includes(key) })
       }
       return frameConnector;
     }
